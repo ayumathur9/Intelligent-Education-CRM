@@ -1,2 +1,5 @@
 [deploy]
 restartPolicyType = "on_failure"
+
+[[services]]
+port = 8000
