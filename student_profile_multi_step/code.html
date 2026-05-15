@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Edit Student Profile | Intelligent Education CRM</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700&amp;family=Manrope:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        body {
+            background-color: #fff8f7;
+        }
+        .stepper-item.active .stepper-circle {
+            border-color: #a20513;
+            background-color: #a20513;
+            color: white;
+        }
+        .stepper-item.completed .stepper-circle {
+            border-color: #10b981;
+            background-color: #10b981;
+            color: white;
+        }
+        .stepper-item.incomplete .stepper-circle {
+            border-color: #ef4444;
+            background-color: #fee2e2;
+            color: #ef4444;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed": "#ffdad6",
+                        "on-surface-variant": "#5b403d",
+                        "tertiary-fixed-dim": "#88ceff",
+                        "surface-bright": "#fff8f7",
+                        "on-tertiary-fixed-variant": "#004c6e",
+                        "tertiary-container": "#006e9d",
+                        "inverse-on-surface": "#ffedea",
+                        "on-primary-fixed": "#410003",
+                        "secondary-fixed-dim": "#a9c7ff",
+                        "on-primary": "#ffffff",
+                        "surface-container-highest": "#f9dcd9",
+                        "surface-variant": "#f9dcd9",
+                        "surface-container": "#ffe9e6",
+                        "on-tertiary-container": "#d1eaff",
+                        "outline": "#8f706c",
+                        "on-secondary-fixed": "#001b3d",
+                        "inverse-primary": "#ffb4ac",
+                        "tertiary": "#00557a",
+                        "outline-variant": "#e4beba",
+                        "on-secondary-container": "#003670",
+                        "secondary-fixed": "#d6e3ff",
+                        "on-primary-fixed-variant": "#93000e",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary-container": "#ffe0dd",
+                        "surface-container-low": "#fff0ef",
+                        "on-surface": "#271816",
+                        "error": "#ba1a1a",
+                        "primary-fixed-dim": "#ffb4ac",
+                        "surface-dim": "#f0d4d0",
+                        "background": "#fff8f7",
+                        "on-background": "#271816",
+                        "primary": "#a20513",
+                        "surface": "#fff8f7",
+                        "secondary-container": "#64a1ff",
+                        "error-container": "#ffdad6",
+                        "tertiary-fixed": "#c8e6ff",
+                        "secondary": "#005db7",
+                        "surface-container-high": "#ffe2de",
+                        "inverse-surface": "#3e2c2a",
+                        "on-secondary": "#ffffff",
+                        "on-secondary-fixed-variant": "#00468c",
+                        "on-tertiary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "surface-tint": "#b91d20",
+                        "on-tertiary-fixed": "#001e2f",
+                        "primary-container": "#c62828",
+                        "on-error": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "container_max_width": "1440px",
+                        "sidebar_width": "260px",
+                        "base": "8px",
+                        "navbar_height": "72px",
+                        "gutter": "24px",
+                        "card_padding": "20px"
+                    },
+                    "fontFamily": {
+                        "label-bold": ["Manrope"],
+                        "label-sm": ["Manrope"],
+                        "h2": ["Lexend"],
+                        "h3": ["Lexend"],
+                        "body-lg": ["Manrope"],
+                        "h1": ["Lexend"],
+                        "body-md": ["Manrope"]
+                    },
+                    "fontSize": {
+                        "label-bold": ["12px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                        "label-sm": ["12px", {"lineHeight": "1.2", "fontWeight": "500"}],
+                        "h2": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                        "h3": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                        "body-lg": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "h1": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="../supabase-config.js"></script>
+</head>
+<body class="font-body-md text-on-surface bg-background">
+<!-- SIDEBAR -->
+<aside class="fixed left-0 top-0 h-full w-[260px] bg-primary dark:bg-primary-container flex flex-col py-6 space-y-2 shadow-lg z-50">
+<div class="px-6 mb-8">
+<a href="/"><h1 class="font-h2 text-h2 font-bold text-on-primary">Intelligent Education</h1></a>
+<p class="font-label-bold text-label-bold text-on-primary/70 uppercase tracking-widest">CRM Portal</p>
+</div>
+<nav class="flex-1 px-4 space-y-1">
+<a class="flex items-center px-4 py-3 text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg" href="/">
+<span class="material-symbols-outlined mr-3" data-icon="dashboard">dashboard</span>
+<span class="font-label-bold text-label-bold">Dashboard</span>
+</a>
+<a class="flex items-center px-4 py-3 bg-on-primary-fixed-variant text-on-primary rounded-lg shadow-sm" href="/student-profile/">
+<span class="material-symbols-outlined mr-3" data-icon="group">group</span>
+<span class="font-label-bold text-label-bold">Students</span>
+</a>
+<a class="flex items-center px-4 py-3 text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg" href="/applications/">
+<span class="material-symbols-outlined mr-3" data-icon="school">school</span>
+<span class="font-label-bold text-label-bold">Schools</span>
+</a>
+<a class="flex items-center px-4 py-3 text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg" href="/applications/">
+<span class="material-symbols-outlined mr-3" data-icon="menu_book">menu_book</span>
+<span class="font-label-bold text-label-bold">Courses</span>
+</a>
+<a class="flex items-center px-4 py-3 text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg" href="/interaction-log/">
+<span class="material-symbols-outlined mr-3" data-icon="list_alt">list_alt</span>
+<span class="font-label-bold text-label-bold">Interaction Log</span>
+</a>
+</nav>
+</aside>
+<!-- TOP NAVBAR -->
+<header class="fixed top-0 right-0 h-[72px] left-[260px] bg-surface-container-lowest flex items-center justify-between px-gutter shadow-[0px_4px_12px_rgba(0,0,0,0.05)] border-b border-outline-variant z-40">
+<div class="flex items-center bg-surface-container-low px-4 py-2 rounded-full w-96 border border-outline-variant">
+<span class="material-symbols-outlined text-outline" data-icon="search">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-body-md w-full ml-2" placeholder="Search students, courses..." type="text"/>
+</div>
+<div class="flex items-center space-x-6">
+<button class="relative text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<a href="/logout/" title="Sign out" class="ml-2 p-2 text-on-surface-variant hover:text-primary transition-colors rounded-lg" ><span class="material-symbols-outlined text-[22px]">logout</span></a>
+<span class="absolute top-0 right-0 block h-2 w-2 rounded-full bg-primary ring-2 ring-surface-container-lowest"></span>
+</button>
+<div class="h-10 w-10 rounded-full bg-secondary-fixed flex items-center justify-center overflow-hidden border border-outline-variant">
+{% if user.avatar %}
+<img src="/my-avatar/" alt="" class="h-full w-full object-cover"/>
+{% else %}
+<span class="font-bold text-secondary text-lg">{{ user.full_name|default:user.email|first|upper }}</span>
+{% endif %}
+</div>
+</div>
+</header>
+<!-- MAIN CONTENT -->
+<main class="ml-[260px] mt-[72px] p-gutter">
+<div class="max-w-7xl mx-auto space-y-gutter">
+<!-- BREADCRUMBS -->
+<nav class="flex items-center space-x-2 text-on-surface-variant font-label-sm mb-6">
+<a class="hover:text-primary" href="/">Dashboard</a>
+<span class="material-symbols-outlined text-[16px]" data-icon="chevron_right">chevron_right</span>
+<a class="hover:text-primary" href="/student-profile/">Students</a>
+<span class="material-symbols-outlined text-[16px]" data-icon="chevron_right">chevron_right</span>
+<span class="text-primary font-bold">Edit Profile: {{ student.first_name }} {{ student.last_name }}</span>
+</nav>
+<!-- MULTI-STEP FORM CONTAINER -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-[0px_4px_12px_rgba(0,0,0,0.05)] overflow-hidden">
+<!-- HORIZONTAL STEPPER -->
+<div class="border-b border-outline-variant bg-surface-container-low px-8 py-6 overflow-x-auto">
+<div class="flex items-center min-w-max space-x-4">
+<!-- Step 1: Personal -->
+<div class="stepper-item active flex items-center group">
+<div class="stepper-circle w-10 h-10 rounded-full border-2 flex items-center justify-center font-bold text-sm transition-all shadow-sm">1</div>
+<div class="ml-3">
+<p class="text-xs font-label-bold uppercase text-on-surface-variant group-[.active]:text-primary">Personal</p>
+<span class="material-symbols-outlined text-green-500 text-sm" data-icon="check_circle">check_circle</span>
+</div>
+</div>
+<div class="h-[2px] w-8 bg-outline-variant"></div>
+<!-- Step 2: Address -->
+<div class="stepper-item incomplete flex items-center group">
+<div class="stepper-circle w-10 h-10 rounded-full border-2 flex items-center justify-center font-bold text-sm transition-all shadow-sm">2</div>
+<div class="ml-3">
+<p class="text-xs font-label-bold uppercase text-on-surface-variant">Address</p>
+<span class="material-symbols-outlined text-red-500 text-sm" data-icon="error">error</span>
+</div>
+</div>
+<div class="h-[2px] w-8 bg-outline-variant"></div>
+<!-- Step 3: Emergency -->
+<div class="stepper-item flex items-center group">
+<div class="stepper-circle w-10 h-10 rounded-full border-2 border-outline-variant bg-white flex items-center justify-center font-bold text-sm text-outline transition-all shadow-sm">3</div>
+<div class="ml-3">
+<p class="text-xs font-label-bold uppercase text-on-surface-variant">Emergency</p>
+<p class="text-[10px] text-outline italic">Pending</p>
+</div>
+</div>
+<div class="h-[2px] w-8 bg-outline-variant"></div>
+<!-- Step 4: Education -->
+<div class="stepper-item flex items-center group">
+<div class="stepper-circle w-10 h-10 rounded-full border-2 border-outline-variant bg-white flex items-center justify-center font-bold text-sm text-outline transition-all shadow-sm">4</div>
+<div class="ml-3">
+<p class="text-xs font-label-bold uppercase text-on-surface-variant">Education</p>
+<p class="text-[10px] text-outline italic">Pending</p>
+</div>
+</div>
+<div class="h-[2px] w-8 bg-outline-variant"></div>
+<!-- Step 5: Documents -->
+<div class="stepper-item flex items-center group">
+<div class="stepper-circle w-10 h-10 rounded-full border-2 border-outline-variant bg-white flex items-center justify-center font-bold text-sm text-outline transition-all shadow-sm">5</div>
+<div class="ml-3">
+<p class="text-xs font-label-bold uppercase text-on-surface-variant">Documents</p>
+<p class="text-[10px] text-outline italic">Pending</p>
+</div>
+</div>
+<div class="h-[2px] w-8 bg-outline-variant"></div>
+<!-- Step 6: Work -->
+<div class="stepper-item flex items-center group">
+<div class="stepper-circle w-10 h-10 rounded-full border-2 border-outline-variant bg-white flex items-center justify-center font-bold text-sm text-outline transition-all shadow-sm">6</div>
+<div class="ml-3">
+<p class="text-xs font-label-bold uppercase text-on-surface-variant">Work</p>
+<p class="text-[10px] text-outline italic">Pending</p>
+</div>
+</div>
+<div class="h-[2px] w-8 bg-outline-variant"></div>
+<!-- Step 7: Referee -->
+<div class="stepper-item flex items-center group">
+<div class="stepper-circle w-10 h-10 rounded-full border-2 border-outline-variant bg-white flex items-center justify-center font-bold text-sm text-outline transition-all shadow-sm">7</div>
+<div class="ml-3">
+<p class="text-xs font-label-bold uppercase text-on-surface-variant">Referee</p>
+<p class="text-[10px] text-outline italic">Pending</p>
+</div>
+</div>
+</div>
+</div>
+<!-- FORM CONTENT -->
+<form action="#" class="p-8" method="POST">
+<!-- SECTION: Personal Details -->
+<section class="space-y-6" id="section-personal">
+<div class="flex items-center justify-between mb-4">
+<h2 class="font-h2 text-h2 text-on-surface flex items-center">
+<span class="material-symbols-outlined mr-3 text-primary" data-icon="person">person</span>
+                                Personal Details
+                            </h2>
+<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+<span class="material-symbols-outlined text-[14px] mr-1" data-icon="check">check</span> Section Complete
+                            </span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<div class="space-y-1">
+<label class="block text-sm font-label-bold text-on-surface-variant uppercase tracking-wider">First Name</label>
+<input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" type="text" value="{{ student.first_name }}"/>
+</div>
+<div class="space-y-1">
+<label class="block text-sm font-label-bold text-on-surface-variant uppercase tracking-wider">Last Name</label>
+<input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" type="text" value="{{ student.last_name }}"/>
+</div>
+<div class="space-y-1">
+<label class="block text-sm font-label-bold text-on-surface-variant uppercase tracking-wider">Email</label>
+<input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" type="email" value="{{ student.email }}"/>
+</div>
+<div class="space-y-1">
+<label class="block text-sm font-label-bold text-on-surface-variant uppercase tracking-wider">Date of Birth</label>
+<input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" type="date" value="{{ student.dob|date:'Y-m-d' }}"/>
+</div>
+<div class="space-y-1">
+<label class="block text-sm font-label-bold text-on-surface-variant uppercase tracking-wider">Gender</label>
+<select class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low">
+<option %}="" %}selected{%="" 'male'="" endif="" if="" student.gender="=" value="male" {%="">Male</option>
+<option %}="" %}selected{%="" 'female'="" endif="" if="" student.gender="=" value="female" {%="">Female</option>
+<option %}="" %}selected{%="" 'other'="" endif="" if="" student.gender="=" value="other" {%="">Other</option>
+</select>
+</div>
+<div class="space-y-1">
+<label class="block text-sm font-label-bold text-on-surface-variant uppercase tracking-wider">Nationality</label>
+<input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" type="text" value="{{ student.nationality }}"/>
+</div>
+</div>
+</section>
+<!-- SECTION: Address (Hidden/Inactive Example) -->
+<section class="hidden space-y-6" id="section-address">
+<div class="flex items-center justify-between mb-4">
+<h2 class="font-h2 text-h2 text-on-surface flex items-center">
+<span class="material-symbols-outlined mr-3 text-secondary" data-icon="location_on">location_on</span>
+                                Residential Address
+                            </h2>
+<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+<span class="material-symbols-outlined text-[14px] mr-1" data-icon="warning">warning</span> Section Incomplete
+                            </span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="col-span-full space-y-1">
+<label class="block text-sm font-label-bold text-on-surface-variant uppercase tracking-wider">Street Address</label>
+<input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" type="text" value="{{ student.address_line_1 }}"/>
+</div>
+<div class="space-y-1">
+<label class="block text-sm font-label-bold text-on-surface-variant uppercase tracking-wider">City</label>
+<input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" type="text" value="{{ student.city }}"/>
+</div>
+<div class="space-y-1">
+<label class="block text-sm font-label-bold text-on-surface-variant uppercase tracking-wider">Postal Code</label>
+<input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" type="text" value="{{ student.zip_code }}"/>
+</div>
+</div>
+</section>
+<!-- Placeholder for other sections (Emergency, Education, Documents, etc.) -->
+<!-- They would be structured similarly with IDs like section-emergency, section-education, etc. -->
+<!-- FORM FOOTER ACTIONS -->
+<div class="mt-12 pt-8 border-t border-outline-variant flex flex-col sm:flex-row items-center justify-between gap-4">
+<button class="order-2 sm:order-1 flex items-center text-on-surface-variant font-label-bold hover:text-primary transition-colors" type="button">
+<span class="material-symbols-outlined mr-2" data-icon="arrow_back">arrow_back</span>
+                            Back to Student List
+                        </button>
+<div class="order-1 sm:order-2 flex items-center space-x-4 w-full sm:w-auto">
+<button class="flex-1 sm:flex-none border border-primary text-primary px-8 py-3 rounded-lg font-label-bold hover:bg-primary-fixed/30 transition-all active:scale-95" name="save_section" type="submit">
+                                Save Section
+                            </button>
+<button class="flex-1 sm:flex-none bg-primary text-on-primary px-10 py-3 rounded-lg font-label-bold hover:bg-primary-container transition-all active:scale-95 shadow-md flex items-center justify-center" name="continue" type="submit">
+                                Continue
+                                <span class="material-symbols-outlined ml-2" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</div>
+</form>
+</div>
+<!-- HELPER CARD (YELLOW ACCENT) -->
+<div class="bg-yellow-50 border border-yellow-200 rounded-xl p-6 flex items-start space-x-4">
+<span class="material-symbols-outlined text-yellow-600 mt-1" data-icon="lightbulb">lightbulb</span>
+<div>
+<h4 class="font-bold text-yellow-800 mb-1">Pro Tip: Form Autosave</h4>
+<p class="text-sm text-yellow-700">The CRM automatically saves your progress as you move between sections. However, we recommend clicking "Save Section" after major changes to ensure data integrity.</p>
+</div>
+</div>
+</div>
+</main>
+<!-- FOOTER -->
+<footer class="ml-[260px] p-gutter border-t border-outline-variant text-center text-on-surface-variant font-label-sm">
+<p>© 2024 Intelligent Education CRM. All Rights Reserved. | v2.4.0</p>
+</footer>
+
+<!-- ===== FOOTER ===== -->
+<footer style="margin-left:260px;" class="border-t border-[#e4beba] bg-[#fff0ef] py-4 px-6 text-center text-xs text-[#5b403d]">
+  <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-1">
+    <button onclick="document.getElementById('tc-modal').classList.remove('hidden')" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">Terms &amp; Conditions</button>
+    <span class="text-[#e4beba]">|</span>
+    <button onclick="document.getElementById('pp-modal').classList.remove('hidden')" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">Privacy Policy</button>
+    <span class="text-[#e4beba]">|</span>
+    <span>Website: <a href="https://www.intelligenteducation.org" target="_blank" rel="noopener noreferrer" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">www.intelligenteducation.org</a></span>
+    <span class="text-[#e4beba]">|</span>
+    <span>Email: <a href="mailto:ho@intelligenteducation.org" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">ho@intelligenteducation.org</a></span>
+  </div>
+</footer>
+
+<!-- T&amp;C Modal -->
+<div id="tc-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-black/40 p-4" onclick="if(event.target===this)this.classList.add('hidden')">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-[#e4beba]">
+      <h2 class="text-lg font-semibold text-[#271816]" style="font-family:'Lexend',sans-serif;">Terms &amp; Conditions</h2>
+      <button onclick="document.getElementById('tc-modal').classList.add('hidden')" class="text-[#5b403d] hover:text-[#271816] transition-colors rounded-full p-1 hover:bg-[#ffe9e6]">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="overflow-y-auto px-6 py-5 text-sm text-[#271816] leading-relaxed">
+      <h3 class="text-base font-semibold text-[#a20513] mb-1" style="font-family:'Lexend',sans-serif;">Intelligent Education CRM Platform</h3>
+      <p class="text-[#5b403d] text-xs mb-4">Effective Date: May 13, 2026</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">1. Introduction</h4>
+      <p class="mb-2">Welcome to the Intelligent Education CRM Platform (&ldquo;Platform&rdquo;), operated by Intelligent Education (&ldquo;Intelligent Education,&rdquo; &ldquo;Company,&rdquo; &ldquo;we,&rdquo; &ldquo;our,&rdquo; or &ldquo;us&rdquo;).</p>
+      <p class="mb-2">These Terms and Conditions (&ldquo;Terms&rdquo;) govern access to and use of the Platform, including all associated services, software, AI-assisted features, communications, databases, dashboards, document management tools, and integrations.</p>
+      <p class="mb-2">By accessing or using the Platform, you agree to comply with and be legally bound by these Terms.</p>
+      <p class="mb-4 font-medium text-[#a20513]">If you do not agree with these Terms, you must not use the Platform.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">2. Purpose of the Platform</h4>
+      <p class="mb-2">The Platform is designed to assist Intelligent Education in managing:</p>
+      <ul class="list-disc pl-5 mb-2 space-y-1">
+        <li>Student and client relationships</li>
+        <li>Admission application workflows</li>
+        <li>Counseling and communication processes</li>
+        <li>Document collection and storage</li>
+        <li>Internal operational management</li>
+        <li>AI-assisted productivity and workflow support</li>
+      </ul>
+      <p class="mb-2">The Platform is intended solely for use by:</p>
+      <ul class="list-disc pl-5 mb-4 space-y-1">
+        <li>Authorized employees, counselors, and representatives of Intelligent Education</li>
+        <li>Registered clients and students associated with Intelligent Education</li>
+      </ul>
+
+      <h4 class="font-semibold text-[#271816] mb-1">3. Eligibility</h4>
+      <p class="mb-2">By using the Platform, you represent and warrant that:</p>
+      <ul class="list-disc pl-5 mb-2 space-y-1">
+        <li>You are legally capable of entering into a binding agreement under applicable law;</li>
+        <li>The information provided by you is accurate and complete;</li>
+        <li>You will use the Platform only for lawful purposes.</li>
+      </ul>
+      <p class="mb-4">If you are accessing the Platform on behalf of an organization or institution, you confirm that you are authorized to do so.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">4. User Accounts and Access</h4>
+      <p class="mb-2">Users may be required to create an account to access certain features. You agree to:</p>
+      <ul class="list-disc pl-5 mb-2 space-y-1">
+        <li>Maintain the confidentiality of your login credentials;</li>
+        <li>Restrict unauthorized access to your account;</li>
+        <li>Notify Intelligent Education immediately of any unauthorized use or security breach.</li>
+      </ul>
+      <p class="mb-2">Intelligent Education reserves the right to suspend or terminate accounts that:</p>
+      <ul class="list-disc pl-5 mb-4 space-y-1">
+        <li>Violate these Terms;</li>
+        <li>Engage in fraudulent, abusive, or unlawful conduct;</li>
+        <li>Attempt unauthorized access to systems or data.</li>
+      </ul>
+
+      <h4 class="font-semibold text-[#271816] mb-1">5. Data Collection and Storage</h4>
+      <p class="mb-2">The Platform may collect, process, and store personal and sensitive information, including but not limited to: names and contact details, academic records, identification documents, passport information, financial information, visa-related documentation, and application-related materials.</p>
+      <p class="mb-2">Data may be securely stored and processed using third-party infrastructure including Supabase, Railway, Google, and OpenAI.</p>
+      <p class="mb-4">While reasonable security measures are implemented, Intelligent Education does not guarantee absolute security of data transmission or storage systems.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">6. AI-Assisted Features Disclaimer</h4>
+      <p class="mb-2">The Platform may use artificial intelligence to assist with recommendations, workflow automation, draft generation, data processing, and communication support.</p>
+      <p class="mb-2">AI-generated outputs may contain inaccuracies, should not be treated as professional legal, immigration, financial, or admission advice, and require independent human review.</p>
+      <p class="mb-4">Intelligent Education makes no guarantees regarding the accuracy, reliability, or suitability of AI-generated outputs.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">7. No Guarantee of Admission or Visa Approval</h4>
+      <p class="mb-4">Use of the Platform does not guarantee admission to any educational institution, scholarship awards, visa approval, immigration outcomes, employment opportunities, or academic/professional success. All such decisions are made solely by the relevant authorities and institutions.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">8. Acceptable Use</h4>
+      <p class="mb-4">Users agree not to upload unlawful or fraudulent content, attempt unauthorized system access, interfere with Platform security, reverse engineer or exploit the Platform, or use it for illegal purposes. Intelligent Education reserves the right to investigate and take legal action for misuse.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">9. Intellectual Property</h4>
+      <p class="mb-4">All Platform content, branding, software, workflows, designs, and features are owned by or licensed to Intelligent Education. Users may not copy, reproduce, redistribute, modify, or commercially exploit any part of the Platform without prior written consent.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">10. Third-Party Services and Integrations</h4>
+      <p class="mb-4">The Platform integrates with third-party services including Google, Gmail, OpenAI, Supabase, and Railway. Intelligent Education is not responsible for third-party outages, data losses, policy changes, or service interruptions outside its reasonable control. Use of third-party services may be subject to their respective terms.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">11. Service Availability</h4>
+      <p class="mb-4">The Platform is provided on an &ldquo;as is&rdquo; and &ldquo;as available&rdquo; basis. Intelligent Education does not guarantee continuous uptime, error-free operation, or uninterrupted access. Maintenance, updates, or third-party failures may temporarily affect availability.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">12. Limitation of Liability</h4>
+      <p class="mb-2">To the maximum extent permitted by law, Intelligent Education shall not be liable for indirect, incidental, consequential, special, or punitive damages arising from use of the Platform, AI inaccuracies, data loss, admission or visa outcomes, service interruptions, unauthorized access, or third-party failures.</p>
+      <p class="mb-4">In no event shall Intelligent Education&rsquo;s total liability exceed the amount paid, if any, by the user for access during the preceding three (3) months.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">13. Indemnification</h4>
+      <p class="mb-4">Users agree to indemnify and hold harmless Intelligent Education, its employees, affiliates, contractors, and representatives from any claims, liabilities, or expenses arising from violation of these Terms, misuse of the Platform, or violation of applicable laws or third-party rights.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">14. Suspension and Termination</h4>
+      <p class="mb-4">Intelligent Education reserves the right to suspend or terminate access at any time, without prior notice, for security concerns, policy violations, fraudulent activity, misuse, or legal compliance requirements.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">15. Privacy</h4>
+      <p class="mb-4">Use of the Platform is also subject to the Intelligent Education Privacy Policy. Users acknowledge and consent to the collection, storage, and processing of data necessary for Platform operation.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">16. Governing Law and Jurisdiction</h4>
+      <p class="mb-4">These Terms shall be governed by the laws of India. Any disputes shall be subject to the exclusive jurisdiction of the courts located in India.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">17. Modifications to Terms</h4>
+      <p class="mb-4">Intelligent Education reserves the right to modify these Terms at any time. Updated versions may be published within the Platform or via official communications. Continued use of the Platform after modifications constitutes acceptance of the revised Terms.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">18. Contact Information</h4>
+      <p>For questions regarding these Terms, contact:<br/><strong>Intelligent Education</strong><br/>Email: <a href="mailto:ho@intelligenteducation.org" class="text-[#a20513] underline">ho@intelligenteducation.org</a></p>
+    </div>
+  </div>
+</div>
+<!-- Privacy Policy Modal -->
+<div id="pp-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-black/40 p-4" onclick="if(event.target===this)this.classList.add('hidden')">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-[#e4beba]">
+      <h2 class="text-lg font-semibold text-[#271816]" style="font-family:'Lexend',sans-serif;">Privacy Policy</h2>
+      <button onclick="document.getElementById('pp-modal').classList.add('hidden')" class="text-[#5b403d] hover:text-[#271816] transition-colors rounded-full p-1 hover:bg-[#ffe9e6]">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="overflow-y-auto px-6 py-5 text-sm text-[#271816] leading-relaxed space-y-3">
+      <h3 class="text-base font-semibold text-[#a20513]" style="font-family:'Lexend',sans-serif;">Intelligent Education CRM Platform</h3>
+      <p class="text-[#5b403d] text-xs">Effective Date: May 13, 2026</p>
+
+      <h4 class="font-semibold text-[#271816]">1. Introduction</h4>
+      <p>This Privacy Policy explains how Intelligent Education (&ldquo;Intelligent Education,&rdquo; &ldquo;Company,&rdquo; &ldquo;we,&rdquo; &ldquo;our,&rdquo; or &ldquo;us&rdquo;) collects, uses, stores, processes, and protects personal information through the Intelligent Education CRM Platform (&ldquo;Platform&rdquo;).</p>
+      <p>By accessing or using the Platform, you consent to the practices described in this Privacy Policy.</p>
+
+      <h4 class="font-semibold text-[#271816]">2. Scope of This Policy</h4>
+      <p>This Privacy Policy applies to students and clients, counselors and employees, authorized representatives, and all users interacting with the Platform and related services — including information collected through the CRM Platform, forms and applications, email communications, AI-assisted features, and integrated third-party services.</p>
+
+      <h4 class="font-semibold text-[#271816]">3. Information We Collect</h4>
+      <p><strong>Personal Information:</strong> Full name, date of birth, gender, nationality, contact details, address, email address, phone number.</p>
+      <p><strong>Academic &amp; Professional:</strong> Academic transcripts, test scores, resume/CV, educational history, employment details.</p>
+      <p><strong>Identity &amp; Verification Documents:</strong> Passport copies, government-issued identification, visa-related documents, financial statements, supporting application documents.</p>
+      <p><strong>Technical &amp; Usage Information:</strong> IP address, device information, browser type, login activity, usage analytics, system logs.</p>
+      <p><strong>Communication Data:</strong> Emails, messages, counseling notes, application discussions, AI-assisted communication records.</p>
+
+      <h4 class="font-semibold text-[#271816]">4. How We Use Information</h4>
+      <p>We use collected information to manage student applications and workflows, provide counseling and support services, process admissions-related activities, manage communications, generate AI-assisted recommendations and drafts, improve Platform functionality and security, maintain internal operational records, and fulfill legal and compliance obligations.</p>
+
+      <h4 class="font-semibold text-[#271816]">5. AI-Assisted Processing</h4>
+      <p>The Platform may use artificial intelligence technologies including OpenAI to generate drafts, provide workflow assistance, support administrative tasks, and improve productivity. AI-generated content may not always be accurate, should be independently reviewed, and does not constitute legal, immigration, or professional advice.</p>
+
+      <h4 class="font-semibold text-[#271816]">6. Third-Party Service Providers</h4>
+      <p>We may use trusted third-party platforms including Supabase, Railway, Google services and APIs, Gmail integrations, and OpenAI. These providers may process or store data under their own policies. We are not responsible for the independent privacy practices of third-party services.</p>
+
+      <h4 class="font-semibold text-[#271816]">7. Data Storage and Security</h4>
+      <p>We implement commercially reasonable technical and organizational safeguards to protect personal information from unauthorized access, disclosure, alteration, loss, and misuse. However, no internet-based platform can guarantee absolute security. Users acknowledge and accept inherent cybersecurity and transmission risks.</p>
+
+      <h4 class="font-semibold text-[#271816]">8. Data Sharing and Disclosure</h4>
+      <p>We do not sell personal information. We may disclose information to authorized employees and counselors, to educational institutions for applications, to government or visa authorities when necessary, to service providers supporting Platform operations, or when required by law, legal process, or regulatory obligations.</p>
+
+      <h4 class="font-semibold text-[#271816]">9. Data Retention</h4>
+      <p>We retain personal information only as long as reasonably necessary for business operations, application management, legal compliance, dispute resolution, and recordkeeping purposes. We reserve the right to retain certain records where legally required or operationally necessary.</p>
+
+      <h4 class="font-semibold text-[#271816]">10. User Rights</h4>
+      <p>Subject to applicable law, users may request access to their personal information, correction of inaccurate data, deletion of certain data, restriction of processing, or withdrawal of consent where applicable. Requests may be subject to identity verification, legal obligations, and operational requirements.</p>
+
+      <h4 class="font-semibold text-[#271816]">11. Cookies and Analytics</h4>
+      <p>The Platform may use cookies, session technologies, analytics tools, and tracking technologies to improve user experience, security, and performance. Users may disable certain cookies through browser settings, though some features may not function properly.</p>
+
+      <h4 class="font-semibold text-[#271816]">12. Children&rsquo;s Privacy</h4>
+      <p>The Platform is not intentionally directed toward children under the age required by applicable law without appropriate authorization or supervision. Where required, users represent that appropriate consent has been obtained from parents or legal guardians.</p>
+
+      <h4 class="font-semibold text-[#271816]">13. International Data Processing</h4>
+      <p>Data may be processed or stored on servers in different jurisdictions depending on the infrastructure and service providers used. By using the Platform, users consent to such transfers and processing where legally permitted.</p>
+
+      <h4 class="font-semibold text-[#271816]">14. Limitation of Liability</h4>
+      <p>To the fullest extent permitted by law, Intelligent Education shall not be liable for unauthorized access, cyberattacks, third-party breaches, data transmission failures, service interruptions, or losses arising from external systems or providers. Users use the Platform at their own risk.</p>
+
+      <h4 class="font-semibold text-[#271816]">15. Changes to This Privacy Policy</h4>
+      <p>We may update this Privacy Policy periodically. Updated versions may be posted on the Platform with a revised effective date. Continued use of the Platform after updates constitutes acceptance of the revised Privacy Policy.</p>
+
+      <h4 class="font-semibold text-[#271816]">16. Contact Information</h4>
+      <p>For questions or privacy-related requests, contact:<br/><strong>Intelligent Education</strong><br/>Email: <a href="mailto:ho@intelligenteducation.org" class="text-[#a20513] underline">ho@intelligenteducation.org</a></p>
+    </div>
+  </div>
+</div>
+<!-- ===== /FOOTER ===== -->
+</body></html>

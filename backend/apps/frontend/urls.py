@@ -1,0 +1,40 @@
+from django.urls import path
+
+from . import views
+
+urlpatterns = [
+    path("", views.dashboard, name="home"),
+    path("login/", views.login_view, name="login"),
+    path("logout/", views.logout_view, name="logout"),
+    path("dashboard/", views.dashboard, name="dashboard"),
+    path("employee-dashboard/", views.employee_dashboard, name="employee-dashboard"),
+    path("admin-dashboard/", views.admin_dashboard_view, name="admin-dashboard"),
+    path("student-dashboard/", views.student_dashboard, name="student-dashboard"),
+    path("my-profile/", views.my_profile_view, name="my-profile"),
+    path("applications/", views.applications, name="applications"),
+    path("application-manager/", views.application_manager, name="application-manager"),
+    path("notes/", views.notes_chat, name="notes"),
+    path("interaction-log/", views.interaction_log, name="interaction-log"),
+    path("student-profile/", views.students_list, name="student-profile"),
+    path("student-profile/<int:student_id>/", views.student_profile, name="student-profile-detail"),
+    path("schools/", views.schools_view, name="schools"),
+    path("schools/<int:school_id>/documents/", views.school_documents_view, name="school-documents"),
+    path("counselor-schools/<int:student_id>/schools/<int:school_id>/documents/", views.counselor_school_documents_view, name="counselor-school-documents"),
+    path("recent-activity/", views.recent_activity_view, name="recent-activity"),
+    path("admin-schools/", views.admin_schools_view, name="admin-schools"),
+    # Counselor-specific
+    path("counselor-students/", views.counselor_students_view, name="counselor-students"),
+    path("counselor-schools/", views.counselor_schools_view, name="counselor-schools"),
+    path("counselor-notes/", views.counselor_notes_view, name="counselor-notes"),
+    path("counselor-interaction-log/", views.counselor_interaction_log_view, name="counselor-interaction-log"),
+    path("counselor-activity/", views.counselor_activity_view, name="counselor-activity"),
+    path("counselor-profile-update/", views.counselor_profile_update, name="counselor-profile-update"),
+    path("my-avatar/", views.my_avatar_view, name="my-avatar"),
+    path("user-avatar/<int:pk>/", views.user_avatar_view, name="user-avatar"),
+    path("upload-profile-file/", views.upload_profile_file, name="upload-profile-file"),
+    path("profile-doc/<int:doc_id>/view/", views.view_profile_doc, name="profile-doc-view"),
+    path("student-application/<int:student_id>/", views.student_application_view, name="student-application"),
+    path("toggle-pin-note/<int:pk>/", views.toggle_pin_note, name="toggle-pin-note"),
+    path("search/", views.global_search, name="global-search"),
+    path("dismiss-priority-item/", views.dismiss_priority_item, name="dismiss-priority-item"),
+]

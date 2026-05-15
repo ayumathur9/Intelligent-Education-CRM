@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>My Profile | Intelligent Education CRM</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<style>
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    display: inline-block;
+    vertical-align: middle;
+  }
+  body { background-color: #fff8f7; }
+</style>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "primary-fixed": "#ffdad6",
+          "on-surface-variant": "#5b403d",
+          "surface-bright": "#fff8f7",
+          "inverse-on-surface": "#ffedea",
+          "on-primary": "#ffffff",
+          "surface-container-highest": "#f9dcd9",
+          "surface-variant": "#f9dcd9",
+          "surface-container": "#ffe9e6",
+          "outline": "#8f706c",
+          "outline-variant": "#e4beba",
+          "on-secondary-container": "#003670",
+          "secondary-fixed": "#d6e3ff",
+          "surface-container-lowest": "#ffffff",
+          "surface-container-low": "#fff0ef",
+          "on-surface": "#271816",
+          "error": "#ba1a1a",
+          "surface-dim": "#f0d4d0",
+          "background": "#fff8f7",
+          "on-background": "#271816",
+          "primary": "#a20513",
+          "surface": "#fff8f7",
+          "secondary-container": "#64a1ff",
+          "error-container": "#ffdad6",
+          "secondary": "#005db7",
+          "surface-container-high": "#ffe2de",
+          "inverse-surface": "#3e2c2a",
+          "on-secondary": "#ffffff",
+          "on-tertiary": "#ffffff",
+          "on-error-container": "#93000a",
+          "surface-tint": "#b91d20",
+          "primary-container": "#c62828",
+          "on-error": "#ffffff",
+          "tertiary": "#00557a",
+          "tertiary-fixed": "#c8e6ff",
+          "on-primary-fixed-variant": "#93000e",
+          "on-primary-container": "#ffe0dd",
+        },
+        borderRadius: { DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px" },
+        spacing: {
+          container_max_width: "1440px",
+          sidebar_width: "260px",
+          base: "8px",
+          navbar_height: "72px",
+          gutter: "24px",
+          card_padding: "20px"
+        },
+        fontFamily: {
+          "label-bold": ["Manrope"],
+          "label-sm": ["Manrope"],
+          "h2": ["Lexend"],
+          "h3": ["Lexend"],
+          "body-lg": ["Manrope"],
+          "h1": ["Lexend"],
+          "body-md": ["Manrope"]
+        },
+        fontSize: {
+          "label-bold": ["12px", { lineHeight: "1.2", letterSpacing: "0.05em", fontWeight: "700" }],
+          "label-sm": ["12px", { lineHeight: "1.2", fontWeight: "500" }],
+          "h2": ["24px", { lineHeight: "1.3", fontWeight: "600" }],
+          "h3": ["20px", { lineHeight: "1.4", fontWeight: "600" }],
+          "body-lg": ["16px", { lineHeight: "1.6", fontWeight: "400" }],
+          "h1": ["32px", { lineHeight: "1.2", fontWeight: "700" }],
+          "body-md": ["14px", { lineHeight: "1.5", fontWeight: "400" }]
+        }
+      }
+    }
+  }
+</script>
+<link rel="icon" type="image/png" href="/media/brand/logo.png"/>
+</head>
+<body class="font-body-md text-on-surface bg-background">
+
+<!-- SIDEBAR -->
+<aside class="fixed left-0 top-0 h-full w-[260px] bg-primary flex flex-col py-6 shadow-lg z-50">
+  <div class="px-6 mb-6">
+    <img src="/media/brand/logo.png" alt="IE" class="w-10 h-10 rounded-lg object-contain bg-white p-0.5 mb-2 block"/>
+<a href="/"><h1 class="font-h2 text-h2 font-bold text-on-primary">Intelligent Education</h1></a>
+    {% if is_own_profile %}
+    <p class="font-label-bold text-label-bold text-on-primary/60 uppercase tracking-wider">Student Portal</p>
+    {% elif user.role == "admin" %}
+    <p class="font-label-bold text-label-bold text-on-primary/60 uppercase tracking-wider">CRM Portal</p>
+    {% else %}
+    <p class="font-label-bold text-label-bold text-on-primary/60 uppercase tracking-wider">Counselor Portal</p>
+    {% endif %}
+  </div>
+  <nav class="flex-1 px-2 space-y-1 overflow-y-auto">
+    {% if is_own_profile %}
+    <a class="flex items-center gap-3 px-4 py-3 text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg mx-2 my-1" href="/">
+      <span class="material-symbols-outlined">dashboard</span>
+      <span class="font-label-bold text-label-bold">Dashboard</span>
+    </a>
+    <a class="flex items-center gap-3 px-4 py-3 bg-on-primary-fixed-variant text-on-primary rounded-lg mx-2 my-1 scale-95" href="/my-profile/">
+      <span class="material-symbols-outlined">person</span>
+      <span class="font-label-bold text-label-bold">My Profile</span>
+    </a>
+    <a class="flex items-center gap-3 px-4 py-3 text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg mx-2 my-1" href="/schools/">
+      <span class="material-symbols-outlined">school</span>
+      <span class="font-label-bold text-label-bold">Schools</span>
+    </a>
+    <a class="flex items-center gap-3 px-4 py-3 text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg mx-2 my-1" href="/interaction-log/">
+      <span class="material-symbols-outlined">list_alt</span>
+      <span class="font-label-bold text-label-bold">Interaction Log</span>
+    </a>
+    <a class="flex items-center gap-3 px-4 py-3 text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg mx-2 my-1" href="/recent-activity/">
+      <span class="material-symbols-outlined">history</span>
+      <span class="font-label-bold text-label-bold">Recent Activity</span>
+    </a>
+    {% elif user.role == "admin" %}
+    <a class="flex items-center gap-3 px-4 py-3 text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg mx-2 my-1" href="/">
+      <span class="material-symbols-outlined">dashboard</span>
+      <span class="font-label-bold text-label-bold">Dashboard</span>
+    </a>
+    <a class="flex items-center gap-3 px-4 py-3 bg-on-primary-fixed-variant text-on-primary rounded-lg mx-2 my-1 scale-95" href="/student-profile/">
+      <span class="material-symbols-outlined">group</span>
+      <span class="font-label-bold text-label-bold">Students</span>
+    </a>
+    <a class="flex items-center gap-3 px-4 py-3 text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg mx-2 my-1" href="/admin-schools/">
+      <span class="material-symbols-outlined">school</span>
+      <span class="font-label-bold text-label-bold">Schools</span>
+    </a>
+    <a class="flex items-center gap-3 px-4 py-3 text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg mx-2 my-1" href="/admin/">
+      <span class="material-symbols-outlined">manage_accounts</span>
+      <span class="font-label-bold text-label-bold">Users</span>
+    </a>
+    <a class="flex items-center gap-3 px-4 py-3 text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg mx-2 my-1" href="/counselor-interaction-log/">
+      <span class="material-symbols-outlined">list_alt</span>
+      <span class="font-label-bold text-label-bold">Interaction Log</span>
+    </a>
+    {% else %}
+    <a class="flex items-center gap-3 px-4 py-3 text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg mx-2 my-1" href="/">
+      <span class="material-symbols-outlined">dashboard</span>
+      <span class="font-label-bold text-label-bold">Dashboard</span>
+    </a>
+    <a class="flex items-center gap-3 px-4 py-3 bg-on-primary-fixed-variant text-on-primary rounded-lg mx-2 my-1 scale-95" href="/counselor-students/">
+      <span class="material-symbols-outlined">group</span>
+      <span class="font-label-bold text-label-bold">Students</span>
+    </a>
+    <a class="flex items-center gap-3 px-4 py-3 text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg mx-2 my-1" href="/counselor-schools/">
+      <span class="material-symbols-outlined">school</span>
+      <span class="font-label-bold text-label-bold">Schools</span>
+    </a>
+    <a class="flex items-center gap-3 px-4 py-3 text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg mx-2 my-1" href="/counselor-interaction-log/">
+      <span class="material-symbols-outlined">list_alt</span>
+      <span class="font-label-bold text-label-bold">Interaction Log</span>
+    </a>
+    <a class="flex items-center gap-3 px-4 py-3 text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg mx-2 my-1" href="/counselor-activity/">
+      <span class="material-symbols-outlined">history</span>
+      <span class="font-label-bold text-label-bold">Recent Activity</span>
+    </a>
+    {% endif %}
+  </nav>
+</aside>
+
+<!-- TOP NAVBAR -->
+<header class="fixed top-0 right-0 h-[72px] left-[260px] bg-surface-container-lowest flex items-center justify-between px-gutter shadow-[0px_4px_12px_rgba(0,0,0,0.05)] border-b border-outline-variant z-40">
+  <div class="flex items-center bg-surface-container-low px-4 py-2 rounded-full w-96 border border-outline-variant">
+    <span class="material-symbols-outlined text-outline">search</span>
+    <input class="bg-transparent border-none focus:ring-0 text-body-md w-full ml-2" placeholder="Search students, courses..." type="text"/>
+  </div>
+  <div class="flex items-center space-x-6">
+    <button class="relative text-on-surface-variant hover:text-primary transition-colors">
+      <span class="material-symbols-outlined">notifications</span>
+      <a href="/logout/" title="Sign out" class="ml-2 p-2 text-on-surface-variant hover:text-primary transition-colors rounded-lg">
+        <span class="material-symbols-outlined text-[22px]">logout</span>
+      </a>
+      <span class="absolute top-0 right-0 block h-2 w-2 rounded-full bg-primary ring-2 ring-surface-container-lowest"></span>
+    </button>
+    <div class="h-10 w-10 rounded-full bg-secondary-fixed flex items-center justify-center overflow-hidden border border-outline-variant">
+      <img id="nav-avatar-img" alt="Profile" class="h-full w-full object-cover{% if not user.avatar %} hidden{% endif %}" src="{% if user.avatar %}/my-avatar/{% endif %}"/>
+      <span id="nav-avatar-initial" class="font-bold text-secondary text-lg{% if user.avatar %} hidden{% endif %}">{{ user.full_name|default:user.email|first|upper }}</span>
+    </div>
+  </div>
+</header>
+
+<!-- MAIN CONTENT -->
+<main class="ml-[260px] mt-[72px] p-gutter">
+  <div class="max-w-5xl mx-auto space-y-gutter">
+
+    <!-- BREADCRUMBS -->
+    <nav class="flex items-center space-x-2 text-on-surface-variant font-label-sm mb-6">
+      <a class="hover:text-primary" href="/">Dashboard</a>
+      {% if not is_own_profile %}
+      <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+      <a class="hover:text-primary" href="/student-profile/">Students</a>
+      {% endif %}
+      <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+      <span class="text-primary font-bold">{% if is_own_profile %}My Profile{% else %}{{ first_name }} {{ last_name }}{% endif %}</span>
+    </nav>
+
+    {% if save_message %}
+    <div class="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg text-green-800 font-label-bold flex items-center gap-2">
+      <span class="material-symbols-outlined text-[18px]">check_circle</span>{{ save_message }}
+    </div>
+    {% endif %}
+    {% if upload_errors %}
+    <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-800 font-label-bold space-y-1">
+      <div class="flex items-center gap-2 mb-1"><span class="material-symbols-outlined text-[18px]">error</span>Upload errors:</div>
+      {% for err in upload_errors %}<p class="text-sm pl-6">{{ err }}</p>{% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- FORM -->
+    <form action="{% if is_own_profile %}/my-profile/{% else %}/student-profile/{{ student_id }}/{% endif %}" method="POST" enctype="multipart/form-data" class="space-y-10">
+      {% csrf_token %}
+
+      <!-- ── Profile Photo ── -->
+      {% if not is_own_profile and student_user %}
+      <div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-6 flex items-center gap-6">
+        <div class="w-20 h-20 rounded-full overflow-hidden border-2 border-outline-variant shrink-0 bg-primary flex items-center justify-center">
+          {% if student_user.avatar %}
+          <img src="/user-avatar/{{ student_user.pk }}/" class="w-full h-full object-cover" alt=""/>
+          {% else %}
+          <span class="text-3xl font-bold text-on-primary">{{ first_name|first|upper }}</span>
+          {% endif %}
+        </div>
+        <div>
+          <p class="font-label-bold text-label-bold text-on-surface text-lg">{{ first_name }} {{ last_name }}</p>
+          <p class="font-label-sm text-label-sm text-on-surface-variant">{{ email }}</p>
+        </div>
+      </div>
+      {% endif %}
+      {% if is_own_profile %}
+      <div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-6 flex items-center gap-6">
+        <img id="profile-photo-img" src="{% if user.avatar %}/my-avatar/{% endif %}" class="w-20 h-20 rounded-full object-cover border-2 border-outline-variant{% if not user.avatar %} hidden{% endif %}" alt="Profile photo"/>
+        <div id="profile-photo-initial" class="w-20 h-20 rounded-full bg-primary flex items-center justify-center text-on-primary font-bold text-3xl{% if user.avatar %} hidden{% endif %}">{{ user.full_name|default:user.email|first|upper }}</div>
+        <div>
+          <p class="font-label-bold text-label-bold text-on-surface mb-1">Profile Photo</p>
+          <label class="cursor-pointer inline-flex items-center gap-2 px-4 py-2 border border-outline-variant rounded-lg text-[12px] font-label-bold text-on-surface hover:bg-surface-container-low transition-colors">
+            <span class="material-symbols-outlined text-[16px]">upload</span>Upload Photo
+            <input type="file" accept="image/*" class="hidden" onchange="uploadFile(this,'avatar','avatar-status','avatar-name')"/>
+          </label>
+          <p id="avatar-name" class="text-xs text-on-surface-variant mt-1"></p>
+          <p id="avatar-status" class="text-xs mt-0.5"></p>
+        </div>
+      </div>
+      {% endif %}
+        <div> 
+          <h1>
+            NOTE : ENTER N/A IF THE FIELD IS NOT APPLICABLE OR INFORMATION IS NOT AVAILABLE
+          </h1>
+        </div>
+      <!-- ── SECTION 1: Personal Details ── -->
+      <div class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden">
+        <div class="px-6 py-4 border-b border-outline-variant bg-surface-container-low flex items-center gap-3">
+          <span class="material-symbols-outlined text-primary">person</span>
+          <h2 class="font-h2 text-h2 text-on-surface">Personal Details</h2>
+        </div>
+        <div class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div class="space-y-1">
+            <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">First Name</label>
+            <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="first_name" type="text" value="{{ first_name }}"/>
+          </div>
+          <div class="space-y-1">
+            <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Last Name</label>
+            <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="last_name" type="text" value="{{ last_name }}"/>
+          </div>
+          <div class="space-y-1">
+            <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Email</label>
+            <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="email" type="email" value="{{ email }}"/>
+          </div>
+          <div class="space-y-1">
+            <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Mobile Number</label>
+            <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="mobile" type="tel" value="{{ mobile }}"/>
+          </div>
+          <div class="space-y-1">
+            <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Date of Birth</label>
+            <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="dob" type="date" value="{{ dob|date:'Y-m-d' }}"/>
+          </div>
+          <div class="space-y-1">
+            <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Gender</label>
+            <select class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="gender">
+              <option value="">-- Select --</option>
+              <option value="male" {% if gender == "male" %}selected{% endif %}>Male</option>
+              <option value="female" {% if gender == "female" %}selected{% endif %}>Female</option>
+              <option value="other" {% if gender == "other" %}selected{% endif %}>Other</option>
+            </select>
+          </div>
+          <div class="space-y-1">
+            <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Nationality</label>
+            <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="nationality" type="text" value="{{ nationality }}"/>
+          </div>
+          <div class="space-y-1">
+            <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Country of Birth</label>
+            <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="country_of_birth" type="text" value="{{ country_of_birth }}"/>
+          </div>
+          <div class="space-y-1">
+            <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Native Language</label>
+            <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="native_language" type="text" value="{{ native_language }}"/>
+          </div>
+          <div class="space-y-1">
+            <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Passport Name</label>
+            <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="passport_name" type="text" value="{{ passport_name }}"/>
+          </div>
+          <div class="space-y-1">
+            <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Passport Number</label>
+            <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="passport_number" type="text" value="{{ passport_number }}"/>
+          </div>
+          <div class="space-y-1">
+            <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Issue Location</label>
+            <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="passport_issue_location" type="text" value="{{ passport_issue_location }}"/>
+          </div>
+          <div class="space-y-1">
+            <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Passport Issue Date</label>
+            <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="passport_issue_date" type="date" value="{{ passport_issue_date|date:'Y-m-d' }}"/>
+          </div>
+          <div class="space-y-1">
+            <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Passport Expiry Date</label>
+            <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="passport_expiry_date" type="date" value="{{ passport_expiry_date|date:'Y-m-d' }}"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SECTION 2: Address ── -->
+      <div class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden">
+        <div class="px-6 py-4 border-b border-outline-variant bg-surface-container-low flex items-center gap-3">
+          <span class="material-symbols-outlined text-secondary">location_on</span>
+          <h2 class="font-h2 text-h2 text-on-surface">Address Details</h2>
+        </div>
+        <div class="p-6 space-y-8">
+          <div>
+            <h3 class="font-label-bold text-on-surface mb-4">Permanent Address</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div class="space-y-1">
+                <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Country</label>
+                <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="perm_country" type="text" value="{{ perm_country }}"/>
+              </div>
+              <div class="space-y-1">
+                <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Address Line 1</label>
+                <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="perm_line_1" type="text" value="{{ perm_line_1 }}"/>
+              </div>
+              <div class="space-y-1">
+                <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Address Line 2</label>
+                <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="perm_line_2" type="text" value="{{ perm_line_2 }}"/>
+              </div>
+              <div class="space-y-1">
+                <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">City</label>
+                <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="perm_city" type="text" value="{{ perm_city }}"/>
+              </div>
+              <div class="space-y-1">
+                <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">State / Province</label>
+                <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="perm_state" type="text" value="{{ perm_state }}"/>
+              </div>
+              <div class="space-y-1">
+                <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Postcode</label>
+                <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="perm_postcode" type="text" value="{{ perm_postcode }}"/>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-label-bold text-on-surface">Current Address</h3>
+              <label class="flex items-center space-x-2 cursor-pointer">
+                <input class="rounded text-primary focus:ring-primary h-4 w-4" name="same_as_permanent" type="checkbox" id="sameAsPermanent" {% if curr_same_as_perm %}checked{% endif %}/>
+                <span class="text-sm font-medium text-on-surface-variant">Same as permanent</span>
+              </label>
+            </div>
+            <div id="currentAddressFields" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 {% if curr_same_as_perm %}opacity-50 pointer-events-none{% endif %}">
+              <div class="space-y-1">
+                <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Country</label>
+                <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="curr_country" type="text" value="{{ curr_country }}"/>
+              </div>
+              <div class="space-y-1">
+                <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Address Line 1</label>
+                <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="curr_line_1" type="text" value="{{ curr_line_1 }}"/>
+              </div>
+              <div class="space-y-1">
+                <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Address Line 2</label>
+                <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="curr_line_2" type="text" value="{{ curr_line_2 }}"/>
+              </div>
+              <div class="space-y-1">
+                <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">City</label>
+                <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="curr_city" type="text" value="{{ curr_city }}"/>
+              </div>
+              <div class="space-y-1">
+                <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">State / Province</label>
+                <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="curr_state" type="text" value="{{ curr_state }}"/>
+              </div>
+              <div class="space-y-1">
+                <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Postcode</label>
+                <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="curr_postcode" type="text" value="{{ curr_postcode }}"/>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SECTION 3: Father Details ── -->
+      <div class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden">
+        <div class="px-6 py-4 border-b border-outline-variant bg-surface-container-low flex items-center gap-3">
+          <span class="material-symbols-outlined text-secondary">man</span>
+          <h2 class="font-h2 text-h2 text-on-surface">Father Details</h2>
+        </div>
+        <div class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div class="space-y-1">
+            <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Full Name</label>
+            <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="father_name" type="text" value="{{ father_name }}"/>
+          </div>
+          <div class="space-y-1">
+            <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Phone Number</label>
+            <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="father_phone" type="tel" value="{{ father_phone }}"/>
+          </div>
+          <div class="space-y-1">
+            <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Email Address</label>
+            <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="father_email" type="email" value="{{ father_email }}"/>
+          </div>
+          <div class="space-y-1">
+            <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Date of Birth</label>
+            <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="father_dob" type="date" value="{{ father_dob|date:'Y-m-d' }}"/>
+          </div>
+          <div class="space-y-1">
+            <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Highest Education</label>
+            <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="father_education" type="text" value="{{ father_education }}"/>
+          </div>
+          <div class="space-y-1">
+            <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Profession</label>
+            <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="father_profession" type="text" value="{{ father_profession }}"/>
+          </div>
+          <div class="space-y-1">
+            <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Company Name</label>
+            <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="father_company" type="text" value="{{ father_company }}"/>
+          </div>
+          <div class="space-y-1">
+            <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Position</label>
+            <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="father_position" type="text" value="{{ father_position }}"/>
+          </div>
+          <div class="space-y-1">
+            <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Annual Income</label>
+            <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="father_annual_income" type="text" value="{{ father_annual_income }}"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SECTION 3b: Mother Details ── -->
+      <div class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden">
+        <div class="px-6 py-4 border-b border-outline-variant bg-surface-container-low flex items-center gap-3">
+          <span class="material-symbols-outlined text-secondary">woman</span>
+          <h2 class="font-h2 text-h2 text-on-surface">Mother Details</h2>
+        </div>
+        <div class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div class="space-y-1">
+            <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Full Name</label>
+            <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="mother_name" type="text" value="{{ mother_name }}"/>
+          </div>
+          <div class="space-y-1">
+            <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Phone Number</label>
+            <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="mother_phone" type="tel" value="{{ mother_phone }}"/>
+          </div>
+          <div class="space-y-1">
+            <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Email Address</label>
+            <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="mother_email" type="email" value="{{ mother_email }}"/>
+          </div>
+          <div class="space-y-1">
+            <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Date of Birth</label>
+            <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="mother_dob" type="date" value="{{ mother_dob|date:'Y-m-d' }}"/>
+          </div>
+          <div class="space-y-1">
+            <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Highest Education</label>
+            <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="mother_education" type="text" value="{{ mother_education }}"/>
+          </div>
+          <div class="space-y-1">
+            <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Profession</label>
+            <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="mother_profession" type="text" value="{{ mother_profession }}"/>
+          </div>
+          <div class="space-y-1">
+            <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Company Name</label>
+            <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="mother_company" type="text" value="{{ mother_company }}"/>
+          </div>
+          <div class="space-y-1">
+            <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Position</label>
+            <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="mother_position" type="text" value="{{ mother_position }}"/>
+          </div>
+          <div class="space-y-1">
+            <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Annual Income</label>
+            <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="mother_annual_income" type="text" value="{{ mother_annual_income }}"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SECTION 4: Emergency Contact ── -->
+      <div class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden">
+        <div class="px-6 py-4 border-b border-outline-variant bg-surface-container-low flex items-center gap-3">
+          <span class="material-symbols-outlined text-error">contact_emergency</span>
+          <h2 class="font-h2 text-h2 text-on-surface">Emergency Contact</h2>
+        </div>
+        <div class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div class="space-y-1">
+            <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Full Name</label>
+            <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="emergency_name" type="text" value="{{ emergency_name }}"/>
+          </div>
+          <div class="space-y-1">
+            <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Relationship</label>
+            <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="emergency_relationship" type="text" value="{{ emergency_relationship }}"/>
+          </div>
+          <div class="space-y-1">
+            <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Mobile Number</label>
+            <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="emergency_mobile" type="tel" value="{{ emergency_mobile }}"/>
+          </div>
+          <div class="space-y-1">
+            <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Email Address</label>
+            <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-surface-container-low" name="emergency_email" type="email" value="{{ emergency_email }}"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SECTION 4: Education History ── -->
+      <div class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden">
+        <div class="px-6 py-4 border-b border-outline-variant bg-surface-container-low flex items-center gap-3">
+          <span class="material-symbols-outlined text-tertiary">school</span>
+          <h2 class="font-h2 text-h2 text-on-surface">Education History</h2>
+        </div>
+        <div class="p-6 space-y-4" id="educationContainer">
+          {% if education_history %}
+            {% for edu in education_history %}
+            <div class="edu-entry p-5 bg-surface-container-low rounded-xl border border-outline-variant relative">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="font-label-bold text-on-surface">Academic Record #<span class="edu-num">{{ forloop.counter }}</span></h3>
+                <button type="button" onclick="removeEntry(this, 'edu')" class="text-error hover:bg-error-container p-1 rounded transition-colors">
+                  <span class="material-symbols-outlined text-[20px]">delete</span>
+                </button>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="space-y-1">
+                  <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Institution Name</label>
+                  <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-white" name="edu_inst_{{ forloop.counter }}" type="text" value="{{ edu.institution_name }}"/>
+                </div>
+                <div class="space-y-1">
+                  <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Level of Study</label>
+                  <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-white" name="edu_level_{{ forloop.counter }}" type="text" value="{{ edu.level }}"/>
+                </div>
+                <div class="space-y-1">
+                  <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Course / Major</label>
+                  <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-white" name="edu_course_{{ forloop.counter }}" type="text" value="{{ edu.course_major }}"/>
+                </div>
+                <div class="space-y-1">
+                  <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Country</label>
+                  <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-white" name="edu_country_{{ forloop.counter }}" type="text" value="{{ edu.country }}"/>
+                </div>
+                <div class="space-y-1">
+                  <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Start Date</label>
+                  <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-white" name="edu_start_{{ forloop.counter }}" type="date" value="{{ edu.start_date|date:'Y-m-d' }}"/>
+                </div>
+                <div class="space-y-1">
+                  <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">End Date</label>
+                  <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-white" name="edu_end_{{ forloop.counter }}" type="date" value="{{ edu.end_date|date:'Y-m-d' }}"/>
+                </div>
+                <div class="space-y-1">
+                  <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Grading Type</label>
+                  <select class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-white" name="edu_grading_{{ forloop.counter }}">
+                    <option value="percentage" {% if edu.grading_type == "percentage" %}selected{% endif %}>Percentage (%)</option>
+                    <option value="gpa" {% if edu.grading_type == "gpa" %}selected{% endif %}>GPA (4.0)</option>
+                    <option value="cgpa" {% if edu.grading_type == "cgpa" %}selected{% endif %}>CGPA (10.0)</option>
+                  </select>
+                </div>
+                <div class="space-y-1">
+                  <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Score Obtained</label>
+                  <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-white" name="edu_score_{{ forloop.counter }}" type="text" value="{{ edu.score }}"/>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          {% else %}
+            <div class="edu-entry p-5 bg-surface-container-low rounded-xl border border-outline-variant relative">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="font-label-bold text-on-surface">Academic Record #<span class="edu-num">1</span></h3>
+                <button type="button" onclick="removeEntry(this, 'edu')" class="text-error hover:bg-error-container p-1 rounded transition-colors">
+                  <span class="material-symbols-outlined text-[20px]">delete</span>
+                </button>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="space-y-1">
+                  <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Institution Name</label>
+                  <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-white" name="edu_inst_1" type="text"/>
+                </div>
+                <div class="space-y-1">
+                  <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Level of Study</label>
+                  <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-white" name="edu_level_1" type="text"/>
+                </div>
+                <div class="space-y-1">
+                  <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Course / Major</label>
+                  <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-white" name="edu_course_1" type="text"/>
+                </div>
+                <div class="space-y-1">
+                  <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Country</label>
+                  <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-white" name="edu_country_1" type="text"/>
+                </div>
+                <div class="space-y-1">
+                  <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Start Date</label>
+                  <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-white" name="edu_start_1" type="date"/>
+                </div>
+                <div class="space-y-1">
+                  <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">End Date</label>
+                  <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-white" name="edu_end_1" type="date"/>
+                </div>
+                <div class="space-y-1">
+                  <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Grading Type</label>
+                  <select class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-white" name="edu_grading_1">
+                    <option value="percentage">Percentage (%)</option>
+                    <option value="gpa">GPA (4.0)</option>
+                    <option value="cgpa">CGPA (10.0)</option>
+                  </select>
+                </div>
+                <div class="space-y-1">
+                  <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Score Obtained</label>
+                  <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-white" name="edu_score_1" type="text"/>
+                </div>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+        <div class="px-6 pb-6">
+          <button type="button" onclick="addEduEntry()" class="w-full py-3 border-2 border-dashed border-outline-variant rounded-xl text-on-surface-variant font-label-bold hover:border-primary hover:text-primary transition-all flex items-center justify-center">
+            <span class="material-symbols-outlined mr-2">add_circle</span> Add Another Academic History
+          </button>
+        </div>
+      </div>
+
+      <!-- ── SECTION 5: Document Management ── -->
+      <div class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden">
+        <div class="px-6 py-4 border-b border-outline-variant bg-surface-container-low flex items-center gap-3">
+          <span class="material-symbols-outlined text-secondary">description</span>
+          <h2 class="font-h2 text-h2 text-on-surface">Document Management</h2>
+        </div>
+        <div class="p-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+          <!-- Passport -->
+          <div class="p-4 bg-surface-container-low rounded-xl border border-outline-variant">
+            <div class="flex items-center">
+              <div class="bg-primary-fixed p-3 rounded-lg mr-4 shrink-0">
+                <span class="material-symbols-outlined text-primary">badge</span>
+              </div>
+              <div class="flex-1 min-w-0">
+                <h4 class="font-bold text-on-surface text-sm">Passport / Identity</h4>
+                <p id="doc-passport-name" class="text-xs text-on-surface-variant truncate">{% if profile_docs.passport %}{{ profile_docs.passport.file_name }}{% else %}Required for application{% endif %}</p>
+              </div>
+              <div class="flex items-center gap-2 ml-3 shrink-0">
+                <span id="doc-passport-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase {% if profile_docs.passport %}bg-green-100 text-green-700{% else %}bg-yellow-100 text-yellow-700{% endif %}">{% if profile_docs.passport %}Uploaded{% else %}Pending{% endif %}</span>
+                {% if profile_docs.passport %}<a href="/profile-doc/{{ profile_docs.passport.id }}/view/" target="_blank" class="flex items-center gap-1 bg-surface-container border border-outline-variant text-on-surface px-2 py-1.5 rounded text-xs font-bold hover:bg-surface-variant transition-colors"><span class="material-symbols-outlined" style="font-size:14px;line-height:1">visibility</span>View</a><a href="/profile-doc/{{ profile_docs.passport.id }}/view/?download={{ profile_docs.passport.file_name }}" class="flex items-center gap-1 bg-secondary-container text-on-secondary-container px-2 py-1.5 rounded text-xs font-bold hover:opacity-80 transition-colors"><span class="material-symbols-outlined" style="font-size:14px;line-height:1">download</span>DL</a>{% endif %}
+                {% if is_own_profile %}<label class="cursor-pointer bg-primary text-on-primary px-3 py-1.5 rounded text-xs font-bold hover:bg-primary-container transition-colors">{% if profile_docs.passport %}Update{% else %}Upload{% endif %}<input type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png" onchange="uploadFile(this,'passport','doc-passport-badge','doc-passport-name')"/></label>{% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- 10th Marksheet -->
+          <div class="p-4 bg-surface-container-low rounded-xl border border-outline-variant">
+            <div class="flex items-center">
+              <div class="bg-secondary-fixed p-3 rounded-lg mr-4 shrink-0">
+                <span class="material-symbols-outlined text-secondary">school</span>
+              </div>
+              <div class="flex-1 min-w-0">
+                <h4 class="font-bold text-on-surface text-sm">10th Marksheet</h4>
+                <p id="doc-marksheet_10-name" class="text-xs text-on-surface-variant truncate">{% if profile_docs.marksheet_10 %}{{ profile_docs.marksheet_10.file_name }}{% else %}Class 10 certificate{% endif %}</p>
+              </div>
+              <div class="flex items-center gap-2 ml-3 shrink-0">
+                <span id="doc-marksheet_10-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase {% if profile_docs.marksheet_10 %}bg-green-100 text-green-700{% else %}bg-yellow-100 text-yellow-700{% endif %}">{% if profile_docs.marksheet_10 %}Uploaded{% else %}Pending{% endif %}</span>
+                {% if profile_docs.marksheet_10 %}<a href="/profile-doc/{{ profile_docs.marksheet_10.id }}/view/" target="_blank" class="flex items-center gap-1 bg-surface-container border border-outline-variant text-on-surface px-2 py-1.5 rounded text-xs font-bold hover:bg-surface-variant transition-colors"><span class="material-symbols-outlined" style="font-size:14px;line-height:1">visibility</span>View</a><a href="/profile-doc/{{ profile_docs.marksheet_10.id }}/view/?download={{ profile_docs.marksheet_10.file_name }}" class="flex items-center gap-1 bg-secondary-container text-on-secondary-container px-2 py-1.5 rounded text-xs font-bold hover:opacity-80 transition-colors"><span class="material-symbols-outlined" style="font-size:14px;line-height:1">download</span>DL</a>{% endif %}
+                {% if is_own_profile %}<label class="cursor-pointer bg-primary text-on-primary px-3 py-1.5 rounded text-xs font-bold hover:bg-primary-container transition-colors">{% if profile_docs.marksheet_10 %}Update{% else %}Upload{% endif %}<input type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png" onchange="uploadFile(this,'marksheet_10','doc-marksheet_10-badge','doc-marksheet_10-name')"/></label>{% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- 11th Marksheet -->
+          <div class="p-4 bg-surface-container-low rounded-xl border border-outline-variant">
+            <div class="flex items-center">
+              <div class="bg-secondary-fixed p-3 rounded-lg mr-4 shrink-0">
+                <span class="material-symbols-outlined text-secondary">school</span>
+              </div>
+              <div class="flex-1 min-w-0">
+                <h4 class="font-bold text-on-surface text-sm">11th Marksheet</h4>
+                <p id="doc-marksheet_11-name" class="text-xs text-on-surface-variant truncate">{% if profile_docs.marksheet_11 %}{{ profile_docs.marksheet_11.file_name }}{% else %}Class 11 certificate{% endif %}</p>
+              </div>
+              <div class="flex items-center gap-2 ml-3 shrink-0">
+                <span id="doc-marksheet_11-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase {% if profile_docs.marksheet_11 %}bg-green-100 text-green-700{% else %}bg-yellow-100 text-yellow-700{% endif %}">{% if profile_docs.marksheet_11 %}Uploaded{% else %}Pending{% endif %}</span>
+                {% if profile_docs.marksheet_11 %}<a href="/profile-doc/{{ profile_docs.marksheet_11.id }}/view/" target="_blank" class="flex items-center gap-1 bg-surface-container border border-outline-variant text-on-surface px-2 py-1.5 rounded text-xs font-bold hover:bg-surface-variant transition-colors"><span class="material-symbols-outlined" style="font-size:14px;line-height:1">visibility</span>View</a><a href="/profile-doc/{{ profile_docs.marksheet_11.id }}/view/?download={{ profile_docs.marksheet_11.file_name }}" class="flex items-center gap-1 bg-secondary-container text-on-secondary-container px-2 py-1.5 rounded text-xs font-bold hover:opacity-80 transition-colors"><span class="material-symbols-outlined" style="font-size:14px;line-height:1">download</span>DL</a>{% endif %}
+                {% if is_own_profile %}<label class="cursor-pointer bg-primary text-on-primary px-3 py-1.5 rounded text-xs font-bold hover:bg-primary-container transition-colors">{% if profile_docs.marksheet_11 %}Update{% else %}Upload{% endif %}<input type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png" onchange="uploadFile(this,'marksheet_11','doc-marksheet_11-badge','doc-marksheet_11-name')"/></label>{% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- 12th Marksheet -->
+          <div class="p-4 bg-surface-container-low rounded-xl border border-outline-variant">
+            <div class="flex items-center">
+              <div class="bg-secondary-fixed p-3 rounded-lg mr-4 shrink-0">
+                <span class="material-symbols-outlined text-secondary">school</span>
+              </div>
+              <div class="flex-1 min-w-0">
+                <h4 class="font-bold text-on-surface text-sm">12th Marksheet</h4>
+                <p id="doc-marksheet_12-name" class="text-xs text-on-surface-variant truncate">{% if profile_docs.marksheet_12 %}{{ profile_docs.marksheet_12.file_name }}{% else %}Class 12 certificate{% endif %}</p>
+              </div>
+              <div class="flex items-center gap-2 ml-3 shrink-0">
+                <span id="doc-marksheet_12-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase {% if profile_docs.marksheet_12 %}bg-green-100 text-green-700{% else %}bg-yellow-100 text-yellow-700{% endif %}">{% if profile_docs.marksheet_12 %}Uploaded{% else %}Pending{% endif %}</span>
+                {% if profile_docs.marksheet_12 %}<a href="/profile-doc/{{ profile_docs.marksheet_12.id }}/view/" target="_blank" class="flex items-center gap-1 bg-surface-container border border-outline-variant text-on-surface px-2 py-1.5 rounded text-xs font-bold hover:bg-surface-variant transition-colors"><span class="material-symbols-outlined" style="font-size:14px;line-height:1">visibility</span>View</a><a href="/profile-doc/{{ profile_docs.marksheet_12.id }}/view/?download={{ profile_docs.marksheet_12.file_name }}" class="flex items-center gap-1 bg-secondary-container text-on-secondary-container px-2 py-1.5 rounded text-xs font-bold hover:opacity-80 transition-colors"><span class="material-symbols-outlined" style="font-size:14px;line-height:1">download</span>DL</a>{% endif %}
+                {% if is_own_profile %}<label class="cursor-pointer bg-primary text-on-primary px-3 py-1.5 rounded text-xs font-bold hover:bg-primary-container transition-colors">{% if profile_docs.marksheet_12 %}Update{% else %}Upload{% endif %}<input type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png" onchange="uploadFile(this,'marksheet_12','doc-marksheet_12-badge','doc-marksheet_12-name')"/></label>{% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- English Proficiency -->
+          <div class="p-4 bg-surface-container-low rounded-xl border border-outline-variant">
+            <div class="flex items-center">
+              <div class="bg-tertiary-fixed p-3 rounded-lg mr-4 shrink-0">
+                <span class="material-symbols-outlined text-tertiary">translate</span>
+              </div>
+              <div class="flex-1 min-w-0">
+                <h4 class="font-bold text-on-surface text-sm">English Proficiency (IELTS/PTE)</h4>
+                <p id="doc-english_proficiency-name" class="text-xs text-on-surface-variant truncate">{% if profile_docs.english_proficiency %}{{ profile_docs.english_proficiency.file_name }}{% else %}Valid test result{% endif %}</p>
+              </div>
+              <div class="flex items-center gap-2 ml-3 shrink-0">
+                <span id="doc-english_proficiency-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase {% if profile_docs.english_proficiency %}bg-green-100 text-green-700{% else %}bg-yellow-100 text-yellow-700{% endif %}">{% if profile_docs.english_proficiency %}Uploaded{% else %}Pending{% endif %}</span>
+                {% if profile_docs.english_proficiency %}<a href="/profile-doc/{{ profile_docs.english_proficiency.id }}/view/" target="_blank" class="flex items-center gap-1 bg-surface-container border border-outline-variant text-on-surface px-2 py-1.5 rounded text-xs font-bold hover:bg-surface-variant transition-colors"><span class="material-symbols-outlined" style="font-size:14px;line-height:1">visibility</span>View</a><a href="/profile-doc/{{ profile_docs.english_proficiency.id }}/view/?download={{ profile_docs.english_proficiency.file_name }}" class="flex items-center gap-1 bg-secondary-container text-on-secondary-container px-2 py-1.5 rounded text-xs font-bold hover:opacity-80 transition-colors"><span class="material-symbols-outlined" style="font-size:14px;line-height:1">download</span>DL</a>{% endif %}
+                {% if is_own_profile %}<label class="cursor-pointer bg-primary text-on-primary px-3 py-1.5 rounded text-xs font-bold hover:bg-primary-container transition-colors">{% if profile_docs.english_proficiency %}Update{% else %}Upload{% endif %}<input type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png" onchange="uploadFile(this,'english_proficiency','doc-english_proficiency-badge','doc-english_proficiency-name')"/></label>{% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- GRE/GMAT/Other -->
+          <div class="p-4 bg-surface-container-low rounded-xl border border-outline-variant">
+            <div class="flex items-center">
+              <div class="bg-primary-fixed p-3 rounded-lg mr-4 shrink-0">
+                <span class="material-symbols-outlined text-primary">quiz</span>
+              </div>
+              <div class="flex-1 min-w-0">
+                <h4 class="font-bold text-on-surface text-sm">GRE / GMAT / SAT / Other</h4>
+                <p id="doc-gre_gmat_other-name" class="text-xs text-on-surface-variant truncate">{% if profile_docs.gre_gmat_other %}{{ profile_docs.gre_gmat_other.file_name }}{% else %}Standardised test score{% endif %}</p>
+              </div>
+              <div class="flex items-center gap-2 ml-3 shrink-0">
+                <span id="doc-gre_gmat_other-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase {% if profile_docs.gre_gmat_other %}bg-green-100 text-green-700{% else %}bg-yellow-100 text-yellow-700{% endif %}">{% if profile_docs.gre_gmat_other %}Uploaded{% else %}Pending{% endif %}</span>
+                {% if profile_docs.gre_gmat_other %}<a href="/profile-doc/{{ profile_docs.gre_gmat_other.id }}/view/" target="_blank" class="flex items-center gap-1 bg-surface-container border border-outline-variant text-on-surface px-2 py-1.5 rounded text-xs font-bold hover:bg-surface-variant transition-colors"><span class="material-symbols-outlined" style="font-size:14px;line-height:1">visibility</span>View</a><a href="/profile-doc/{{ profile_docs.gre_gmat_other.id }}/view/?download={{ profile_docs.gre_gmat_other.file_name }}" class="flex items-center gap-1 bg-secondary-container text-on-secondary-container px-2 py-1.5 rounded text-xs font-bold hover:opacity-80 transition-colors"><span class="material-symbols-outlined" style="font-size:14px;line-height:1">download</span>DL</a>{% endif %}
+                {% if is_own_profile %}<label class="cursor-pointer bg-primary text-on-primary px-3 py-1.5 rounded text-xs font-bold hover:bg-primary-container transition-colors">{% if profile_docs.gre_gmat_other %}Update{% else %}Upload{% endif %}<input type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png" onchange="uploadFile(this,'gre_gmat_other','doc-gre_gmat_other-badge','doc-gre_gmat_other-name')"/></label>{% endif %}
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ── SECTION 6: Work Experience ── -->
+      <div class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden">
+        <div class="px-6 py-4 border-b border-outline-variant bg-surface-container-low flex items-center gap-3">
+          <span class="material-symbols-outlined text-primary">work</span>
+          <h2 class="font-h2 text-h2 text-on-surface">Work Experience</h2>
+        </div>
+        <div class="p-6 space-y-4" id="workContainer">
+          {% if work_experiences %}
+            {% for work in work_experiences %}
+            <div class="work-entry p-5 bg-surface-container-low rounded-xl border border-outline-variant relative">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="font-label-bold text-on-surface">Work Experience #<span class="work-num">{{ forloop.counter }}</span></h3>
+                <button type="button" onclick="removeEntry(this, 'work')" class="text-error hover:bg-error-container p-1 rounded transition-colors">
+                  <span class="material-symbols-outlined text-[20px]">delete</span>
+                </button>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="space-y-1">
+                  <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Company Name</label>
+                  <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-white" name="work_company_{{ forloop.counter }}" type="text" value="{{ work.company }}"/>
+                </div>
+                <div class="space-y-1">
+                  <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Role / Position</label>
+                  <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-white" name="work_role_{{ forloop.counter }}" type="text" value="{{ work.role }}"/>
+                </div>
+                <div class="space-y-1">
+                  <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Start Date</label>
+                  <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-white" name="work_start_{{ forloop.counter }}" type="date" value="{{ work.start_date|date:'Y-m-d' }}"/>
+                </div>
+                <div class="space-y-1">
+                  <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">End Date</label>
+                  <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-white" name="work_end_{{ forloop.counter }}" type="date" value="{{ work.end_date|date:'Y-m-d' }}"/>
+                </div>
+                <div class="md:col-span-2 lg:col-span-4">
+                  <label class="flex items-center space-x-2 cursor-pointer">
+                    <input class="rounded text-primary focus:ring-primary h-4 w-4" name="work_current_{{ forloop.counter }}" type="checkbox" {% if work.is_current %}checked{% endif %}/>
+                    <span class="text-sm font-medium text-on-surface-variant">I am currently working here</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          {% else %}
+            <div class="work-entry p-5 bg-surface-container-low rounded-xl border border-outline-variant relative">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="font-label-bold text-on-surface">Work Experience #<span class="work-num">1</span></h3>
+                <button type="button" onclick="removeEntry(this, 'work')" class="text-error hover:bg-error-container p-1 rounded transition-colors">
+                  <span class="material-symbols-outlined text-[20px]">delete</span>
+                </button>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="space-y-1">
+                  <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Company Name</label>
+                  <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-white" name="work_company_1" type="text"/>
+                </div>
+                <div class="space-y-1">
+                  <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Role / Position</label>
+                  <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-white" name="work_role_1" type="text"/>
+                </div>
+                <div class="space-y-1">
+                  <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Start Date</label>
+                  <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-white" name="work_start_1" type="date"/>
+                </div>
+                <div class="space-y-1">
+                  <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">End Date</label>
+                  <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-white" name="work_end_1" type="date"/>
+                </div>
+                <div class="md:col-span-2 lg:col-span-4">
+                  <label class="flex items-center space-x-2 cursor-pointer">
+                    <input class="rounded text-primary focus:ring-primary h-4 w-4" name="work_current_1" type="checkbox"/>
+                    <span class="text-sm font-medium text-on-surface-variant">I am currently working here</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+        <div class="px-6 pb-6">
+          <button type="button" onclick="addWorkEntry()" class="w-full py-3 border-2 border-dashed border-outline-variant rounded-xl text-on-surface-variant font-label-bold hover:border-primary hover:text-primary transition-all flex items-center justify-center">
+            <span class="material-symbols-outlined mr-2">add_circle</span> Add Work Experience
+          </button>
+        </div>
+      </div>
+
+      <!-- ── SECTION 7: Reference Details ── -->
+      <div class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden">
+        <div class="px-6 py-4 border-b border-outline-variant bg-surface-container-low flex items-center gap-3">
+          <span class="material-symbols-outlined text-secondary">groups</span>
+          <h2 class="font-h2 text-h2 text-on-surface">Reference Details</h2>
+        </div>
+        <div class="p-6 space-y-4">
+          {% for ref in references %}
+          {% with forloop.counter as i %}
+          <div class="p-5 bg-surface-container-low rounded-xl border border-outline-variant">
+            <h3 class="font-label-bold text-on-surface mb-4">Reference {{ i }}</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+              <div class="space-y-1">
+                <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Full Name</label>
+                <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-white" name="ref_name_{{ i }}" type="text" value="{% if ref %}{{ ref.name }}{% endif %}"/>
+              </div>
+              <div class="space-y-1">
+                <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Organization</label>
+                <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-white" name="ref_org_{{ i }}" type="text" value="{% if ref %}{{ ref.organization }}{% endif %}"/>
+              </div>
+              <div class="space-y-1">
+                <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Phone Number</label>
+                <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-white" name="ref_phone_{{ i }}" type="tel" value="{% if ref %}{{ ref.phone }}{% endif %}"/>
+              </div>
+              <div class="space-y-1">
+                <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Email Address</label>
+                <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-white" name="ref_email_{{ i }}" type="email" value="{% if ref %}{{ ref.email }}{% endif %}"/>
+              </div>
+              <div class="space-y-1">
+                <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Relationship</label>
+                <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-white" name="ref_relationship_{{ i }}" type="text" value="{% if ref %}{{ ref.relationship }}{% endif %}"/>
+              </div>
+            </div>
+          </div>
+          {% endwith %}
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- ── SAVE BUTTON ── -->
+      <div class="flex justify-end pt-2 pb-6">
+        <button type="submit" class="bg-primary text-on-primary px-12 py-3 rounded-lg font-label-bold text-base hover:bg-primary-container transition-all active:scale-95 shadow-md flex items-center gap-2">
+          <span class="material-symbols-outlined">save</span>
+          Save Profile
+        </button>
+      </div>
+
+    </form>
+  </div>
+</main>
+
+<!-- FOOTER -->
+<footer class="ml-[260px] p-gutter border-t border-outline-variant text-center text-on-surface-variant font-label-sm">
+  <p>© 2024 Intelligent Education CRM. All Rights Reserved. | v2.4.0</p>
+</footer>
+
+<script>
+// ── Education entries ──────────────────────────────────────────────────────
+function getEduCount() {
+  return document.querySelectorAll('#educationContainer .edu-entry').length;
+}
+
+function addEduEntry() {
+  const container = document.getElementById('educationContainer');
+  const idx = getEduCount() + 1;
+  const div = document.createElement('div');
+  div.className = 'edu-entry p-5 bg-surface-container-low rounded-xl border border-outline-variant relative';
+  div.innerHTML = `
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="font-label-bold text-on-surface">Academic Record #<span class="edu-num">${idx}</span></h3>
+      <button type="button" onclick="removeEntry(this, 'edu')" class="text-error hover:bg-error-container p-1 rounded transition-colors">
+        <span class="material-symbols-outlined text-[20px]">delete</span>
+      </button>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="space-y-1">
+        <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Institution Name</label>
+        <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-white" name="edu_inst_${idx}" type="text"/>
+      </div>
+      <div class="space-y-1">
+        <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Level of Study</label>
+        <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-white" name="edu_level_${idx}" type="text"/>
+      </div>
+      <div class="space-y-1">
+        <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Course / Major</label>
+        <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-white" name="edu_course_${idx}" type="text"/>
+      </div>
+      <div class="space-y-1">
+        <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Country</label>
+        <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-white" name="edu_country_${idx}" type="text"/>
+      </div>
+      <div class="space-y-1">
+        <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Start Date</label>
+        <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-white" name="edu_start_${idx}" type="date"/>
+      </div>
+      <div class="space-y-1">
+        <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">End Date</label>
+        <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-white" name="edu_end_${idx}" type="date"/>
+      </div>
+      <div class="space-y-1">
+        <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Grading Type</label>
+        <select class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-white" name="edu_grading_${idx}">
+          <option value="percentage">Percentage (%)</option>
+          <option value="gpa">GPA (4.0)</option>
+          <option value="cgpa">CGPA (10.0)</option>
+        </select>
+      </div>
+      <div class="space-y-1">
+        <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Score Obtained</label>
+        <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-white" name="edu_score_${idx}" type="text"/>
+      </div>
+    </div>`;
+  container.appendChild(div);
+  renumberEntries('edu');
+}
+
+// ── Work Experience entries ────────────────────────────────────────────────
+function getWorkCount() {
+  return document.querySelectorAll('#workContainer .work-entry').length;
+}
+
+function addWorkEntry() {
+  const container = document.getElementById('workContainer');
+  const idx = getWorkCount() + 1;
+  const div = document.createElement('div');
+  div.className = 'work-entry p-5 bg-surface-container-low rounded-xl border border-outline-variant relative';
+  div.innerHTML = `
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="font-label-bold text-on-surface">Work Experience #<span class="work-num">${idx}</span></h3>
+      <button type="button" onclick="removeEntry(this, 'work')" class="text-error hover:bg-error-container p-1 rounded transition-colors">
+        <span class="material-symbols-outlined text-[20px]">delete</span>
+      </button>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="space-y-1">
+        <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Company Name</label>
+        <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-white" name="work_company_${idx}" type="text"/>
+      </div>
+      <div class="space-y-1">
+        <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Role / Position</label>
+        <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-white" name="work_role_${idx}" type="text"/>
+      </div>
+      <div class="space-y-1">
+        <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">Start Date</label>
+        <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-white" name="work_start_${idx}" type="date"/>
+      </div>
+      <div class="space-y-1">
+        <label class="block text-xs font-label-bold text-on-surface-variant uppercase tracking-wider">End Date</label>
+        <input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-primary bg-white" name="work_end_${idx}" type="date"/>
+      </div>
+      <div class="md:col-span-2 lg:col-span-4">
+        <label class="flex items-center space-x-2 cursor-pointer">
+          <input class="rounded text-primary focus:ring-primary h-4 w-4" name="work_current_${idx}" type="checkbox"/>
+          <span class="text-sm font-medium text-on-surface-variant">I am currently working here</span>
+        </label>
+      </div>
+    </div>`;
+  container.appendChild(div);
+  renumberEntries('work');
+}
+
+// ── Remove entry and renumber ──────────────────────────────────────────────
+function removeEntry(btn, type) {
+  const entry = btn.closest(`.${type}-entry`);
+  if (!entry) return;
+  const container = entry.parentElement;
+  // Don't remove the last entry
+  if (container.querySelectorAll(`.${type}-entry`).length <= 1) return;
+  entry.remove();
+  renumberEntries(type);
+}
+
+function renumberEntries(type) {
+  const prefix = type === 'edu' ? 'edu' : 'work';
+  const container = document.getElementById(type === 'edu' ? 'educationContainer' : 'workContainer');
+  const entries = container.querySelectorAll(`.${type}-entry`);
+  entries.forEach((entry, idx) => {
+    const num = idx + 1;
+    entry.querySelector(`.${type}-num`).textContent = num;
+    // Rename all inputs/selects
+    entry.querySelectorAll('input, select').forEach(el => {
+      if (el.name) {
+        el.name = el.name.replace(/_\d+$/, `_${num}`);
+      }
+    });
+  });
+}
+
+// ── Instant AJAX file upload ───────────────────────────────────────────────
+function uploadFile(input, category, badgeId, nameId) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  const badgeEl = document.getElementById(badgeId);
+  const nameEl  = document.getElementById(nameId);
+
+  // Show uploading state
+  if (nameEl)  nameEl.textContent  = 'Uploading ' + file.name + '…';
+  if (badgeEl) { badgeEl.textContent = 'Uploading…'; badgeEl.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-blue-100 text-blue-700'; }
+
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('category', category);
+  fd.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+  fetch('/upload-profile-file/', { method: 'POST', body: fd })
+    .then(r => r.json())
+    .then(data => {
+      if (data.error) {
+        if (nameEl)  nameEl.textContent  = '✗ ' + data.error;
+        if (badgeEl) { badgeEl.textContent = 'Failed'; badgeEl.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-red-100 text-red-700'; }
+      } else {
+        if (nameEl)  nameEl.textContent  = '✓ ' + data.file_name;
+        if (badgeEl) { badgeEl.textContent = 'Uploaded'; badgeEl.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-green-100 text-green-700'; }
+        // Update avatar preview immediately
+        if (category === 'avatar') {
+          const newSrc = data.url + '?t=' + Date.now();
+          document.querySelectorAll('img[alt="Profile photo"], img[alt="Profile"]').forEach(img => {
+            img.src = newSrc;
+            img.classList.remove('hidden');
+          });
+          const initial = document.getElementById('profile-photo-initial');
+          if (initial) initial.classList.add('hidden');
+          const navInitial = document.getElementById('nav-avatar-initial');
+          if (navInitial) navInitial.classList.add('hidden');
+        } else {
+          // Inject/update View + Download buttons next to the badge
+          const btnContainer = badgeEl ? badgeEl.parentElement : null;
+          if (btnContainer && data.doc_id) {
+            btnContainer.querySelectorAll('.doc-view-btn,.doc-dl-btn').forEach(b => b.remove());
+            const viewUrl = '/profile-doc/' + data.doc_id + '/view/';
+            const dlUrl   = viewUrl + '?download=' + encodeURIComponent(data.file_name);
+            const viewBtn = document.createElement('a');
+            viewBtn.href = viewUrl; viewBtn.target = '_blank'; viewBtn.className = 'doc-view-btn flex items-center gap-1 bg-surface-container border border-outline-variant text-on-surface px-2 py-1.5 rounded text-xs font-bold hover:bg-surface-variant transition-colors';
+            viewBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:14px;line-height:1">visibility</span>View';
+            const dlBtn = document.createElement('a');
+            dlBtn.href = dlUrl; dlBtn.className = 'doc-dl-btn flex items-center gap-1 bg-secondary-container text-on-secondary-container px-2 py-1.5 rounded text-xs font-bold hover:opacity-80 transition-colors';
+            dlBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:14px;line-height:1">download</span>DL';
+            badgeEl.insertAdjacentElement('afterend', dlBtn);
+            badgeEl.insertAdjacentElement('afterend', viewBtn);
+          }
+        }
+      }
+    })
+    .catch(err => {
+      if (nameEl)  nameEl.textContent  = '✗ Network error: ' + err;
+      if (badgeEl) { badgeEl.textContent = 'Failed'; badgeEl.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-red-100 text-red-700'; }
+    });
+}
+
+// ── Same as permanent address toggle ──────────────────────────────────────
+document.getElementById('sameAsPermanent').addEventListener('change', function() {
+  const fields = document.getElementById('currentAddressFields');
+  if (this.checked) {
+    fields.classList.add('opacity-50', 'pointer-events-none');
+  } else {
+    fields.classList.remove('opacity-50', 'pointer-events-none');
+  }
+});
+</script>
+
+
+<!-- ===== FOOTER ===== -->
+<footer style="margin-left:260px;" class="border-t border-[#e4beba] bg-[#fff0ef] py-4 px-6 text-center text-xs text-[#5b403d]">
+  <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-1">
+    <button onclick="document.getElementById('tc-modal').classList.remove('hidden')" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">Terms &amp; Conditions</button>
+    <span class="text-[#e4beba]">|</span>
+    <button onclick="document.getElementById('pp-modal').classList.remove('hidden')" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">Privacy Policy</button>
+    <span class="text-[#e4beba]">|</span>
+    <span>Website: <a href="https://www.intelligenteducation.org" target="_blank" rel="noopener noreferrer" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">www.intelligenteducation.org</a></span>
+    <span class="text-[#e4beba]">|</span>
+    <span>Email: <a href="mailto:ho@intelligenteducation.org" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">ho@intelligenteducation.org</a></span>
+  </div>
+</footer>
+
+<!-- T&amp;C Modal -->
+<div id="tc-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-black/40 p-4" onclick="if(event.target===this)this.classList.add('hidden')">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-[#e4beba]">
+      <h2 class="text-lg font-semibold text-[#271816]" style="font-family:'Lexend',sans-serif;">Terms &amp; Conditions</h2>
+      <button onclick="document.getElementById('tc-modal').classList.add('hidden')" class="text-[#5b403d] hover:text-[#271816] transition-colors rounded-full p-1 hover:bg-[#ffe9e6]">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="overflow-y-auto px-6 py-5 text-sm text-[#271816] leading-relaxed">
+      <h3 class="text-base font-semibold text-[#a20513] mb-1" style="font-family:'Lexend',sans-serif;">Intelligent Education CRM Platform</h3>
+      <p class="text-[#5b403d] text-xs mb-4">Effective Date: May 13, 2026</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">1. Introduction</h4>
+      <p class="mb-2">Welcome to the Intelligent Education CRM Platform (&ldquo;Platform&rdquo;), operated by Intelligent Education (&ldquo;Intelligent Education,&rdquo; &ldquo;Company,&rdquo; &ldquo;we,&rdquo; &ldquo;our,&rdquo; or &ldquo;us&rdquo;).</p>
+      <p class="mb-2">These Terms and Conditions (&ldquo;Terms&rdquo;) govern access to and use of the Platform, including all associated services, software, AI-assisted features, communications, databases, dashboards, document management tools, and integrations.</p>
+      <p class="mb-2">By accessing or using the Platform, you agree to comply with and be legally bound by these Terms.</p>
+      <p class="mb-4 font-medium text-[#a20513]">If you do not agree with these Terms, you must not use the Platform.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">2. Purpose of the Platform</h4>
+      <p class="mb-2">The Platform is designed to assist Intelligent Education in managing:</p>
+      <ul class="list-disc pl-5 mb-2 space-y-1">
+        <li>Student and client relationships</li>
+        <li>Admission application workflows</li>
+        <li>Counseling and communication processes</li>
+        <li>Document collection and storage</li>
+        <li>Internal operational management</li>
+        <li>AI-assisted productivity and workflow support</li>
+      </ul>
+      <p class="mb-2">The Platform is intended solely for use by:</p>
+      <ul class="list-disc pl-5 mb-4 space-y-1">
+        <li>Authorized employees, counselors, and representatives of Intelligent Education</li>
+        <li>Registered clients and students associated with Intelligent Education</li>
+      </ul>
+
+      <h4 class="font-semibold text-[#271816] mb-1">3. Eligibility</h4>
+      <p class="mb-2">By using the Platform, you represent and warrant that:</p>
+      <ul class="list-disc pl-5 mb-2 space-y-1">
+        <li>You are legally capable of entering into a binding agreement under applicable law;</li>
+        <li>The information provided by you is accurate and complete;</li>
+        <li>You will use the Platform only for lawful purposes.</li>
+      </ul>
+      <p class="mb-4">If you are accessing the Platform on behalf of an organization or institution, you confirm that you are authorized to do so.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">4. User Accounts and Access</h4>
+      <p class="mb-2">Users may be required to create an account to access certain features. You agree to:</p>
+      <ul class="list-disc pl-5 mb-2 space-y-1">
+        <li>Maintain the confidentiality of your login credentials;</li>
+        <li>Restrict unauthorized access to your account;</li>
+        <li>Notify Intelligent Education immediately of any unauthorized use or security breach.</li>
+      </ul>
+      <p class="mb-2">Intelligent Education reserves the right to suspend or terminate accounts that:</p>
+      <ul class="list-disc pl-5 mb-4 space-y-1">
+        <li>Violate these Terms;</li>
+        <li>Engage in fraudulent, abusive, or unlawful conduct;</li>
+        <li>Attempt unauthorized access to systems or data.</li>
+      </ul>
+
+      <h4 class="font-semibold text-[#271816] mb-1">5. Data Collection and Storage</h4>
+      <p class="mb-2">The Platform may collect, process, and store personal and sensitive information, including but not limited to: names and contact details, academic records, identification documents, passport information, financial information, visa-related documentation, and application-related materials.</p>
+      <p class="mb-2">Data may be securely stored and processed using third-party infrastructure including Supabase, Railway, Google, and OpenAI.</p>
+      <p class="mb-4">While reasonable security measures are implemented, Intelligent Education does not guarantee absolute security of data transmission or storage systems.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">6. AI-Assisted Features Disclaimer</h4>
+      <p class="mb-2">The Platform may use artificial intelligence to assist with recommendations, workflow automation, draft generation, data processing, and communication support.</p>
+      <p class="mb-2">AI-generated outputs may contain inaccuracies, should not be treated as professional legal, immigration, financial, or admission advice, and require independent human review.</p>
+      <p class="mb-4">Intelligent Education makes no guarantees regarding the accuracy, reliability, or suitability of AI-generated outputs.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">7. No Guarantee of Admission or Visa Approval</h4>
+      <p class="mb-4">Use of the Platform does not guarantee admission to any educational institution, scholarship awards, visa approval, immigration outcomes, employment opportunities, or academic/professional success. All such decisions are made solely by the relevant authorities and institutions.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">8. Acceptable Use</h4>
+      <p class="mb-4">Users agree not to upload unlawful or fraudulent content, attempt unauthorized system access, interfere with Platform security, reverse engineer or exploit the Platform, or use it for illegal purposes. Intelligent Education reserves the right to investigate and take legal action for misuse.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">9. Intellectual Property</h4>
+      <p class="mb-4">All Platform content, branding, software, workflows, designs, and features are owned by or licensed to Intelligent Education. Users may not copy, reproduce, redistribute, modify, or commercially exploit any part of the Platform without prior written consent.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">10. Third-Party Services and Integrations</h4>
+      <p class="mb-4">The Platform integrates with third-party services including Google, Gmail, OpenAI, Supabase, and Railway. Intelligent Education is not responsible for third-party outages, data losses, policy changes, or service interruptions outside its reasonable control. Use of third-party services may be subject to their respective terms.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">11. Service Availability</h4>
+      <p class="mb-4">The Platform is provided on an &ldquo;as is&rdquo; and &ldquo;as available&rdquo; basis. Intelligent Education does not guarantee continuous uptime, error-free operation, or uninterrupted access. Maintenance, updates, or third-party failures may temporarily affect availability.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">12. Limitation of Liability</h4>
+      <p class="mb-2">To the maximum extent permitted by law, Intelligent Education shall not be liable for indirect, incidental, consequential, special, or punitive damages arising from use of the Platform, AI inaccuracies, data loss, admission or visa outcomes, service interruptions, unauthorized access, or third-party failures.</p>
+      <p class="mb-4">In no event shall Intelligent Education&rsquo;s total liability exceed the amount paid, if any, by the user for access during the preceding three (3) months.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">13. Indemnification</h4>
+      <p class="mb-4">Users agree to indemnify and hold harmless Intelligent Education, its employees, affiliates, contractors, and representatives from any claims, liabilities, or expenses arising from violation of these Terms, misuse of the Platform, or violation of applicable laws or third-party rights.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">14. Suspension and Termination</h4>
+      <p class="mb-4">Intelligent Education reserves the right to suspend or terminate access at any time, without prior notice, for security concerns, policy violations, fraudulent activity, misuse, or legal compliance requirements.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">15. Privacy</h4>
+      <p class="mb-4">Use of the Platform is also subject to the Intelligent Education Privacy Policy. Users acknowledge and consent to the collection, storage, and processing of data necessary for Platform operation.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">16. Governing Law and Jurisdiction</h4>
+      <p class="mb-4">These Terms shall be governed by the laws of India. Any disputes shall be subject to the exclusive jurisdiction of the courts located in India.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">17. Modifications to Terms</h4>
+      <p class="mb-4">Intelligent Education reserves the right to modify these Terms at any time. Updated versions may be published within the Platform or via official communications. Continued use of the Platform after modifications constitutes acceptance of the revised Terms.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">18. Contact Information</h4>
+      <p>For questions regarding these Terms, contact:<br/><strong>Intelligent Education</strong><br/>Email: <a href="mailto:ho@intelligenteducation.org" class="text-[#a20513] underline">ho@intelligenteducation.org</a></p>
+    </div>
+  </div>
+</div>
+<!-- Privacy Policy Modal -->
+<div id="pp-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-black/40 p-4" onclick="if(event.target===this)this.classList.add('hidden')">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-[#e4beba]">
+      <h2 class="text-lg font-semibold text-[#271816]" style="font-family:'Lexend',sans-serif;">Privacy Policy</h2>
+      <button onclick="document.getElementById('pp-modal').classList.add('hidden')" class="text-[#5b403d] hover:text-[#271816] transition-colors rounded-full p-1 hover:bg-[#ffe9e6]">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="overflow-y-auto px-6 py-5 text-sm text-[#271816] leading-relaxed space-y-3">
+      <h3 class="text-base font-semibold text-[#a20513]" style="font-family:'Lexend',sans-serif;">Intelligent Education CRM Platform</h3>
+      <p class="text-[#5b403d] text-xs">Effective Date: May 13, 2026</p>
+
+      <h4 class="font-semibold text-[#271816]">1. Introduction</h4>
+      <p>This Privacy Policy explains how Intelligent Education (&ldquo;Intelligent Education,&rdquo; &ldquo;Company,&rdquo; &ldquo;we,&rdquo; &ldquo;our,&rdquo; or &ldquo;us&rdquo;) collects, uses, stores, processes, and protects personal information through the Intelligent Education CRM Platform (&ldquo;Platform&rdquo;).</p>
+      <p>By accessing or using the Platform, you consent to the practices described in this Privacy Policy.</p>
+
+      <h4 class="font-semibold text-[#271816]">2. Scope of This Policy</h4>
+      <p>This Privacy Policy applies to students and clients, counselors and employees, authorized representatives, and all users interacting with the Platform and related services — including information collected through the CRM Platform, forms and applications, email communications, AI-assisted features, and integrated third-party services.</p>
+
+      <h4 class="font-semibold text-[#271816]">3. Information We Collect</h4>
+      <p><strong>Personal Information:</strong> Full name, date of birth, gender, nationality, contact details, address, email address, phone number.</p>
+      <p><strong>Academic &amp; Professional:</strong> Academic transcripts, test scores, resume/CV, educational history, employment details.</p>
+      <p><strong>Identity &amp; Verification Documents:</strong> Passport copies, government-issued identification, visa-related documents, financial statements, supporting application documents.</p>
+      <p><strong>Technical &amp; Usage Information:</strong> IP address, device information, browser type, login activity, usage analytics, system logs.</p>
+      <p><strong>Communication Data:</strong> Emails, messages, counseling notes, application discussions, AI-assisted communication records.</p>
+
+      <h4 class="font-semibold text-[#271816]">4. How We Use Information</h4>
+      <p>We use collected information to manage student applications and workflows, provide counseling and support services, process admissions-related activities, manage communications, generate AI-assisted recommendations and drafts, improve Platform functionality and security, maintain internal operational records, and fulfill legal and compliance obligations.</p>
+
+      <h4 class="font-semibold text-[#271816]">5. AI-Assisted Processing</h4>
+      <p>The Platform may use artificial intelligence technologies including OpenAI to generate drafts, provide workflow assistance, support administrative tasks, and improve productivity. AI-generated content may not always be accurate, should be independently reviewed, and does not constitute legal, immigration, or professional advice.</p>
+
+      <h4 class="font-semibold text-[#271816]">6. Third-Party Service Providers</h4>
+      <p>We may use trusted third-party platforms including Supabase, Railway, Google services and APIs, Gmail integrations, and OpenAI. These providers may process or store data under their own policies. We are not responsible for the independent privacy practices of third-party services.</p>
+
+      <h4 class="font-semibold text-[#271816]">7. Data Storage and Security</h4>
+      <p>We implement commercially reasonable technical and organizational safeguards to protect personal information from unauthorized access, disclosure, alteration, loss, and misuse. However, no internet-based platform can guarantee absolute security. Users acknowledge and accept inherent cybersecurity and transmission risks.</p>
+
+      <h4 class="font-semibold text-[#271816]">8. Data Sharing and Disclosure</h4>
+      <p>We do not sell personal information. We may disclose information to authorized employees and counselors, to educational institutions for applications, to government or visa authorities when necessary, to service providers supporting Platform operations, or when required by law, legal process, or regulatory obligations.</p>
+
+      <h4 class="font-semibold text-[#271816]">9. Data Retention</h4>
+      <p>We retain personal information only as long as reasonably necessary for business operations, application management, legal compliance, dispute resolution, and recordkeeping purposes. We reserve the right to retain certain records where legally required or operationally necessary.</p>
+
+      <h4 class="font-semibold text-[#271816]">10. User Rights</h4>
+      <p>Subject to applicable law, users may request access to their personal information, correction of inaccurate data, deletion of certain data, restriction of processing, or withdrawal of consent where applicable. Requests may be subject to identity verification, legal obligations, and operational requirements.</p>
+
+      <h4 class="font-semibold text-[#271816]">11. Cookies and Analytics</h4>
+      <p>The Platform may use cookies, session technologies, analytics tools, and tracking technologies to improve user experience, security, and performance. Users may disable certain cookies through browser settings, though some features may not function properly.</p>
+
+      <h4 class="font-semibold text-[#271816]">12. Children&rsquo;s Privacy</h4>
+      <p>The Platform is not intentionally directed toward children under the age required by applicable law without appropriate authorization or supervision. Where required, users represent that appropriate consent has been obtained from parents or legal guardians.</p>
+
+      <h4 class="font-semibold text-[#271816]">13. International Data Processing</h4>
+      <p>Data may be processed or stored on servers in different jurisdictions depending on the infrastructure and service providers used. By using the Platform, users consent to such transfers and processing where legally permitted.</p>
+
+      <h4 class="font-semibold text-[#271816]">14. Limitation of Liability</h4>
+      <p>To the fullest extent permitted by law, Intelligent Education shall not be liable for unauthorized access, cyberattacks, third-party breaches, data transmission failures, service interruptions, or losses arising from external systems or providers. Users use the Platform at their own risk.</p>
+
+      <h4 class="font-semibold text-[#271816]">15. Changes to This Privacy Policy</h4>
+      <p>We may update this Privacy Policy periodically. Updated versions may be posted on the Platform with a revised effective date. Continued use of the Platform after updates constitutes acceptance of the revised Privacy Policy.</p>
+
+      <h4 class="font-semibold text-[#271816]">16. Contact Information</h4>
+      <p>For questions or privacy-related requests, contact:<br/><strong>Intelligent Education</strong><br/>Email: <a href="mailto:ho@intelligenteducation.org" class="text-[#a20513] underline">ho@intelligenteducation.org</a></p>
+    </div>
+  </div>
+</div>
+<!-- ===== /FOOTER ===== -->
+</body>
+</html>

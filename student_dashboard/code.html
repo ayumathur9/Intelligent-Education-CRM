@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Student Dashboard | Intelligent Education CRM</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "primary-fixed": "#ffdad6",
+          "on-surface-variant": "#5b403d",
+          "tertiary-fixed-dim": "#88ceff",
+          "surface-bright": "#fff8f7",
+          "on-tertiary-fixed-variant": "#004c6e",
+          "tertiary-container": "#006e9d",
+          "inverse-on-surface": "#ffedea",
+          "on-primary-fixed": "#410003",
+          "secondary-fixed-dim": "#a9c7ff",
+          "on-primary": "#ffffff",
+          "surface-container-highest": "#f9dcd9",
+          "surface-variant": "#f9dcd9",
+          "surface-container": "#ffe9e6",
+          "on-tertiary-container": "#d1eaff",
+          "outline": "#8f706c",
+          "on-secondary-fixed": "#001b3d",
+          "inverse-primary": "#ffb4ac",
+          "tertiary": "#00557a",
+          "outline-variant": "#e4beba",
+          "on-secondary-container": "#003670",
+          "secondary-fixed": "#d6e3ff",
+          "on-primary-fixed-variant": "#93000e",
+          "surface-container-lowest": "#ffffff",
+          "on-primary-container": "#ffe0dd",
+          "surface-container-low": "#fff0ef",
+          "on-surface": "#271816",
+          "error": "#ba1a1a",
+          "primary-fixed-dim": "#ffb4ac",
+          "surface-dim": "#f0d4d0",
+          "background": "#fff8f7",
+          "on-background": "#271816",
+          "primary": "#a20513",
+          "surface": "#fff8f7",
+          "secondary-container": "#64a1ff",
+          "error-container": "#ffdad6",
+          "tertiary-fixed": "#c8e6ff",
+          "secondary": "#005db7",
+          "surface-container-high": "#ffe2de",
+          "inverse-surface": "#3e2c2a",
+          "on-secondary": "#ffffff",
+          "on-secondary-fixed-variant": "#00468c",
+          "on-tertiary": "#ffffff",
+          "on-error-container": "#93000a",
+          "surface-tint": "#b91d20",
+          "on-tertiary-fixed": "#001e2f",
+          "primary-container": "#c62828",
+          "on-error": "#ffffff"
+        },
+        borderRadius: { DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px" },
+        spacing: {
+          container_max_width: "1440px", sidebar_width: "260px", base: "8px",
+          navbar_height: "72px", gutter: "24px", card_padding: "20px"
+        },
+        fontFamily: {
+          "label-bold": ["Manrope"], "label-sm": ["Manrope"],
+          "h2": ["Lexend"], "h3": ["Lexend"], "body-lg": ["Manrope"],
+          "h1": ["Lexend"], "body-md": ["Manrope"]
+        },
+        fontSize: {
+          "label-bold": ["12px", { lineHeight: "1.2", letterSpacing: "0.05em", fontWeight: "700" }],
+          "label-sm": ["12px", { lineHeight: "1.2", fontWeight: "500" }],
+          "h2": ["24px", { lineHeight: "1.3", fontWeight: "600" }],
+          "h3": ["20px", { lineHeight: "1.4", fontWeight: "600" }],
+          "body-lg": ["16px", { lineHeight: "1.6", fontWeight: "400" }],
+          "h1": ["32px", { lineHeight: "1.2", fontWeight: "700" }],
+          "body-md": ["14px", { lineHeight: "1.5", fontWeight: "400" }]
+        }
+      }
+    }
+  }
+</script>
+<style>
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  body { background-color: #f8f9fa; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="../supabase-config.js"></script>
+<link rel="icon" type="image/png" href="/media/brand/logo.png"/>
+</head>
+<body class="font-body-md text-body-md text-on-surface">
+
+<!-- Sidebar -->
+<aside class="fixed left-0 top-0 h-full w-[260px] bg-primary dark:bg-primary-container shadow-lg flex flex-col py-6">
+  <div class="px-6 mb-6">
+    <img src="/media/brand/logo.png" alt="IE" class="w-10 h-10 rounded-lg object-contain bg-white p-0.5 mb-2 block"/>
+<a href="/"><h2 class="font-h2 text-h2 font-bold text-on-primary dark:text-on-primary-container">Intelligent Education</h2></a>
+    <p class="font-label-bold text-label-bold text-on-primary/60 uppercase tracking-wider">Student Portal</p>
+  </div>
+
+  <nav class="flex-1 px-2 space-y-1 overflow-y-auto">
+    <a class="flex items-center gap-3 px-4 py-3 bg-on-primary-fixed-variant text-on-primary rounded-lg mx-2 my-1 transition-transform scale-95" href="/">
+      <span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+      <span class="font-label-bold text-label-bold">Dashboard</span>
+    </a>
+    <a class="flex items-center gap-3 px-4 py-3 text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg mx-2 my-1" href="/my-profile/">
+      <span class="material-symbols-outlined" data-icon="person">person</span>
+      <span class="font-label-bold text-label-bold">My Profile</span>
+    </a>
+    <a class="flex items-center gap-3 px-4 py-3 text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg mx-2 my-1" href="/schools/">
+      <span class="material-symbols-outlined" data-icon="school">school</span>
+      <span class="font-label-bold text-label-bold">Schools</span>
+    </a>
+    <a class="flex items-center gap-3 px-4 py-3 text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg mx-2 my-1" href="/interaction-log/">
+      <span class="material-symbols-outlined" data-icon="list_alt">list_alt</span>
+      <span class="font-label-bold text-label-bold">Interaction Log</span>
+    </a>
+    <a class="flex items-center gap-3 px-4 py-3 text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg mx-2 my-1" href="/recent-activity/">
+      <span class="material-symbols-outlined" data-icon="history">history</span>
+      <span class="font-label-bold text-label-bold">Recent Activity</span>
+    </a>
+  </nav>
+
+  <!-- Counselor / POC Contact Card -->
+  
+</aside>
+
+<!-- Top Navbar -->
+<header class="fixed top-0 right-0 h-[72px] left-[260px] bg-surface-container-lowest shadow-[0px_4px_12px_rgba(0,0,0,0.05)] border-b border-outline-variant flex items-center justify-between px-gutter z-10">
+  <div class="flex items-center gap-4 flex-1">
+    <div class="relative w-full max-w-md">
+      <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+      <input class="w-full pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant rounded-lg focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none font-body-md text-body-md" placeholder="Search schools, applications..." type="text"/>
+    </div>
+  </div>
+  <div class="flex items-center gap-6">
+    <div class="flex items-center gap-3 border-r border-outline-variant pr-6">
+      <div class="relative" id="notif-wrap">
+        <button id="notif-btn" onclick="toggleNotif()" class="relative p-2 text-on-surface-variant hover:text-primary transition-colors rounded-lg">
+          <span class="material-symbols-outlined">notifications</span>
+          <span id="notif-badge" class="{% if notif_unread_count %}absolute top-1 right-1 min-w-[18px] h-[18px] bg-error text-on-error text-[10px] font-bold rounded-full flex items-center justify-center{% else %}hidden{% endif %}">{{ notif_unread_count|default:"" }}</span>
+        </button>
+        <div id="notif-panel" class="hidden absolute right-0 top-full mt-2 w-80 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-xl z-50 overflow-hidden">
+          <div class="flex items-center justify-between px-4 py-3 border-b border-outline-variant">
+            <span class="font-label-bold text-label-bold text-on-surface">Notifications</span>
+            <button onclick="markAllRead(event)" class="text-xs text-primary hover:underline font-label-sm">Mark all read</button>
+          </div>
+          <div id="notif-list" class="max-h-[320px] overflow-y-auto divide-y divide-outline-variant/50">
+            <p class="text-center text-on-surface-variant py-8 text-sm">Loading…</p>
+          </div>
+        </div>
+      </div>
+      <a href="/logout/" title="Sign out" class="p-2 text-on-surface-variant hover:text-primary transition-colors rounded-lg">
+        <span class="material-symbols-outlined text-[22px]">logout</span>
+      </a>
+    </div>
+    <div class="flex items-center gap-3">
+      <div class="text-right">
+        <p class="font-label-bold text-label-bold text-on-surface">{{ user.full_name|default:user.email }}</p>
+        <p class="font-label-sm text-label-sm text-on-surface-variant">
+          {% if student_obj %}ID: {{ student_obj.student_code }}{% else %}Student{% endif %}
+        </p>
+      </div>
+      <button onclick="openProfileDrawer()" title="View My Profile" class="block rounded-full hover:ring-2 hover:ring-primary transition-all cursor-pointer">
+        {% if user.avatar %}
+        <img src="/my-avatar/" class="w-10 h-10 rounded-full object-cover border-2 border-outline-variant" alt="Profile"/>
+        {% else %}
+        <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary font-bold text-sm border-2 border-outline-variant">
+          {{ user.full_name|default:user.email|first|upper }}
+        </div>
+        {% endif %}
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- Main Content -->
+<main class="ml-[260px] pt-[72px] min-h-screen p-gutter">
+
+  <!-- Welcome Section -->
+  <section class="mb-8">
+    <div class="flex items-end justify-between">
+      <div>
+        <h1 class="font-h1 text-h1 text-on-surface mb-1">Welcome back, {{ user.full_name|default:"Student"|truncatewords:1 }}</h1>
+        <p class="font-body-lg text-body-lg text-on-surface-variant">Here is what's happening with your application journey today.</p>
+      </div>
+      <div class="flex gap-3">
+        <a href="/schools/" class="px-6 py-2.5 bg-primary text-on-primary font-label-bold text-label-bold rounded-lg shadow-sm hover:shadow-md transition-all active:scale-95">
+          View My Schools
+        </a>
+        {% if counselor %}
+        <a href="mailto:{{ counselor.email }}" class="px-6 py-2.5 border border-secondary text-secondary font-label-bold text-label-bold rounded-lg hover:bg-secondary/5 transition-all">
+          Contact Counselor
+        </a>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+
+  <!-- Metrics Grid -->
+  <div class="grid grid-cols-3 gap-6 mb-8">
+    <!-- Preferred Schools -->
+    <div class="bg-surface-container-lowest p-card_padding rounded-xl border border-outline-variant shadow-[0px_4px_12px_rgba(0,0,0,0.05)] flex flex-col justify-between border-l-4 border-l-primary">
+      <div class="flex justify-between items-start">
+        <div class="p-2 bg-primary-fixed rounded-lg text-on-primary-fixed-variant">
+          <span class="material-symbols-outlined">school</span>
+        </div>
+        <a href="/schools/" class="font-label-bold text-label-bold text-primary hover:underline">Browse</a>
+      </div>
+      <div class="mt-4">
+        <p class="font-label-bold text-label-bold text-on-surface-variant uppercase tracking-wider">Preferred Schools</p>
+        <h3 class="font-h1 text-h1 text-on-surface">{{ preferred_schools_count }}</h3>
+      </div>
+    </div>
+    <!-- Applications -->
+    <div class="bg-surface-container-lowest p-card_padding rounded-xl border border-outline-variant shadow-[0px_4px_12px_rgba(0,0,0,0.05)] flex flex-col justify-between border-l-4 border-l-secondary">
+      <div class="flex justify-between items-start">
+        <div class="p-2 bg-secondary-fixed rounded-lg text-on-secondary-fixed-variant">
+          <span class="material-symbols-outlined">description</span>
+        </div>
+        <a href="/interaction-log/" class="font-label-bold text-label-bold text-secondary hover:underline">View Log</a>
+      </div>
+      <div class="mt-4">
+        <p class="font-label-bold text-label-bold text-on-surface-variant uppercase tracking-wider">Messages</p>
+        <h3 class="font-h1 text-h1 text-on-surface">{{ unread_messages_count|default:"0" }}</h3>
+      </div>
+    </div>
+    <!-- Documents -->
+    <div class="bg-surface-container-lowest p-card_padding rounded-xl border border-outline-variant shadow-[0px_4px_12px_rgba(0,0,0,0.05)] flex flex-col justify-between border-l-4 border-l-tertiary">
+      <div class="flex justify-between items-start">
+        <div class="p-2 bg-tertiary-fixed rounded-lg text-on-tertiary-fixed-variant">
+          <span class="material-symbols-outlined">folder_open</span>
+        </div>
+        <span class="font-label-bold text-label-bold text-on-surface-variant">Uploaded</span>
+      </div>
+      <div class="mt-4">
+        <p class="font-label-bold text-label-bold text-on-surface-variant uppercase tracking-wider">Documents</p>
+        <h3 class="font-h1 text-h1 text-on-surface">0</h3>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Grid -->
+  <div class="grid grid-cols-12 gap-6">
+
+    <!-- Recent Activity List -->
+    <div class="col-span-12 lg:col-span-8 bg-surface-container-lowest rounded-xl border border-outline-variant shadow-[0px_4px_12px_rgba(0,0,0,0.05)] overflow-hidden">
+      <div class="px-card_padding py-4 border-b border-outline-variant flex justify-between items-center">
+        <h3 class="font-h3 text-h3 text-on-surface">Recent Activity</h3>
+        <a href="/recent-activity/" class="text-secondary font-label-bold text-label-bold hover:underline">View All</a>
+      </div>
+      <div class="divide-y divide-outline-variant">
+        {% if recent_activities %}
+          {% for act in recent_activities %}
+          <div class="p-card_padding flex items-start gap-4 hover:bg-surface-container-low transition-colors group">
+            <div class="w-10 h-10 rounded-lg bg-tertiary-fixed text-tertiary flex items-center justify-center flex-shrink-0">
+              <span class="material-symbols-outlined">
+                {% if act.activity_type == "application_submitted" %}send{% elif act.activity_type == "document_uploaded" %}upload_file{% elif act.activity_type == "preference_saved" %}school{% elif act.activity_type == "profile_updated" %}person{% elif act.activity_type == "note_added" %}sticky_note_2{% elif act.activity_type == "meeting_scheduled" %}event{% else %}history{% endif %}
+              </span>
+            </div>
+            <div class="flex-1">
+              <div class="flex justify-between mb-1">
+                <p class="font-label-bold text-label-bold text-on-surface group-hover:text-primary transition-colors">{{ act.get_activity_type_display }}</p>
+                <span class="font-label-sm text-label-sm text-on-surface-variant">{{ act.created_at|timesince }} ago</span>
+              </div>
+              <p class="font-body-md text-body-md text-on-surface-variant">{{ act.description }}</p>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+        <div class="p-card_padding flex items-start gap-4">
+          <div class="w-10 h-10 rounded-lg bg-surface-container-high text-on-surface-variant flex items-center justify-center flex-shrink-0">
+            <span class="material-symbols-outlined">history</span>
+          </div>
+          <div class="flex-1 pt-2">
+            <p class="font-label-bold text-label-bold text-on-surface-variant">No activity yet</p>
+            <p class="font-body-md text-body-md text-on-surface-variant">Your activity will appear here as you use the portal.</p>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Right Column -->
+    <div class="col-span-12 lg:col-span-4 flex flex-col gap-6">
+
+      <!-- Counselor / POC Full Card -->
+      <div class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-[0px_4px_12px_rgba(0,0,0,0.05)] p-card_padding">
+        <h3 class="font-label-bold text-label-bold text-on-surface uppercase tracking-wider mb-4">Your Support Team</h3>
+        {% if counselor %}
+        <div class="flex items-start gap-3 mb-4">
+          <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary font-bold text-sm flex-shrink-0">
+            {{ counselor.full_name|default:counselor.email|first|upper }}
+          </div>
+          <div>
+            <p class="font-label-bold text-label-bold text-on-surface">{{ counselor.full_name|default:counselor.email }}</p>
+            <p class="font-label-sm text-label-sm text-on-surface-variant mb-1">Counselor</p>
+            {% if counselor.phone %}<a href="tel:{{ counselor.phone }}" class="flex items-center gap-1 text-secondary text-[12px] hover:underline"><span class="material-symbols-outlined text-[14px]">call</span>{{ counselor.phone }}</a>{% endif %}
+            <a href="mailto:{{ counselor.email }}" class="flex items-center gap-1 text-secondary text-[12px] hover:underline"><span class="material-symbols-outlined text-[14px]">mail</span>{{ counselor.email }}</a>
+          </div>
+        </div>
+        {% else %}
+        <div class="flex items-center gap-3 mb-4 p-3 bg-surface-container-low rounded-lg">
+          <span class="material-symbols-outlined text-on-surface-variant">person_off</span>
+          <p class="font-label-sm text-label-sm text-on-surface-variant">No counselor assigned yet</p>
+        </div>
+        {% endif %}
+        {% if poc %}
+        <div class="flex items-start gap-3 border-t border-outline-variant pt-4">
+          <div class="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-on-secondary font-bold text-sm flex-shrink-0">
+            {{ poc.full_name|default:poc.email|first|upper }}
+          </div>
+          <div>
+            <p class="font-label-bold text-label-bold text-on-surface">{{ poc.full_name|default:poc.email }}</p>
+            <p class="font-label-sm text-label-sm text-on-surface-variant mb-1">Point of Contact</p>
+            {% if poc.phone %}<a href="tel:{{ poc.phone }}" class="flex items-center gap-1 text-secondary text-[12px] hover:underline"><span class="material-symbols-outlined text-[14px]">call</span>{{ poc.phone }}</a>{% endif %}
+            <a href="mailto:{{ poc.email }}" class="flex items-center gap-1 text-secondary text-[12px] hover:underline"><span class="material-symbols-outlined text-[14px]">mail</span>{{ poc.email }}</a>
+          </div>
+        </div>
+        {% else %}
+        <div class="flex items-center gap-3 border-t border-outline-variant pt-4 p-3 bg-surface-container-low rounded-lg mt-1">
+          <span class="material-symbols-outlined text-on-surface-variant">person_off</span>
+          <p class="font-label-sm text-label-sm text-on-surface-variant">No POC assigned yet</p>
+        </div>
+        {% endif %}
+        {% if editor %}
+        <div class="flex items-start gap-3 border-t border-outline-variant pt-4 mt-2">
+          <div class="w-10 h-10 rounded-full bg-tertiary flex items-center justify-center text-on-tertiary font-bold text-sm flex-shrink-0">
+            {{ editor.full_name|default:editor.email|first|upper }}
+          </div>
+          <div>
+            <p class="font-label-bold text-label-bold text-on-surface">{{ editor.full_name|default:editor.email }}</p>
+            <p class="font-label-sm text-label-sm text-on-surface-variant mb-1">Editor</p>
+            {% if editor.phone %}<a href="tel:{{ editor.phone }}" class="flex items-center gap-1 text-secondary text-[12px] hover:underline"><span class="material-symbols-outlined text-[14px]">call</span>{{ editor.phone }}</a>{% endif %}
+            <a href="mailto:{{ editor.email }}" class="flex items-center gap-1 text-secondary text-[12px] hover:underline"><span class="material-symbols-outlined text-[14px]">mail</span>{{ editor.email }}</a>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Pinned Notes Card -->
+      {% if pinned_notes %}
+      <div class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-[0px_4px_12px_rgba(0,0,0,0.05)] overflow-hidden">
+        <div class="px-card_padding py-3 border-b border-outline-variant flex items-center gap-2" style="background:linear-gradient(135deg,#fff7ed,#fef3c7);">
+          <span class="material-symbols-outlined text-[16px]" style="color:#a20513;font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 20;">push_pin</span>
+          <span class="font-label-bold text-[11px] uppercase tracking-widest" style="color:#a20513;">Pinned Notes</span>
+        </div>
+        <div class="divide-y divide-outline-variant">
+          {% for note in pinned_notes %}
+          <div class="px-card_padding py-3 flex items-start gap-3 hover:bg-surface-container-low transition-colors">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5" style="background:#fff7ed;">
+              <span class="material-symbols-outlined text-[16px]" style="color:#a20513;">sticky_note_2</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="font-body-md text-body-md text-on-surface leading-snug">{{ note.description|truncatechars:120 }}</p>
+              <p class="font-label-sm text-label-sm text-on-surface-variant mt-1">{{ note.created_at|date:"M j, Y" }}{% if note.created_by %} · {{ note.created_by.full_name|default:note.created_by.email }}{% endif %}</p>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        <div class="px-card_padding py-2 border-t border-outline-variant bg-surface-container-low">
+          <a href="/interaction-log/" class="font-label-bold text-[11px] uppercase tracking-widest hover:underline" style="color:#a20513;">View all notes →</a>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Quick Links Card -->
+      <div class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-[0px_4px_12px_rgba(0,0,0,0.05)] p-card_padding">
+        <h3 class="font-label-bold text-label-bold text-on-surface uppercase tracking-wider mb-4">Quick Actions</h3>
+        <div class="space-y-2">
+          <a href="/schools/" class="flex items-center gap-3 p-3 rounded-lg hover:bg-surface-container-low transition-colors group">
+            <span class="material-symbols-outlined text-primary">school</span>
+            <span class="font-label-bold text-label-bold text-on-surface group-hover:text-primary">Browse Schools &amp; Courses</span>
+          </a>
+          <a href="/my-profile/" class="flex items-center gap-3 p-3 rounded-lg hover:bg-surface-container-low transition-colors group">
+            <span class="material-symbols-outlined text-secondary">edit_note</span>
+            <span class="font-label-bold text-label-bold text-on-surface group-hover:text-primary">Update My Profile</span>
+          </a>
+          <a href="/schools/" class="flex items-center gap-3 p-3 rounded-lg hover:bg-surface-container-low transition-colors group">
+            <span class="material-symbols-outlined text-tertiary">send</span>
+            <span class="font-label-bold text-label-bold text-on-surface group-hover:text-primary">View My Schools</span>
+          </a>
+          <a href="/interaction-log/" class="flex items-center gap-3 p-3 rounded-lg hover:bg-surface-container-low transition-colors group">
+            <span class="material-symbols-outlined text-on-surface-variant">list_alt</span>
+            <span class="font-label-bold text-label-bold text-on-surface group-hover:text-primary">Interaction Log</span>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<!-- ── Profile Drawer Overlay ── -->
+<div id="profile-drawer-overlay" onclick="closeProfileDrawer()" class="fixed inset-0 bg-black/40 z-50 hidden opacity-0 transition-opacity duration-300"></div>
+
+<!-- ── Profile Drawer Panel ── -->
+<aside id="profile-drawer" class="fixed top-0 right-0 h-full w-[400px] bg-surface z-50 shadow-2xl flex flex-col translate-x-full transition-transform duration-300 ease-in-out">
+
+  <!-- Drawer Header -->
+  <div class="flex items-center justify-between px-6 py-5 border-b border-outline-variant bg-surface-container-lowest">
+    <div class="flex items-center gap-3">
+      {% if user.avatar %}
+      <img src="/my-avatar/" class="w-12 h-12 rounded-full object-cover border-2 border-outline-variant" alt="Profile"/>
+      {% else %}
+      <div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-on-primary font-bold text-lg border-2 border-outline-variant">
+        {{ user.full_name|default:user.email|first|upper }}
+      </div>
+      {% endif %}
+      <div>
+        <p class="font-h3 text-h3 text-on-surface leading-tight">{{ user.full_name|default:user.email }}</p>
+        <p class="font-label-sm text-label-sm text-on-surface-variant">{% if student_obj %}ID: {{ student_obj.student_code }}{% else %}Student{% endif %}</p>
+      </div>
+    </div>
+    <button onclick="closeProfileDrawer()" class="p-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-colors">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+  </div>
+
+  <!-- Drawer Body -->
+  <div class="flex-1 overflow-y-auto p-6 space-y-6">
+
+    <!-- Profile Details Card -->
+    <div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-5">
+      <h3 class="font-h3 text-h3 text-on-surface mb-4 flex items-center gap-2">
+        <span class="material-symbols-outlined text-secondary">assignment_ind</span> Profile Details
+      </h3>
+      <div class="grid grid-cols-2 gap-4 text-[13px]">
+        <div>
+          <p class="text-on-surface-variant font-label-sm uppercase tracking-wider mb-0.5">Date of Birth</p>
+          <p class="font-label-bold text-on-surface">{{ student_obj.dob|default:"—" }}</p>
+        </div>
+        <div>
+          <p class="text-on-surface-variant font-label-sm uppercase tracking-wider mb-0.5">Gender</p>
+          <p class="font-label-bold text-on-surface">{{ student_obj.gender|default:"—"|capfirst }}</p>
+        </div>
+        <div>
+          <p class="text-on-surface-variant font-label-sm uppercase tracking-wider mb-0.5">Nationality</p>
+          <p class="font-label-bold text-on-surface">{{ student_obj.nationality|default:"—" }}</p>
+        </div>
+        <div>
+          <p class="text-on-surface-variant font-label-sm uppercase tracking-wider mb-0.5">Native Language</p>
+          <p class="font-label-bold text-on-surface">{{ student_obj.native_language|default:"—" }}</p>
+        </div>
+        <div>
+          <p class="text-on-surface-variant font-label-sm uppercase tracking-wider mb-0.5">Country of Birth</p>
+          <p class="font-label-bold text-on-surface">{{ student_obj.country_of_birth|default:"—" }}</p>
+        </div>
+        <div>
+          <p class="text-on-surface-variant font-label-sm uppercase tracking-wider mb-0.5">Mobile</p>
+          <p class="font-label-bold text-on-surface">{{ student_obj.phone|default:"—" }}</p>
+        </div>
+        <div>
+          <p class="text-on-surface-variant font-label-sm uppercase tracking-wider mb-0.5">Passport No.</p>
+          <p class="font-label-bold text-on-surface">{{ student_obj.passport_number|default:"—" }}</p>
+        </div>
+        <div>
+          <p class="text-on-surface-variant font-label-sm uppercase tracking-wider mb-0.5">Passport Expiry</p>
+          <p class="font-label-bold text-on-surface">{{ student_obj.passport_expiry_date|default:"—" }}</p>
+        </div>
+        <div class="col-span-2">
+          <p class="text-on-surface-variant font-label-sm uppercase tracking-wider mb-0.5">Permanent Address</p>
+          <p class="font-label-bold text-on-surface">
+            {% if student_obj.perm_line_1 %}{{ student_obj.perm_line_1 }}, {% endif %}{% if student_obj.perm_city %}{{ student_obj.perm_city }}, {% endif %}{{ student_obj.perm_country|default:"—" }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Emergency / Parents Details Card -->
+    <div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-5">
+      <h3 class="font-h3 text-h3 text-on-surface mb-4 flex items-center gap-2">
+        <span class="material-symbols-outlined text-error">contact_emergency</span> Emergency / Parent Contact
+      </h3>
+      <div class="grid grid-cols-2 gap-4 text-[13px]">
+        <div>
+          <p class="text-on-surface-variant font-label-sm uppercase tracking-wider mb-0.5">Contact Name</p>
+          <p class="font-label-bold text-on-surface">{{ student_obj.emergency_name|default:"—" }}</p>
+        </div>
+        <div>
+          <p class="text-on-surface-variant font-label-sm uppercase tracking-wider mb-0.5">Relationship</p>
+          <p class="font-label-bold text-on-surface">{{ student_obj.emergency_relationship|default:"—"|capfirst }}</p>
+        </div>
+        <div>
+          <p class="text-on-surface-variant font-label-sm uppercase tracking-wider mb-0.5">Phone</p>
+          <p class="font-label-bold text-on-surface">{{ student_obj.emergency_mobile|default:"—" }}</p>
+        </div>
+        <div>
+          <p class="text-on-surface-variant font-label-sm uppercase tracking-wider mb-0.5">Email</p>
+          <p class="font-label-bold text-on-surface break-all">{{ student_obj.emergency_email|default:"—" }}</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Drawer Footer -->
+  <div class="px-6 py-4 border-t border-outline-variant bg-surface-container-lowest">
+    <a href="/my-profile/" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-on-primary font-label-bold text-label-bold rounded-lg hover:bg-primary/90 transition-colors">
+      <span class="material-symbols-outlined text-[18px]">edit</span> Edit Full Profile
+    </a>
+  </div>
+</aside>
+
+<script>
+  function openProfileDrawer() {
+    const overlay = document.getElementById('profile-drawer-overlay');
+    const drawer = document.getElementById('profile-drawer');
+    overlay.classList.remove('hidden');
+    requestAnimationFrame(() => {
+      overlay.classList.remove('opacity-0');
+      drawer.classList.remove('translate-x-full');
+    });
+  }
+  function closeProfileDrawer() {
+    const overlay = document.getElementById('profile-drawer-overlay');
+    const drawer = document.getElementById('profile-drawer');
+    overlay.classList.add('opacity-0');
+    drawer.classList.add('translate-x-full');
+    setTimeout(() => overlay.classList.add('hidden'), 300);
+  }
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeProfileDrawer(); });
+
+// ── Notifications ──────────────────────────────────────────────────────────
+(function () {
+  let _open = false;
+  function _csrf() { const m = document.cookie.match(/csrftoken=([^;]+)/); return m ? m[1] : ''; }
+  function _esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  function _badge(n) {
+    const el = document.getElementById('notif-badge');
+    if (!el) return;
+    if (n > 0) {
+      el.textContent = n > 99 ? '99+' : n;
+      el.className = 'absolute top-1 right-1 min-w-[18px] h-[18px] bg-error text-on-error text-[10px] font-bold rounded-full flex items-center justify-center';
+    } else {
+      el.className = 'hidden';
+    }
+  }
+
+  function _icon(title) {
+    const t = title.toLowerCase();
+    if (t.includes('message')) return 'chat';
+    if (t.includes('note')) return 'sticky_note_2';
+    if (t.includes('school')) return 'school';
+    return 'notifications';
+  }
+
+  function _render(notifs) {
+    const el = document.getElementById('notif-list');
+    if (!notifs.length) { el.innerHTML = '<p class="text-center text-on-surface-variant py-8 text-sm">No notifications yet</p>'; return; }
+    el.innerHTML = notifs.map(n => `
+      <div data-nid="${n.id}" onclick="_nRead(${n.id},this)" class="flex items-start gap-3 px-4 py-3 hover:bg-surface-container-low cursor-pointer transition-colors${n.read ? ' opacity-60' : ''}">
+        <span class="material-symbols-outlined ${n.read ? 'text-on-surface-variant' : 'text-primary'} mt-0.5 text-[18px] flex-shrink-0">${_icon(n.title)}</span>
+        <div class="flex-1 min-w-0">
+          <p class="font-label-bold text-label-bold text-on-surface text-sm">${_esc(n.title)}</p>
+          ${n.message ? `<p class="text-xs text-on-surface-variant mt-0.5 line-clamp-2">${_esc(n.message)}</p>` : ''}
+          <p class="text-[10px] text-on-surface-variant mt-1">${n.created_at}</p>
+        </div>
+        ${!n.read ? '<span class="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-2"></span>' : ''}
+      </div>`).join('');
+  }
+
+  async function _load() {
+    try {
+      const r = await fetch('/api/notifications/');
+      if (!r.ok) return;
+      const d = await r.json();
+      _badge(d.unread_count);
+      _render(d.notifications);
+    } catch (_) {}
+  }
+
+  window.toggleNotif = function () {
+    _open = !_open;
+    document.getElementById('notif-panel').classList.toggle('hidden', !_open);
+    if (_open) _load();
+  };
+
+  window._nRead = async function (id, el) {
+    await fetch(`/api/notifications/${id}/read/`, {method:'POST', headers:{'X-CSRFToken':_csrf()}});
+    el.classList.add('opacity-60');
+    el.querySelector('.w-2.h-2.rounded-full.bg-primary')?.remove();
+    const b = document.getElementById('notif-badge');
+    _badge(Math.max(0, parseInt(b.textContent||'0') - 1));
+  };
+
+  window.markAllRead = async function (e) {
+    e?.stopPropagation();
+    await fetch('/api/notifications/read-all/', {method:'POST', headers:{'X-CSRFToken':_csrf()}});
+    document.querySelectorAll('#notif-list [data-nid]').forEach(el => {
+      el.classList.add('opacity-60');
+      el.querySelector('.w-2.h-2.rounded-full.bg-primary')?.remove();
+    });
+    _badge(0);
+  };
+
+  function _wsConnect() {
+    const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+    const ws = new WebSocket(`${proto}://${location.host}/ws/notifications/`);
+    ws.onmessage = function (e) {
+      const d = JSON.parse(e.data);
+      if (d.type === 'notify') {
+        const b = document.getElementById('notif-badge');
+        _badge(parseInt(b.textContent||'0') + 1);
+        if (_open) _load();
+      }
+    };
+    ws.onclose = function () { setTimeout(_wsConnect, 3000); };
+  }
+
+  document.addEventListener('click', function (e) {
+    if (!document.getElementById('notif-wrap')?.contains(e.target)) {
+      _open = false;
+      document.getElementById('notif-panel')?.classList.add('hidden');
+    }
+  });
+
+  _wsConnect();
+  _load();
+})();
+</script>
+
+
+<!-- ===== FOOTER ===== -->
+<footer style="margin-left:260px;" class="border-t border-[#e4beba] bg-[#fff0ef] py-4 px-6 text-center text-xs text-[#5b403d]">
+  <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-1">
+    <button onclick="document.getElementById('tc-modal').classList.remove('hidden')" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">Terms &amp; Conditions</button>
+    <span class="text-[#e4beba]">|</span>
+    <button onclick="document.getElementById('pp-modal').classList.remove('hidden')" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">Privacy Policy</button>
+    <span class="text-[#e4beba]">|</span>
+    <span>Website: <a href="https://www.intelligenteducation.org" target="_blank" rel="noopener noreferrer" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">www.intelligenteducation.org</a></span>
+    <span class="text-[#e4beba]">|</span>
+    <span>Email: <a href="mailto:ho@intelligenteducation.org" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">ho@intelligenteducation.org</a></span>
+  </div>
+</footer>
+
+<!-- T&amp;C Modal -->
+<div id="tc-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-black/40 p-4" onclick="if(event.target===this)this.classList.add('hidden')">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-[#e4beba]">
+      <h2 class="text-lg font-semibold text-[#271816]" style="font-family:'Lexend',sans-serif;">Terms &amp; Conditions</h2>
+      <button onclick="document.getElementById('tc-modal').classList.add('hidden')" class="text-[#5b403d] hover:text-[#271816] transition-colors rounded-full p-1 hover:bg-[#ffe9e6]">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="overflow-y-auto px-6 py-5 text-sm text-[#271816] leading-relaxed">
+      <h3 class="text-base font-semibold text-[#a20513] mb-1" style="font-family:'Lexend',sans-serif;">Intelligent Education CRM Platform</h3>
+      <p class="text-[#5b403d] text-xs mb-4">Effective Date: May 13, 2026</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">1. Introduction</h4>
+      <p class="mb-2">Welcome to the Intelligent Education CRM Platform (&ldquo;Platform&rdquo;), operated by Intelligent Education (&ldquo;Intelligent Education,&rdquo; &ldquo;Company,&rdquo; &ldquo;we,&rdquo; &ldquo;our,&rdquo; or &ldquo;us&rdquo;).</p>
+      <p class="mb-2">These Terms and Conditions (&ldquo;Terms&rdquo;) govern access to and use of the Platform, including all associated services, software, AI-assisted features, communications, databases, dashboards, document management tools, and integrations.</p>
+      <p class="mb-2">By accessing or using the Platform, you agree to comply with and be legally bound by these Terms.</p>
+      <p class="mb-4 font-medium text-[#a20513]">If you do not agree with these Terms, you must not use the Platform.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">2. Purpose of the Platform</h4>
+      <p class="mb-2">The Platform is designed to assist Intelligent Education in managing:</p>
+      <ul class="list-disc pl-5 mb-2 space-y-1">
+        <li>Student and client relationships</li>
+        <li>Admission application workflows</li>
+        <li>Counseling and communication processes</li>
+        <li>Document collection and storage</li>
+        <li>Internal operational management</li>
+        <li>AI-assisted productivity and workflow support</li>
+      </ul>
+      <p class="mb-2">The Platform is intended solely for use by:</p>
+      <ul class="list-disc pl-5 mb-4 space-y-1">
+        <li>Authorized employees, counselors, and representatives of Intelligent Education</li>
+        <li>Registered clients and students associated with Intelligent Education</li>
+      </ul>
+
+      <h4 class="font-semibold text-[#271816] mb-1">3. Eligibility</h4>
+      <p class="mb-2">By using the Platform, you represent and warrant that:</p>
+      <ul class="list-disc pl-5 mb-2 space-y-1">
+        <li>You are legally capable of entering into a binding agreement under applicable law;</li>
+        <li>The information provided by you is accurate and complete;</li>
+        <li>You will use the Platform only for lawful purposes.</li>
+      </ul>
+      <p class="mb-4">If you are accessing the Platform on behalf of an organization or institution, you confirm that you are authorized to do so.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">4. User Accounts and Access</h4>
+      <p class="mb-2">Users may be required to create an account to access certain features. You agree to:</p>
+      <ul class="list-disc pl-5 mb-2 space-y-1">
+        <li>Maintain the confidentiality of your login credentials;</li>
+        <li>Restrict unauthorized access to your account;</li>
+        <li>Notify Intelligent Education immediately of any unauthorized use or security breach.</li>
+      </ul>
+      <p class="mb-2">Intelligent Education reserves the right to suspend or terminate accounts that:</p>
+      <ul class="list-disc pl-5 mb-4 space-y-1">
+        <li>Violate these Terms;</li>
+        <li>Engage in fraudulent, abusive, or unlawful conduct;</li>
+        <li>Attempt unauthorized access to systems or data.</li>
+      </ul>
+
+      <h4 class="font-semibold text-[#271816] mb-1">5. Data Collection and Storage</h4>
+      <p class="mb-2">The Platform may collect, process, and store personal and sensitive information, including but not limited to: names and contact details, academic records, identification documents, passport information, financial information, visa-related documentation, and application-related materials.</p>
+      <p class="mb-2">Data may be securely stored and processed using third-party infrastructure including Supabase, Railway, Google, and OpenAI.</p>
+      <p class="mb-4">While reasonable security measures are implemented, Intelligent Education does not guarantee absolute security of data transmission or storage systems.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">6. AI-Assisted Features Disclaimer</h4>
+      <p class="mb-2">The Platform may use artificial intelligence to assist with recommendations, workflow automation, draft generation, data processing, and communication support.</p>
+      <p class="mb-2">AI-generated outputs may contain inaccuracies, should not be treated as professional legal, immigration, financial, or admission advice, and require independent human review.</p>
+      <p class="mb-4">Intelligent Education makes no guarantees regarding the accuracy, reliability, or suitability of AI-generated outputs.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">7. No Guarantee of Admission or Visa Approval</h4>
+      <p class="mb-4">Use of the Platform does not guarantee admission to any educational institution, scholarship awards, visa approval, immigration outcomes, employment opportunities, or academic/professional success. All such decisions are made solely by the relevant authorities and institutions.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">8. Acceptable Use</h4>
+      <p class="mb-4">Users agree not to upload unlawful or fraudulent content, attempt unauthorized system access, interfere with Platform security, reverse engineer or exploit the Platform, or use it for illegal purposes. Intelligent Education reserves the right to investigate and take legal action for misuse.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">9. Intellectual Property</h4>
+      <p class="mb-4">All Platform content, branding, software, workflows, designs, and features are owned by or licensed to Intelligent Education. Users may not copy, reproduce, redistribute, modify, or commercially exploit any part of the Platform without prior written consent.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">10. Third-Party Services and Integrations</h4>
+      <p class="mb-4">The Platform integrates with third-party services including Google, Gmail, OpenAI, Supabase, and Railway. Intelligent Education is not responsible for third-party outages, data losses, policy changes, or service interruptions outside its reasonable control. Use of third-party services may be subject to their respective terms.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">11. Service Availability</h4>
+      <p class="mb-4">The Platform is provided on an &ldquo;as is&rdquo; and &ldquo;as available&rdquo; basis. Intelligent Education does not guarantee continuous uptime, error-free operation, or uninterrupted access. Maintenance, updates, or third-party failures may temporarily affect availability.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">12. Limitation of Liability</h4>
+      <p class="mb-2">To the maximum extent permitted by law, Intelligent Education shall not be liable for indirect, incidental, consequential, special, or punitive damages arising from use of the Platform, AI inaccuracies, data loss, admission or visa outcomes, service interruptions, unauthorized access, or third-party failures.</p>
+      <p class="mb-4">In no event shall Intelligent Education&rsquo;s total liability exceed the amount paid, if any, by the user for access during the preceding three (3) months.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">13. Indemnification</h4>
+      <p class="mb-4">Users agree to indemnify and hold harmless Intelligent Education, its employees, affiliates, contractors, and representatives from any claims, liabilities, or expenses arising from violation of these Terms, misuse of the Platform, or violation of applicable laws or third-party rights.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">14. Suspension and Termination</h4>
+      <p class="mb-4">Intelligent Education reserves the right to suspend or terminate access at any time, without prior notice, for security concerns, policy violations, fraudulent activity, misuse, or legal compliance requirements.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">15. Privacy</h4>
+      <p class="mb-4">Use of the Platform is also subject to the Intelligent Education Privacy Policy. Users acknowledge and consent to the collection, storage, and processing of data necessary for Platform operation.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">16. Governing Law and Jurisdiction</h4>
+      <p class="mb-4">These Terms shall be governed by the laws of India. Any disputes shall be subject to the exclusive jurisdiction of the courts located in India.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">17. Modifications to Terms</h4>
+      <p class="mb-4">Intelligent Education reserves the right to modify these Terms at any time. Updated versions may be published within the Platform or via official communications. Continued use of the Platform after modifications constitutes acceptance of the revised Terms.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">18. Contact Information</h4>
+      <p>For questions regarding these Terms, contact:<br/><strong>Intelligent Education</strong><br/>Email: <a href="mailto:ho@intelligenteducation.org" class="text-[#a20513] underline">ho@intelligenteducation.org</a></p>
+    </div>
+  </div>
+</div>
+<!-- Privacy Policy Modal -->
+<div id="pp-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-black/40 p-4" onclick="if(event.target===this)this.classList.add('hidden')">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-[#e4beba]">
+      <h2 class="text-lg font-semibold text-[#271816]" style="font-family:'Lexend',sans-serif;">Privacy Policy</h2>
+      <button onclick="document.getElementById('pp-modal').classList.add('hidden')" class="text-[#5b403d] hover:text-[#271816] transition-colors rounded-full p-1 hover:bg-[#ffe9e6]">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="overflow-y-auto px-6 py-5 text-sm text-[#271816] leading-relaxed space-y-3">
+      <h3 class="text-base font-semibold text-[#a20513]" style="font-family:'Lexend',sans-serif;">Intelligent Education CRM Platform</h3>
+      <p class="text-[#5b403d] text-xs">Effective Date: May 13, 2026</p>
+
+      <h4 class="font-semibold text-[#271816]">1. Introduction</h4>
+      <p>This Privacy Policy explains how Intelligent Education (&ldquo;Intelligent Education,&rdquo; &ldquo;Company,&rdquo; &ldquo;we,&rdquo; &ldquo;our,&rdquo; or &ldquo;us&rdquo;) collects, uses, stores, processes, and protects personal information through the Intelligent Education CRM Platform (&ldquo;Platform&rdquo;).</p>
+      <p>By accessing or using the Platform, you consent to the practices described in this Privacy Policy.</p>
+
+      <h4 class="font-semibold text-[#271816]">2. Scope of This Policy</h4>
+      <p>This Privacy Policy applies to students and clients, counselors and employees, authorized representatives, and all users interacting with the Platform and related services — including information collected through the CRM Platform, forms and applications, email communications, AI-assisted features, and integrated third-party services.</p>
+
+      <h4 class="font-semibold text-[#271816]">3. Information We Collect</h4>
+      <p><strong>Personal Information:</strong> Full name, date of birth, gender, nationality, contact details, address, email address, phone number.</p>
+      <p><strong>Academic &amp; Professional:</strong> Academic transcripts, test scores, resume/CV, educational history, employment details.</p>
+      <p><strong>Identity &amp; Verification Documents:</strong> Passport copies, government-issued identification, visa-related documents, financial statements, supporting application documents.</p>
+      <p><strong>Technical &amp; Usage Information:</strong> IP address, device information, browser type, login activity, usage analytics, system logs.</p>
+      <p><strong>Communication Data:</strong> Emails, messages, counseling notes, application discussions, AI-assisted communication records.</p>
+
+      <h4 class="font-semibold text-[#271816]">4. How We Use Information</h4>
+      <p>We use collected information to manage student applications and workflows, provide counseling and support services, process admissions-related activities, manage communications, generate AI-assisted recommendations and drafts, improve Platform functionality and security, maintain internal operational records, and fulfill legal and compliance obligations.</p>
+
+      <h4 class="font-semibold text-[#271816]">5. AI-Assisted Processing</h4>
+      <p>The Platform may use artificial intelligence technologies including OpenAI to generate drafts, provide workflow assistance, support administrative tasks, and improve productivity. AI-generated content may not always be accurate, should be independently reviewed, and does not constitute legal, immigration, or professional advice.</p>
+
+      <h4 class="font-semibold text-[#271816]">6. Third-Party Service Providers</h4>
+      <p>We may use trusted third-party platforms including Supabase, Railway, Google services and APIs, Gmail integrations, and OpenAI. These providers may process or store data under their own policies. We are not responsible for the independent privacy practices of third-party services.</p>
+
+      <h4 class="font-semibold text-[#271816]">7. Data Storage and Security</h4>
+      <p>We implement commercially reasonable technical and organizational safeguards to protect personal information from unauthorized access, disclosure, alteration, loss, and misuse. However, no internet-based platform can guarantee absolute security. Users acknowledge and accept inherent cybersecurity and transmission risks.</p>
+
+      <h4 class="font-semibold text-[#271816]">8. Data Sharing and Disclosure</h4>
+      <p>We do not sell personal information. We may disclose information to authorized employees and counselors, to educational institutions for applications, to government or visa authorities when necessary, to service providers supporting Platform operations, or when required by law, legal process, or regulatory obligations.</p>
+
+      <h4 class="font-semibold text-[#271816]">9. Data Retention</h4>
+      <p>We retain personal information only as long as reasonably necessary for business operations, application management, legal compliance, dispute resolution, and recordkeeping purposes. We reserve the right to retain certain records where legally required or operationally necessary.</p>
+
+      <h4 class="font-semibold text-[#271816]">10. User Rights</h4>
+      <p>Subject to applicable law, users may request access to their personal information, correction of inaccurate data, deletion of certain data, restriction of processing, or withdrawal of consent where applicable. Requests may be subject to identity verification, legal obligations, and operational requirements.</p>
+
+      <h4 class="font-semibold text-[#271816]">11. Cookies and Analytics</h4>
+      <p>The Platform may use cookies, session technologies, analytics tools, and tracking technologies to improve user experience, security, and performance. Users may disable certain cookies through browser settings, though some features may not function properly.</p>
+
+      <h4 class="font-semibold text-[#271816]">12. Children&rsquo;s Privacy</h4>
+      <p>The Platform is not intentionally directed toward children under the age required by applicable law without appropriate authorization or supervision. Where required, users represent that appropriate consent has been obtained from parents or legal guardians.</p>
+
+      <h4 class="font-semibold text-[#271816]">13. International Data Processing</h4>
+      <p>Data may be processed or stored on servers in different jurisdictions depending on the infrastructure and service providers used. By using the Platform, users consent to such transfers and processing where legally permitted.</p>
+
+      <h4 class="font-semibold text-[#271816]">14. Limitation of Liability</h4>
+      <p>To the fullest extent permitted by law, Intelligent Education shall not be liable for unauthorized access, cyberattacks, third-party breaches, data transmission failures, service interruptions, or losses arising from external systems or providers. Users use the Platform at their own risk.</p>
+
+      <h4 class="font-semibold text-[#271816]">15. Changes to This Privacy Policy</h4>
+      <p>We may update this Privacy Policy periodically. Updated versions may be posted on the Platform with a revised effective date. Continued use of the Platform after updates constitutes acceptance of the revised Privacy Policy.</p>
+
+      <h4 class="font-semibold text-[#271816]">16. Contact Information</h4>
+      <p>For questions or privacy-related requests, contact:<br/><strong>Intelligent Education</strong><br/>Email: <a href="mailto:ho@intelligenteducation.org" class="text-[#a20513] underline">ho@intelligenteducation.org</a></p>
+    </div>
+  </div>
+</div>
+<!-- ===== /FOOTER ===== -->
+</body>
+</html>

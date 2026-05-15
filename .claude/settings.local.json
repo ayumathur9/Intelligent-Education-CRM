@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(py --version)",
+      "Bash(python -m venv .venv)",
+      "Bash(.venv/Scripts/pip install *)",
+      "Bash(.venv/Scripts/python.exe -m pip install --upgrade pip -q)",
+      "Bash(../.venv/Scripts/python.exe -m pip install -r requirements.txt)",
+      "Bash(../.venv/Scripts/python.exe manage.py migrate)",
+      "Bash(../.venv/Scripts/python.exe manage.py seed_demo)",
+      "Bash(../.venv/Scripts/python.exe manage.py runserver 0.0.0.0:8000)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8000/login/)",
+      "Bash(../.venv/Scripts/python.exe manage.py shell -c ' *)",
+      "Bash(dir \"d:\\\\Intelligent Education\\\\tool\\\\CRMcursor\" /B)"
+    ]
+  }
+}

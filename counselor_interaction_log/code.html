@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Interaction Log — Counselor | Intelligent Education</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config={darkMode:"class",theme:{extend:{colors:{"primary-fixed":"#ffdad6","on-surface-variant":"#5b403d","surface-bright":"#fff8f7","on-primary":"#ffffff","surface-container-highest":"#f9dcd9","surface-variant":"#f9dcd9","surface-container":"#ffe9e6","outline":"#8f706c","inverse-primary":"#ffb4ac","tertiary":"#00557a","outline-variant":"#e4beba","secondary-fixed":"#d6e3ff","on-primary-fixed-variant":"#93000e","surface-container-lowest":"#ffffff","on-primary-container":"#ffe0dd","surface-container-low":"#fff0ef","on-surface":"#271816","error":"#ba1a1a","primary-fixed-dim":"#ffb4ac","surface-dim":"#f0d4d0","background":"#fff8f7","primary":"#a20513","surface":"#fff8f7","secondary-container":"#64a1ff","tertiary-fixed":"#c8e6ff","secondary":"#005db7","surface-container-high":"#ffe2de","on-secondary":"#ffffff","on-tertiary":"#ffffff","on-error":"#ffffff"},spacing:{"gutter":"24px","card_padding":"20px"},fontFamily:{"label-bold":["Manrope"],"label-sm":["Manrope"],"h2":["Lexend"],"h3":["Lexend"],"body-lg":["Manrope"],"h1":["Lexend"],"body-md":["Manrope"]},fontSize:{"label-bold":["12px",{"lineHeight":"1.2","letterSpacing":"0.05em","fontWeight":"700"}],"label-sm":["12px",{"lineHeight":"1.2","fontWeight":"500"}],"h2":["24px",{"lineHeight":"1.3","fontWeight":"600"}],"h3":["20px",{"lineHeight":"1.4","fontWeight":"600"}],"body-lg":["16px",{"lineHeight":"1.6","fontWeight":"400"}],"h1":["32px",{"lineHeight":"1.2","fontWeight":"700"}],"body-md":["14px",{"lineHeight":"1.5","fontWeight":"400"}]}}}}
+</script>
+<style>
+  .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;}
+  .custom-scrollbar::-webkit-scrollbar{width:4px;} .custom-scrollbar::-webkit-scrollbar-thumb{background:#e4beba;border-radius:6px;}
+  #timeline-feed{scroll-behavior:smooth;}
+
+  /* Bubble hover */
+  [data-msg-card] { transition: opacity 0.15s; }
+  [data-msg-card]:hover { opacity: 0.92; }
+  /* Note card */
+  .note-card { transition: box-shadow 0.15s ease, transform 0.15s ease; }
+  .note-card:hover { box-shadow: 0 8px 28px rgba(161,118,0,0.18) !important; transform: translateY(-1px); }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="../supabase-config.js"></script>
+<link rel="icon" type="image/png" href="/media/brand/logo.png"/>
+</head>
+<body class="bg-background text-on-surface font-body-md overflow-hidden h-screen">
+
+<!-- Sidebar -->
+<aside class="fixed left-0 top-0 h-full w-[260px] bg-primary shadow-lg flex flex-col py-6 z-50">
+  <div class="px-6 mb-8">
+    <img src="/media/brand/logo.png" alt="IE" class="w-10 h-10 rounded-lg object-contain bg-white p-0.5 mb-2 block"/>
+<a href="/"><h1 class="font-h2 text-h2 font-bold text-on-primary hover:opacity-90">Intelligent Education</h1></a>
+    <p class="font-label-bold text-label-bold text-on-primary/70 uppercase tracking-widest mt-1">Counselor Portal</p>
+  </div>
+  <nav class="flex-1 px-4 space-y-1">
+    <a class="text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 flex items-center px-4 py-3 rounded-lg mx-2 my-1 transition-colors" href="/">
+      <span class="material-symbols-outlined mr-3">dashboard</span><span class="font-label-bold text-label-bold">Dashboard</span>
+    </a>
+    <a class="text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 flex items-center px-4 py-3 rounded-lg mx-2 my-1 transition-colors" href="/counselor-students/">
+      <span class="material-symbols-outlined mr-3">group</span><span class="font-label-bold text-label-bold">Students</span>
+    </a>
+    <a class="text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 flex items-center px-4 py-3 rounded-lg mx-2 my-1 transition-colors" href="/counselor-schools/">
+      <span class="material-symbols-outlined mr-3">school</span><span class="font-label-bold text-label-bold">Schools</span>
+    </a>
+    <a class="bg-on-primary-fixed-variant text-on-primary rounded-lg flex items-center px-4 py-3 mx-2 my-1 scale-95" href="/counselor-interaction-log/">
+      <span class="material-symbols-outlined mr-3">list_alt</span><span class="font-label-bold text-label-bold">Interaction Log</span>
+    </a>
+    <a class="text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 flex items-center px-4 py-3 rounded-lg mx-2 my-1 transition-colors" href="/counselor-activity/">
+      <span class="material-symbols-outlined mr-3">history</span><span class="font-label-bold text-label-bold">Recent Activity</span>
+    </a>
+  </nav>
+</aside>
+
+<!-- Top Nav -->
+<header class="fixed top-0 right-0 h-[72px] left-[260px] bg-surface-container-lowest shadow-[0px_4px_12px_rgba(0,0,0,0.05)] border-b border-outline-variant flex items-center justify-between px-gutter z-40">
+  <div>
+    <h2 class="font-h3 text-h3 text-on-surface">Interaction Log</h2>
+    <p class="font-label-sm text-label-sm text-on-surface-variant">Student timelines &amp; team messages</p>
+  </div>
+  <div class="flex items-center gap-3">
+    <span id="ws-dot" class="w-2 h-2 rounded-full bg-outline"></span>
+    <a href="/logout/" title="Sign out" class="p-2 text-on-surface-variant hover:text-primary transition-colors rounded-lg">
+      <span class="material-symbols-outlined text-[22px]">logout</span>
+    </a>
+    {% if user.avatar %}<img src="/my-avatar/" class="w-9 h-9 rounded-full object-cover border border-outline-variant" alt=""/>{% else %}<div class="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-on-primary font-bold text-sm">{{ user.full_name|default:user.email|first|upper }}</div>{% endif %}
+  </div>
+</header>
+
+<main class="ml-[260px] pt-[72px] h-screen flex">
+
+  <!-- Thread list panel -->
+  <section class="w-72 bg-surface-container-low border-r border-outline-variant flex flex-col shrink-0">
+    <div class="p-4 border-b border-outline-variant overflow-y-auto custom-scrollbar" style="max-height:50%">
+      <p class="font-label-bold text-label-bold text-on-surface-variant uppercase tracking-wider text-[10px] mb-2">{% if is_admin %}All Students{% else %}My Students{% endif %}</p>
+      {% for s in student_threads %}
+      <a href="/counselor-interaction-log/?t=student&id={{ s.pk }}"
+         class="flex items-center gap-3 px-3 py-2.5 rounded-lg mb-1 transition-colors {% if thread_type == 'student' and thread_id == s.pk|stringformat:'s' %}bg-primary text-on-primary{% else %}hover:bg-surface-container{% endif %}">
+        {% if s.user and s.user.avatar %}<img src="/user-avatar/{{ s.user.pk }}/" class="w-8 h-8 rounded-full object-cover shrink-0" alt=""/>{% else %}<div class="w-8 h-8 rounded-full {% if thread_type == 'student' and thread_id == s.pk|stringformat:'s' %}bg-on-primary text-primary{% else %}bg-primary text-on-primary{% endif %} flex items-center justify-center font-bold text-sm shrink-0">{{ s.full_name|first|upper }}</div>{% endif %}
+        <p class="font-label-bold text-label-bold {% if thread_type == 'student' and thread_id == s.pk|stringformat:'s' %}text-on-primary{% else %}text-on-surface{% endif %} truncate">{{ s.full_name }}</p>
+      </a>
+      {% empty %}
+      <p class="font-label-sm text-label-sm text-on-surface-variant px-3 py-2">No students assigned</p>
+      {% endfor %}
+    </div>
+    <div class="p-4 flex-1 overflow-y-auto custom-scrollbar">
+      <p class="font-label-bold text-label-bold text-on-surface-variant uppercase tracking-wider text-[10px] mb-2">Counselor Team (DMs)</p>
+      {% for u in counselor_users %}
+      <a href="/counselor-interaction-log/?t=dm&id={{ u.pk }}"
+         class="flex items-center gap-3 px-3 py-2.5 rounded-lg mb-1 transition-colors {% if thread_type == 'dm' and thread_id == u.pk|stringformat:'s' %}bg-primary text-on-primary{% else %}hover:bg-surface-container{% endif %}">
+        <div class="w-8 h-8 rounded-full {% if thread_type == 'dm' and thread_id == u.pk|stringformat:'s' %}bg-on-primary text-primary{% else %}bg-secondary text-on-secondary{% endif %} flex items-center justify-center font-bold text-sm shrink-0">{{ u.full_name|default:u.email|first|upper }}</div>
+        <div class="min-w-0">
+          <p class="font-label-bold text-label-bold {% if thread_type == 'dm' and thread_id == u.pk|stringformat:'s' %}text-on-primary{% else %}text-on-surface{% endif %} truncate">{{ u.full_name|default:u.email }}</p>
+          <p class="font-label-sm text-label-sm {% if thread_type == 'dm' and thread_id == u.pk|stringformat:'s' %}text-on-primary/70{% else %}text-on-surface-variant{% endif %} truncate">{{ u.role|title }}</p>
+        </div>
+      </a>
+      {% empty %}
+      <p class="font-label-sm text-label-sm text-on-surface-variant px-3 py-2">No other counselors</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- Board area -->
+  <section class="flex-1 flex flex-col min-w-0 relative">
+
+    {% if not thread_type %}
+    <div class="flex-1 flex flex-col items-center justify-center text-center p-8" style="background:repeating-linear-gradient(0deg,transparent,transparent 31px,#e4beba33 31px,#e4beba33 32px),repeating-linear-gradient(90deg,transparent,transparent 31px,#e4beba33 31px,#e4beba33 32px)">
+      <div class="bg-white/80 backdrop-blur rounded-2xl p-10 shadow-sm border border-outline-variant/50">
+        <span class="material-symbols-outlined text-[52px] text-on-surface-variant/40 mb-4 block">sticky_note_2</span>
+        <p class="font-h3 text-h3 text-on-surface mb-2">Select a thread</p>
+        <p class="font-body-md text-body-md text-on-surface-variant max-w-xs">Choose a student to view their notes, or a team member for direct messages.</p>
+      </div>
+    </div>
+
+    {% elif thread_type == "dm" %}
+
+    <!-- DM thread: full chat panel in main area -->
+    <div class="px-5 py-3 border-b border-outline-variant bg-surface-container-lowest flex items-center gap-3 shrink-0">
+      <div class="w-9 h-9 rounded-full bg-secondary flex items-center justify-center text-on-secondary font-bold">{{ active_counselor.full_name|default:active_counselor.email|first|upper }}</div>
+      <div>
+        <p class="font-label-bold text-label-bold text-on-surface">{{ active_counselor.full_name|default:active_counselor.email }}</p>
+        <p class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1.5">
+          <span id="ws-dot" class="w-1.5 h-1.5 rounded-full bg-outline inline-block"></span>
+          <span id="ws-text">Connecting…</span>
+        </p>
+      </div>
+    </div>
+    <div id="dm-messages" class="flex-1 overflow-y-auto px-6 py-5 space-y-2 custom-scrollbar"
+         style="background:#f5ebe8 url(&quot;data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23e4beba' fill-opacity='0.18'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E&quot;)">
+      {% for msg in messages %}
+        {% if msg.is_mine %}
+        <div class="flex justify-end">
+          <div class="max-w-[70%] rounded-[16px] rounded-br-[4px] px-3 py-2" style="background:#fce8e8;box-shadow:0 1px 4px rgba(0,0,0,0.08)">
+            <p class="text-[13px] leading-relaxed" style="color:#271816;word-break:break-word">{{ msg.content }}</p>
+            <p class="text-[10px] text-right mt-0.5" style="color:rgba(91,64,61,0.5)">{{ msg.created_at|date:"H:i" }}</p>
+          </div>
+        </div>
+        {% else %}
+        <div class="flex justify-start">
+          <div class="max-w-[70%] rounded-[16px] rounded-bl-[4px] px-3 py-2" style="background:#fff;box-shadow:0 1px 4px rgba(0,0,0,0.08)">
+            <p class="text-[13px] leading-relaxed" style="color:#271816;word-break:break-word">{{ msg.content }}</p>
+            <p class="text-[10px] text-right mt-0.5" style="color:rgba(91,64,61,0.5)">{{ msg.created_at|date:"H:i" }}</p>
+          </div>
+        </div>
+        {% endif %}
+      {% empty %}
+      <div class="flex flex-col items-center justify-center h-full text-center py-8">
+        <span class="material-symbols-outlined text-[40px] mb-2 text-on-surface-variant/30">chat_bubble</span>
+        <p class="font-label-sm text-label-sm text-on-surface-variant">No messages yet. Start the conversation!</p>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="px-4 py-3 flex items-end gap-2 shrink-0" style="background:#f0f0f0;border-top:1px solid #e4beba">
+      <div class="flex-1 flex items-end rounded-full px-4 py-2.5" style="background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.08)">
+        <textarea id="msg-input" rows="1" placeholder="Message…"
+          class="w-full text-[13px] outline-none resize-none max-h-24 bg-transparent font-body-md text-on-surface"
+          style="line-height:1.5"
+          onkeydown="handleKey(event)"></textarea>
+      </div>
+      <button id="send-btn" onclick="sendMessage()"
+        class="w-11 h-11 rounded-full flex items-center justify-center shrink-0 hover:opacity-90 active:scale-95 transition-all disabled:opacity-40"
+        style="background:#a20513;box-shadow:0 4px 14px rgba(162,5,19,0.35)">
+        <span class="material-symbols-outlined text-white text-[18px]">send</span>
+      </button>
+    </div>
+
+    {% else %}
+
+    <!-- Student thread: notes in main area -->
+    <div class="px-5 py-3 border-b border-outline-variant bg-surface-container-lowest flex items-center gap-3 shrink-0">
+      {% if active_student.user and active_student.user.avatar %}<img src="/user-avatar/{{ active_student.user.pk }}/" class="w-9 h-9 rounded-full object-cover shrink-0" alt=""/>{% else %}<div class="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-on-primary font-bold">{{ active_student.full_name|first|upper }}</div>{% endif %}
+      <div>
+        <p class="font-label-bold text-label-bold text-on-surface">{{ active_student.full_name }}</p>
+        <p class="font-label-sm text-label-sm text-on-surface-variant">Student · Notes</p>
+      </div>
+      <div class="ml-auto flex gap-3">
+        <a href="/counselor-schools/?student_id={{ active_student.pk }}" class="text-[11px] font-label-bold text-primary hover:underline flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">school</span>Schools</a>
+        <a href="/counselor-activity/?student_id={{ active_student.pk }}" class="text-[11px] font-label-bold text-on-surface-variant hover:underline flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">history</span>Activity</a>
+      </div>
+    </div>
+
+    <div id="notes-feed" class="flex-1 overflow-y-auto custom-scrollbar px-8 py-7"
+         style="background:#faf6f4 repeating-linear-gradient(0deg,transparent,transparent 35px,rgba(228,190,186,0.18) 35px,rgba(228,190,186,0.18) 36px)">
+      {% if not notes %}
+      <div class="flex flex-col items-center justify-center h-full text-center">
+        <div class="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style="background:#fef9c3;box-shadow:3px 3px 0 #fde68a">
+          <span class="material-symbols-outlined text-[28px]" style="color:#a16207;font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">sticky_note_2</span>
+        </div>
+        <p class="font-label-bold text-label-bold text-on-surface mb-1">No notes yet</p>
+        <p class="font-body-md text-body-md text-on-surface-variant/70">Notes for this student will appear here.</p>
+      </div>
+      {% else %}
+
+      {% if pinned_notes %}
+      <div class="max-w-2xl mx-auto mb-6">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="material-symbols-outlined text-[16px]" style="color:#a20513;font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 20">push_pin</span>
+          <span class="font-label-bold text-[11px] uppercase tracking-widest" style="color:#a20513">Pinned</span>
+        </div>
+        <div class="space-y-2">
+        {% for entry in pinned_notes %}
+        <div class="flex justify-center">
+          <div class="note-card w-full max-w-[72%] rounded-xl overflow-hidden" style="box-shadow:0 3px 14px rgba(162,5,19,0.12);outline:2px solid rgba(162,5,19,0.15)">
+            <div class="flex items-center gap-2 px-4 py-2" style="background:#fde68a">
+              <span class="material-symbols-outlined text-[13px]" style="color:#78350f;font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 20">sticky_note_2</span>
+              <span class="font-label-bold text-[11px] tracking-wide" style="color:#78350f">{% if entry.author %}{{ entry.author.full_name|default:entry.author.email }}{% else %}Counselor{% endif %}</span>
+              <span class="ml-auto font-label-sm text-[10px]" style="color:#92400e">{{ entry.created_at|date:"M d · H:i" }}</span>
+              <button onclick="togglePin({{ entry.pk }}, this)" title="Unpin"
+                class="ml-1 rounded-full p-0.5 hover:bg-black/10 transition-colors pin-btn" data-pinned="true">
+                <span class="material-symbols-outlined text-[14px]" style="color:#78350f;font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 20">push_pin</span>
+              </button>
+            </div>
+            <div class="px-4 py-3" style="background:#fffbeb">
+              <p class="font-body-md text-[13.5px] leading-relaxed text-on-surface" style="word-break:break-word">{{ entry.content }}</p>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+        </div>
+        <div class="mt-4 mb-1 flex items-center gap-3">
+          <div class="flex-1 h-px" style="background:rgba(228,190,186,0.5)"></div>
+          <span class="font-label-bold text-[10px] uppercase tracking-widest px-3 py-1" style="color:#8f706c">All Notes</span>
+          <div class="flex-1 h-px" style="background:rgba(228,190,186,0.5)"></div>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="max-w-2xl mx-auto space-y-3">
+        {% for entry in notes %}
+          {% if entry.kind == "date_sep" %}
+          <div class="flex items-center gap-3 py-2">
+            <div class="flex-1 h-px" style="background:rgba(228,190,186,0.5)"></div>
+            <span class="font-label-bold text-[10px] uppercase tracking-widest px-3 rounded-full py-1" style="color:#8f706c;background:rgba(228,190,186,0.25)">{{ entry.created_at|date:"F j, Y" }}</span>
+            <div class="flex-1 h-px" style="background:rgba(228,190,186,0.5)"></div>
+          </div>
+          {% elif entry.kind == "note" %}
+          <div class="flex justify-center my-1">
+            <div class="note-card w-full max-w-[72%] rounded-xl overflow-hidden{% if entry.is_pinned %} pinned{% endif %}" data-note-id="{{ entry.pk }}" style="box-shadow:0 3px 14px rgba(161,118,0,0.13){% if entry.is_pinned %};outline:2px solid rgba(162,5,19,0.15){% endif %}">
+              <div class="flex items-center gap-2 px-4 py-2" style="background:#fde68a">
+                <span class="material-symbols-outlined text-[13px]" style="color:#78350f;font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 20">sticky_note_2</span>
+                <span class="font-label-bold text-[11px] tracking-wide" style="color:#78350f">{% if entry.author %}{{ entry.author.full_name|default:entry.author.email }}{% else %}Counselor{% endif %}</span>
+                <span class="ml-auto font-label-sm text-[10px]" style="color:#92400e">{{ entry.created_at|date:"M d · H:i" }}</span>
+                <button onclick="togglePin({{ entry.pk }}, this)" title="{% if entry.is_pinned %}Unpin{% else %}Pin{% endif %}"
+                  class="ml-1 rounded-full p-0.5 hover:bg-black/10 transition-colors pin-btn" data-pinned="{{ entry.is_pinned|lower }}">
+                  <span class="material-symbols-outlined text-[14px]" style="color:#78350f;font-variation-settings:'FILL' {% if entry.is_pinned %}1{% else %}0{% endif %},'wght' 400,'GRAD' 0,'opsz' 20">push_pin</span>
+                </button>
+              </div>
+              <div class="px-4 py-3" style="background:#fffbeb">
+                <p class="font-body-md text-[13.5px] leading-relaxed text-on-surface" style="word-break:break-word">{{ entry.content }}</p>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Floating WhatsApp chat widget (student thread only) -->
+    <div id="chat-widget" class="absolute bottom-6 right-6 z-50 flex flex-col items-end gap-3">
+
+      <div id="chat-panel" class="hidden flex-col rounded-2xl overflow-hidden"
+           style="width:340px;height:480px;box-shadow:0 20px 60px rgba(0,0,0,0.2);background:#fff">
+        <div class="flex items-center gap-3 px-4 py-3 shrink-0" style="background:#a20513">
+          <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shrink-0" style="background:rgba(255,255,255,0.2);color:#fff">
+            {{ active_student.full_name|first|upper }}
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="font-label-bold text-[13px] text-white truncate leading-tight">{{ active_student.full_name }}</p>
+            <p class="font-label-sm text-[10px] flex items-center gap-1" style="color:rgba(255,255,255,0.7)">
+              <span id="wa-dot" class="w-1.5 h-1.5 rounded-full inline-block" style="background:rgba(255,255,255,0.4)"></span>
+              <span id="wa-status">connecting…</span>
+            </p>
+          </div>
+          <button onclick="toggleChat()" class="rounded-full p-1 hover:bg-white/10" style="color:rgba(255,255,255,0.8)">
+            <span class="material-symbols-outlined text-[20px]">close</span>
+          </button>
+        </div>
+
+        <div id="chat-messages" class="flex-1 overflow-y-auto px-4 py-4 space-y-2 custom-scrollbar"
+             style="background:#f5ebe8 url(&quot;data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23e4beba' fill-opacity='0.18'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E&quot;)">
+          {% for msg in messages %}
+            {% if msg.is_mine %}
+            <div class="flex justify-end">
+              <div class="max-w-[82%] rounded-[16px] rounded-br-[4px] px-3 py-2" style="background:#fce8e8;box-shadow:0 1px 4px rgba(0,0,0,0.08)">
+                <p class="text-[13px] leading-relaxed" style="color:#271816;word-break:break-word">{{ msg.content }}</p>
+                <p class="text-[10px] text-right mt-0.5" style="color:rgba(91,64,61,0.5)">{{ msg.created_at|date:"H:i" }}</p>
+              </div>
+            </div>
+            {% else %}
+            <div class="flex justify-start">
+              <div class="max-w-[82%] rounded-[16px] rounded-bl-[4px] px-3 py-2" style="background:#fff;box-shadow:0 1px 4px rgba(0,0,0,0.08)">
+                <p class="font-label-bold text-[10px] mb-0.5" style="color:#a20513">{{ msg.sender.full_name|default:msg.sender.email }}</p>
+                <p class="text-[13px] leading-relaxed" style="color:#271816;word-break:break-word">{{ msg.content }}</p>
+                <p class="text-[10px] text-right mt-0.5" style="color:rgba(91,64,61,0.5)">{{ msg.created_at|date:"H:i" }}</p>
+              </div>
+            </div>
+            {% endif %}
+          {% empty %}
+          <div class="flex flex-col items-center justify-center h-full text-center">
+            <span class="material-symbols-outlined text-[36px] mb-2" style="color:rgba(162,5,19,0.25)">chat_bubble</span>
+            <p class="text-[12px]" style="color:rgba(91,64,61,0.5)">No messages yet.</p>
+          </div>
+          {% endfor %}
+        </div>
+
+        <div class="px-3 py-3 flex items-end gap-2 shrink-0" style="background:#f0f0f0">
+          <div class="flex-1 flex items-end rounded-full px-4 py-2.5" style="background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.08)">
+            <textarea id="msg-input" rows="1" placeholder="Message…"
+              class="w-full text-[13px] outline-none resize-none max-h-20 bg-transparent font-body-md text-on-surface"
+              style="line-height:1.5"
+              onkeydown="handleKey(event)"></textarea>
+          </div>
+          <button id="send-btn" onclick="sendMessage()"
+            class="w-11 h-11 rounded-full flex items-center justify-center shrink-0 hover:opacity-90 active:scale-95 transition-all disabled:opacity-40"
+            style="background:#a20513;box-shadow:0 4px 14px rgba(162,5,19,0.35)">
+            <span class="material-symbols-outlined text-white text-[18px]">send</span>
+          </button>
+        </div>
+      </div>
+
+      <button id="chat-fab" onclick="toggleChat()"
+        class="w-14 h-14 rounded-full flex items-center justify-center relative hover:opacity-90 active:scale-95 transition-all"
+        style="background:#a20513;box-shadow:0 6px 20px rgba(162,5,19,0.45)">
+        <span id="fab-icon" class="material-symbols-outlined text-white text-[24px]" style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">chat</span>
+        <span id="unread-badge" class="hidden absolute -top-1 -right-1 w-5 h-5 rounded-full text-white text-[10px] font-bold items-center justify-center" style="background:#ba1a1a">!</span>
+      </button>
+    </div>
+
+    {% endif %}
+  </section>
+</main>
+
+<script>
+const currentUserId = {{ user.pk }};
+const threadType = "{{ thread_type|default:'' }}";
+const threadId = "{{ thread_id|default:'' }}";
+const selfInitial = "{{ user.full_name|default:user.email|first|upper }}";
+const selfName = "{{ user.full_name|default:user.email|escapejs }}";
+let socket = null;
+let chatOpen = false;
+
+/* ── status indicators ── */
+function setDot(connected) {
+  const dot = document.getElementById("ws-dot");
+  const waDot = document.getElementById("wa-dot");
+  const waStatus = document.getElementById("wa-status");
+  const btn = document.getElementById("send-btn");
+  const inp = document.getElementById("msg-input");
+  if (dot) { dot.style.background = connected ? "#4ade80" : ""; dot.className = `w-1.5 h-1.5 rounded-full inline-block ${connected ? "" : "bg-outline"}`; }
+  if (waDot) waDot.style.background = connected ? "#4ade80" : "rgba(255,255,255,0.4)";
+  if (waStatus) waStatus.textContent = connected ? "online" : "connecting…";
+  if (btn) btn.disabled = !connected;
+  if (inp) inp.disabled = !connected;
+  if (document.getElementById("ws-text")) document.getElementById("ws-text").textContent = connected ? "Connected" : "Connecting…";
+}
+
+/* ── widget toggle (student threads) ── */
+function toggleChat() {
+  chatOpen = !chatOpen;
+  const panel = document.getElementById("chat-panel");
+  const fabIcon = document.getElementById("fab-icon");
+  if (!panel) return;
+  if (chatOpen) {
+    panel.classList.remove("hidden"); panel.classList.add("flex");
+    if (fabIcon) fabIcon.textContent = "close";
+    const msgs = document.getElementById("chat-messages");
+    if (msgs) setTimeout(() => msgs.scrollTop = msgs.scrollHeight, 50);
+    const badge = document.getElementById("unread-badge");
+    if (badge) badge.classList.add("hidden");
+  } else {
+    panel.classList.add("hidden"); panel.classList.remove("flex");
+    if (fabIcon) fabIcon.textContent = "chat";
+  }
+}
+
+/* ── WebSocket ── */
+function wsUrl() {
+  const proto = window.location.protocol === "https:" ? "wss" : "ws";
+  if (threadType === "student") return `${proto}://${window.location.host}/ws/chat/${threadId}/`;
+  if (threadType === "dm")      return `${proto}://${window.location.host}/ws/dm/${threadId}/`;
+  return null;
+}
+
+function connect() {
+  const url = wsUrl();
+  if (!url) return;
+  if (socket && socket.readyState < WebSocket.CLOSING) socket.close();
+  socket = new WebSocket(url);
+  socket.onopen  = () => setDot(true);
+  socket.onclose = () => { setDot(false); setTimeout(connect, 3000); };
+  socket.onerror = () => setDot(false);
+  socket.onmessage = (e) => {
+    const data = JSON.parse(e.data);
+    if (data.sender_id === currentUserId && document.querySelector("[data-optimistic]")) {
+      document.querySelector("[data-optimistic]").removeAttribute("data-optimistic");
+      return;
+    }
+    appendMessage(data.content, data.sender_id, data.sender_name, data.created_at, false);
+    if (threadType === "student" && !chatOpen) {
+      const badge = document.getElementById("unread-badge");
+      if (badge) { badge.classList.remove("hidden"); badge.classList.add("flex"); }
+    }
+  };
+}
+
+/* ── Append message ── */
+function appendMessage(content, senderId, senderName, time, optimistic) {
+  const containerId = threadType === "dm" ? "dm-messages" : "chat-messages";
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const isSelf = senderId === currentUserId;
+  const timeStr = time
+    ? new Date(time).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})
+    : new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
+
+  const wrap = document.createElement("div");
+  wrap.className = isSelf ? "flex justify-end" : "flex justify-start";
+  if (optimistic) wrap.setAttribute("data-optimistic","1");
+
+  if (isSelf) {
+    wrap.innerHTML = `
+      <div class="max-w-[${threadType==="dm"?"70":"82"}%] rounded-[16px] rounded-br-[4px] px-3 py-2" style="background:#fce8e8;box-shadow:0 1px 4px rgba(0,0,0,0.08)">
+        <p class="text-[13px] leading-relaxed" style="color:#271816;word-break:break-word">${escHtml(content)}</p>
+        <p class="text-[10px] text-right mt-0.5" style="color:rgba(91,64,61,0.5)">${timeStr}</p>
+      </div>`;
+  } else {
+    wrap.innerHTML = `
+      <div class="max-w-[${threadType==="dm"?"70":"82"}%] rounded-[16px] rounded-bl-[4px] px-3 py-2" style="background:#fff;box-shadow:0 1px 4px rgba(0,0,0,0.08)">
+        ${threadType==="student" ? `<p class="font-label-bold text-[10px] mb-0.5" style="color:#a20513">${escHtml(senderName)}</p>` : ""}
+        <p class="text-[13px] leading-relaxed" style="color:#271816;word-break:break-word">${escHtml(content)}</p>
+        <p class="text-[10px] text-right mt-0.5" style="color:rgba(91,64,61,0.5)">${timeStr}</p>
+      </div>`;
+  }
+  container.appendChild(wrap);
+  container.scrollTop = container.scrollHeight;
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+function getCsrf() {
+  const m = document.cookie.match(/csrftoken=([^;]+)/);
+  return m ? m[1] : "";
+}
+
+function togglePin(pk, btn) {
+  fetch(`/toggle-pin-note/${pk}/`, {
+    method: "POST",
+    headers: { "X-CSRFToken": getCsrf() },
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.is_pinned !== undefined) {
+      window.location.reload();
+    }
+  });
+}
+
+function sendMessage() {
+  const input = document.getElementById("msg-input");
+  const content = input.value.trim();
+  if (!content || !socket || socket.readyState !== WebSocket.OPEN) return;
+  appendMessage(content, currentUserId, selfName, null, true);
+  socket.send(JSON.stringify({ message: content }));
+  input.value = "";
+  input.style.height = "auto";
+}
+
+function handleKey(e) {
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+
+const msgInput = document.getElementById("msg-input");
+if (msgInput) {
+  msgInput.addEventListener("input", () => {
+    msgInput.style.height = "auto";
+    msgInput.style.height = Math.min(msgInput.scrollHeight, 96) + "px";
+  });
+}
+
+/* scroll to bottom on load */
+["dm-messages","chat-messages"].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.scrollTop = el.scrollHeight;
+});
+
+connect();
+</script>
+
+<!-- ===== FOOTER ===== -->
+<footer style="margin-left:260px;" class="border-t border-[#e4beba] bg-[#fff0ef] py-4 px-6 text-center text-xs text-[#5b403d]">
+  <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-1">
+    <button onclick="document.getElementById('tc-modal').classList.remove('hidden')" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">Terms &amp; Conditions</button>
+    <span class="text-[#e4beba]">|</span>
+    <button onclick="document.getElementById('pp-modal').classList.remove('hidden')" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">Privacy Policy</button>
+    <span class="text-[#e4beba]">|</span>
+    <span>Website: <a href="https://www.intelligenteducation.org" target="_blank" rel="noopener noreferrer" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">www.intelligenteducation.org</a></span>
+    <span class="text-[#e4beba]">|</span>
+    <span>Email: <a href="mailto:ho@intelligenteducation.org" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">ho@intelligenteducation.org</a></span>
+  </div>
+</footer>
+
+<!-- T&amp;C Modal -->
+<div id="tc-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-black/40 p-4" onclick="if(event.target===this)this.classList.add('hidden')">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-[#e4beba]">
+      <h2 class="text-lg font-semibold text-[#271816]" style="font-family:'Lexend',sans-serif;">Terms &amp; Conditions</h2>
+      <button onclick="document.getElementById('tc-modal').classList.add('hidden')" class="text-[#5b403d] hover:text-[#271816] transition-colors rounded-full p-1 hover:bg-[#ffe9e6]">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="overflow-y-auto px-6 py-5 text-sm text-[#271816] leading-relaxed">
+      <h3 class="text-base font-semibold text-[#a20513] mb-1" style="font-family:'Lexend',sans-serif;">Intelligent Education CRM Platform</h3>
+      <p class="text-[#5b403d] text-xs mb-4">Effective Date: May 13, 2026</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">1. Introduction</h4>
+      <p class="mb-2">Welcome to the Intelligent Education CRM Platform (&ldquo;Platform&rdquo;), operated by Intelligent Education (&ldquo;Intelligent Education,&rdquo; &ldquo;Company,&rdquo; &ldquo;we,&rdquo; &ldquo;our,&rdquo; or &ldquo;us&rdquo;).</p>
+      <p class="mb-2">These Terms and Conditions (&ldquo;Terms&rdquo;) govern access to and use of the Platform, including all associated services, software, AI-assisted features, communications, databases, dashboards, document management tools, and integrations.</p>
+      <p class="mb-2">By accessing or using the Platform, you agree to comply with and be legally bound by these Terms.</p>
+      <p class="mb-4 font-medium text-[#a20513]">If you do not agree with these Terms, you must not use the Platform.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">2. Purpose of the Platform</h4>
+      <p class="mb-2">The Platform is designed to assist Intelligent Education in managing:</p>
+      <ul class="list-disc pl-5 mb-2 space-y-1">
+        <li>Student and client relationships</li>
+        <li>Admission application workflows</li>
+        <li>Counseling and communication processes</li>
+        <li>Document collection and storage</li>
+        <li>Internal operational management</li>
+        <li>AI-assisted productivity and workflow support</li>
+      </ul>
+      <p class="mb-2">The Platform is intended solely for use by:</p>
+      <ul class="list-disc pl-5 mb-4 space-y-1">
+        <li>Authorized employees, counselors, and representatives of Intelligent Education</li>
+        <li>Registered clients and students associated with Intelligent Education</li>
+      </ul>
+
+      <h4 class="font-semibold text-[#271816] mb-1">3. Eligibility</h4>
+      <p class="mb-2">By using the Platform, you represent and warrant that:</p>
+      <ul class="list-disc pl-5 mb-2 space-y-1">
+        <li>You are legally capable of entering into a binding agreement under applicable law;</li>
+        <li>The information provided by you is accurate and complete;</li>
+        <li>You will use the Platform only for lawful purposes.</li>
+      </ul>
+      <p class="mb-4">If you are accessing the Platform on behalf of an organization or institution, you confirm that you are authorized to do so.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">4. User Accounts and Access</h4>
+      <p class="mb-2">Users may be required to create an account to access certain features. You agree to:</p>
+      <ul class="list-disc pl-5 mb-2 space-y-1">
+        <li>Maintain the confidentiality of your login credentials;</li>
+        <li>Restrict unauthorized access to your account;</li>
+        <li>Notify Intelligent Education immediately of any unauthorized use or security breach.</li>
+      </ul>
+      <p class="mb-2">Intelligent Education reserves the right to suspend or terminate accounts that:</p>
+      <ul class="list-disc pl-5 mb-4 space-y-1">
+        <li>Violate these Terms;</li>
+        <li>Engage in fraudulent, abusive, or unlawful conduct;</li>
+        <li>Attempt unauthorized access to systems or data.</li>
+      </ul>
+
+      <h4 class="font-semibold text-[#271816] mb-1">5. Data Collection and Storage</h4>
+      <p class="mb-2">The Platform may collect, process, and store personal and sensitive information, including but not limited to: names and contact details, academic records, identification documents, passport information, financial information, visa-related documentation, and application-related materials.</p>
+      <p class="mb-2">Data may be securely stored and processed using third-party infrastructure including Supabase, Railway, Google, and OpenAI.</p>
+      <p class="mb-4">While reasonable security measures are implemented, Intelligent Education does not guarantee absolute security of data transmission or storage systems.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">6. AI-Assisted Features Disclaimer</h4>
+      <p class="mb-2">The Platform may use artificial intelligence to assist with recommendations, workflow automation, draft generation, data processing, and communication support.</p>
+      <p class="mb-2">AI-generated outputs may contain inaccuracies, should not be treated as professional legal, immigration, financial, or admission advice, and require independent human review.</p>
+      <p class="mb-4">Intelligent Education makes no guarantees regarding the accuracy, reliability, or suitability of AI-generated outputs.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">7. No Guarantee of Admission or Visa Approval</h4>
+      <p class="mb-4">Use of the Platform does not guarantee admission to any educational institution, scholarship awards, visa approval, immigration outcomes, employment opportunities, or academic/professional success. All such decisions are made solely by the relevant authorities and institutions.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">8. Acceptable Use</h4>
+      <p class="mb-4">Users agree not to upload unlawful or fraudulent content, attempt unauthorized system access, interfere with Platform security, reverse engineer or exploit the Platform, or use it for illegal purposes. Intelligent Education reserves the right to investigate and take legal action for misuse.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">9. Intellectual Property</h4>
+      <p class="mb-4">All Platform content, branding, software, workflows, designs, and features are owned by or licensed to Intelligent Education. Users may not copy, reproduce, redistribute, modify, or commercially exploit any part of the Platform without prior written consent.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">10. Third-Party Services and Integrations</h4>
+      <p class="mb-4">The Platform integrates with third-party services including Google, Gmail, OpenAI, Supabase, and Railway. Intelligent Education is not responsible for third-party outages, data losses, policy changes, or service interruptions outside its reasonable control. Use of third-party services may be subject to their respective terms.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">11. Service Availability</h4>
+      <p class="mb-4">The Platform is provided on an &ldquo;as is&rdquo; and &ldquo;as available&rdquo; basis. Intelligent Education does not guarantee continuous uptime, error-free operation, or uninterrupted access. Maintenance, updates, or third-party failures may temporarily affect availability.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">12. Limitation of Liability</h4>
+      <p class="mb-2">To the maximum extent permitted by law, Intelligent Education shall not be liable for indirect, incidental, consequential, special, or punitive damages arising from use of the Platform, AI inaccuracies, data loss, admission or visa outcomes, service interruptions, unauthorized access, or third-party failures.</p>
+      <p class="mb-4">In no event shall Intelligent Education&rsquo;s total liability exceed the amount paid, if any, by the user for access during the preceding three (3) months.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">13. Indemnification</h4>
+      <p class="mb-4">Users agree to indemnify and hold harmless Intelligent Education, its employees, affiliates, contractors, and representatives from any claims, liabilities, or expenses arising from violation of these Terms, misuse of the Platform, or violation of applicable laws or third-party rights.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">14. Suspension and Termination</h4>
+      <p class="mb-4">Intelligent Education reserves the right to suspend or terminate access at any time, without prior notice, for security concerns, policy violations, fraudulent activity, misuse, or legal compliance requirements.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">15. Privacy</h4>
+      <p class="mb-4">Use of the Platform is also subject to the Intelligent Education Privacy Policy. Users acknowledge and consent to the collection, storage, and processing of data necessary for Platform operation.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">16. Governing Law and Jurisdiction</h4>
+      <p class="mb-4">These Terms shall be governed by the laws of India. Any disputes shall be subject to the exclusive jurisdiction of the courts located in India.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">17. Modifications to Terms</h4>
+      <p class="mb-4">Intelligent Education reserves the right to modify these Terms at any time. Updated versions may be published within the Platform or via official communications. Continued use of the Platform after modifications constitutes acceptance of the revised Terms.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">18. Contact Information</h4>
+      <p>For questions regarding these Terms, contact:<br/><strong>Intelligent Education</strong><br/>Email: <a href="mailto:ho@intelligenteducation.org" class="text-[#a20513] underline">ho@intelligenteducation.org</a></p>
+    </div>
+  </div>
+</div>
+<!-- Privacy Policy Modal -->
+<div id="pp-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-black/40 p-4" onclick="if(event.target===this)this.classList.add('hidden')">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-[#e4beba]">
+      <h2 class="text-lg font-semibold text-[#271816]" style="font-family:'Lexend',sans-serif;">Privacy Policy</h2>
+      <button onclick="document.getElementById('pp-modal').classList.add('hidden')" class="text-[#5b403d] hover:text-[#271816] transition-colors rounded-full p-1 hover:bg-[#ffe9e6]">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="overflow-y-auto px-6 py-5 text-sm text-[#271816] leading-relaxed space-y-3">
+      <h3 class="text-base font-semibold text-[#a20513]" style="font-family:'Lexend',sans-serif;">Intelligent Education CRM Platform</h3>
+      <p class="text-[#5b403d] text-xs">Effective Date: May 13, 2026</p>
+
+      <h4 class="font-semibold text-[#271816]">1. Introduction</h4>
+      <p>This Privacy Policy explains how Intelligent Education (&ldquo;Intelligent Education,&rdquo; &ldquo;Company,&rdquo; &ldquo;we,&rdquo; &ldquo;our,&rdquo; or &ldquo;us&rdquo;) collects, uses, stores, processes, and protects personal information through the Intelligent Education CRM Platform (&ldquo;Platform&rdquo;).</p>
+      <p>By accessing or using the Platform, you consent to the practices described in this Privacy Policy.</p>
+
+      <h4 class="font-semibold text-[#271816]">2. Scope of This Policy</h4>
+      <p>This Privacy Policy applies to students and clients, counselors and employees, authorized representatives, and all users interacting with the Platform and related services — including information collected through the CRM Platform, forms and applications, email communications, AI-assisted features, and integrated third-party services.</p>
+
+      <h4 class="font-semibold text-[#271816]">3. Information We Collect</h4>
+      <p><strong>Personal Information:</strong> Full name, date of birth, gender, nationality, contact details, address, email address, phone number.</p>
+      <p><strong>Academic &amp; Professional:</strong> Academic transcripts, test scores, resume/CV, educational history, employment details.</p>
+      <p><strong>Identity &amp; Verification Documents:</strong> Passport copies, government-issued identification, visa-related documents, financial statements, supporting application documents.</p>
+      <p><strong>Technical &amp; Usage Information:</strong> IP address, device information, browser type, login activity, usage analytics, system logs.</p>
+      <p><strong>Communication Data:</strong> Emails, messages, counseling notes, application discussions, AI-assisted communication records.</p>
+
+      <h4 class="font-semibold text-[#271816]">4. How We Use Information</h4>
+      <p>We use collected information to manage student applications and workflows, provide counseling and support services, process admissions-related activities, manage communications, generate AI-assisted recommendations and drafts, improve Platform functionality and security, maintain internal operational records, and fulfill legal and compliance obligations.</p>
+
+      <h4 class="font-semibold text-[#271816]">5. AI-Assisted Processing</h4>
+      <p>The Platform may use artificial intelligence technologies including OpenAI to generate drafts, provide workflow assistance, support administrative tasks, and improve productivity. AI-generated content may not always be accurate, should be independently reviewed, and does not constitute legal, immigration, or professional advice.</p>
+
+      <h4 class="font-semibold text-[#271816]">6. Third-Party Service Providers</h4>
+      <p>We may use trusted third-party platforms including Supabase, Railway, Google services and APIs, Gmail integrations, and OpenAI. These providers may process or store data under their own policies. We are not responsible for the independent privacy practices of third-party services.</p>
+
+      <h4 class="font-semibold text-[#271816]">7. Data Storage and Security</h4>
+      <p>We implement commercially reasonable technical and organizational safeguards to protect personal information from unauthorized access, disclosure, alteration, loss, and misuse. However, no internet-based platform can guarantee absolute security. Users acknowledge and accept inherent cybersecurity and transmission risks.</p>
+
+      <h4 class="font-semibold text-[#271816]">8. Data Sharing and Disclosure</h4>
+      <p>We do not sell personal information. We may disclose information to authorized employees and counselors, to educational institutions for applications, to government or visa authorities when necessary, to service providers supporting Platform operations, or when required by law, legal process, or regulatory obligations.</p>
+
+      <h4 class="font-semibold text-[#271816]">9. Data Retention</h4>
+      <p>We retain personal information only as long as reasonably necessary for business operations, application management, legal compliance, dispute resolution, and recordkeeping purposes. We reserve the right to retain certain records where legally required or operationally necessary.</p>
+
+      <h4 class="font-semibold text-[#271816]">10. User Rights</h4>
+      <p>Subject to applicable law, users may request access to their personal information, correction of inaccurate data, deletion of certain data, restriction of processing, or withdrawal of consent where applicable. Requests may be subject to identity verification, legal obligations, and operational requirements.</p>
+
+      <h4 class="font-semibold text-[#271816]">11. Cookies and Analytics</h4>
+      <p>The Platform may use cookies, session technologies, analytics tools, and tracking technologies to improve user experience, security, and performance. Users may disable certain cookies through browser settings, though some features may not function properly.</p>
+
+      <h4 class="font-semibold text-[#271816]">12. Children&rsquo;s Privacy</h4>
+      <p>The Platform is not intentionally directed toward children under the age required by applicable law without appropriate authorization or supervision. Where required, users represent that appropriate consent has been obtained from parents or legal guardians.</p>
+
+      <h4 class="font-semibold text-[#271816]">13. International Data Processing</h4>
+      <p>Data may be processed or stored on servers in different jurisdictions depending on the infrastructure and service providers used. By using the Platform, users consent to such transfers and processing where legally permitted.</p>
+
+      <h4 class="font-semibold text-[#271816]">14. Limitation of Liability</h4>
+      <p>To the fullest extent permitted by law, Intelligent Education shall not be liable for unauthorized access, cyberattacks, third-party breaches, data transmission failures, service interruptions, or losses arising from external systems or providers. Users use the Platform at their own risk.</p>
+
+      <h4 class="font-semibold text-[#271816]">15. Changes to This Privacy Policy</h4>
+      <p>We may update this Privacy Policy periodically. Updated versions may be posted on the Platform with a revised effective date. Continued use of the Platform after updates constitutes acceptance of the revised Privacy Policy.</p>
+
+      <h4 class="font-semibold text-[#271816]">16. Contact Information</h4>
+      <p>For questions or privacy-related requests, contact:<br/><strong>Intelligent Education</strong><br/>Email: <a href="mailto:ho@intelligenteducation.org" class="text-[#a20513] underline">ho@intelligenteducation.org</a></p>
+    </div>
+  </div>
+</div>
+<!-- ===== /FOOTER ===== -->
+</body>
+</html>

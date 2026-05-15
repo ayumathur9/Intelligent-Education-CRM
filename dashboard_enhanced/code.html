@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Dashboard - Intelligent Education</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700&amp;family=Manrope:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed": "#ffdad6",
+                        "on-surface-variant": "#5b403d",
+                        "tertiary-fixed-dim": "#88ceff",
+                        "surface-bright": "#fff8f7",
+                        "on-tertiary-fixed-variant": "#004c6e",
+                        "tertiary-container": "#006e9d",
+                        "inverse-on-surface": "#ffedea",
+                        "on-primary-fixed": "#410003",
+                        "secondary-fixed-dim": "#a9c7ff",
+                        "on-primary": "#ffffff",
+                        "surface-container-highest": "#f9dcd9",
+                        "surface-variant": "#f9dcd9",
+                        "surface-container": "#ffe9e6",
+                        "on-tertiary-container": "#d1eaff",
+                        "outline": "#8f706c",
+                        "on-secondary-fixed": "#001b3d",
+                        "inverse-primary": "#ffb4ac",
+                        "tertiary": "#00557a",
+                        "outline-variant": "#e4beba",
+                        "on-secondary-container": "#003670",
+                        "secondary-fixed": "#d6e3ff",
+                        "on-primary-fixed-variant": "#93000e",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary-container": "#ffe0dd",
+                        "surface-container-low": "#fff0ef",
+                        "on-surface": "#271816",
+                        "error": "#ba1a1a",
+                        "primary-fixed-dim": "#ffb4ac",
+                        "surface-dim": "#f0d4d0",
+                        "background": "#fff8f7",
+                        "on-background": "#271816",
+                        "primary": "#a20513",
+                        "surface": "#fff8f7",
+                        "secondary-container": "#64a1ff",
+                        "error-container": "#ffdad6",
+                        "tertiary-fixed": "#c8e6ff",
+                        "secondary": "#005db7",
+                        "surface-container-high": "#ffe2de",
+                        "inverse-surface": "#3e2c2a",
+                        "on-secondary": "#ffffff",
+                        "on-secondary-fixed-variant": "#00468c",
+                        "on-tertiary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "surface-tint": "#b91d20",
+                        "on-tertiary-fixed": "#001e2f",
+                        "primary-container": "#c62828",
+                        "on-error": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "container_max_width": "1440px",
+                        "sidebar_width": "260px",
+                        "base": "8px",
+                        "navbar_height": "72px",
+                        "gutter": "24px",
+                        "card_padding": "20px"
+                    },
+                    "fontFamily": {
+                        "label-bold": ["Manrope"],
+                        "label-sm": ["Manrope"],
+                        "h2": ["Lexend"],
+                        "h3": ["Lexend"],
+                        "body-lg": ["Manrope"],
+                        "h1": ["Lexend"],
+                        "body-md": ["Manrope"]
+                    },
+                    "fontSize": {
+                        "label-bold": ["12px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                        "label-sm": ["12px", {"lineHeight": "1.2", "fontWeight": "500"}],
+                        "h2": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                        "h3": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                        "body-lg": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "h1": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #fff8f7;
+            font-family: 'Manrope', sans-serif;
+        }
+        /* Custom classes requested */
+        .alert-card {
+            transition: all 0.3s ease;
+        }
+        .activity-feed-item {
+            position: relative;
+        }
+        .activity-feed-item::before {
+            content: '';
+            position: absolute;
+            left: 20px;
+            top: 40px;
+            bottom: -12px;
+            width: 2px;
+            background-color: #e4beba;
+        }
+        .activity-feed-item:last-child::before {
+            display: none;
+        }
+    </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="../supabase-config.js"></script>
+</head>
+<body class="bg-background text-on-surface">
+<!-- SideNavBar (Mandatory Shell) -->
+<aside class="fixed left-0 top-0 h-full w-[260px] bg-primary dark:bg-primary-container shadow-lg flex flex-col py-6 space-y-2 z-50">
+<div class="px-6 mb-8">
+<a href="/"><h1 class="font-h2 text-h2 font-bold text-on-primary dark:text-on-primary-container hover:opacity-90">Intelligent Education</h1></a>
+<p class="font-label-bold text-label-bold text-on-primary/70 uppercase tracking-widest mt-1">CRM Portal</p>
+</div>
+<nav class="flex-1 px-4 space-y-1">
+<a class="bg-on-primary-fixed-variant text-on-primary dark:bg-primary dark:text-on-primary rounded-lg mx-2 my-1 flex items-center px-4 py-3 transition-transform scale-95 active:scale-90" href="/">
+<span class="material-symbols-outlined mr-3" data-icon="dashboard">dashboard</span>
+<span class="font-label-bold text-label-bold">Dashboard</span>
+</a>
+<a class="text-on-primary/80 dark:text-on-primary-container/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 mx-2 my-1 flex items-center px-4 py-3 rounded-lg transition-colors duration-200" href="/student-profile/">
+<span class="material-symbols-outlined mr-3" data-icon="group">group</span>
+<span class="font-label-bold text-label-bold">Students</span>
+</a>
+<a class="text-on-primary/80 dark:text-on-primary-container/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 mx-2 my-1 flex items-center px-4 py-3 rounded-lg transition-colors duration-200" href="/applications/">
+<span class="material-symbols-outlined mr-3" data-icon="school">school</span>
+<span class="font-label-bold text-label-bold">Schools</span>
+</a>
+<a class="text-on-primary/80 dark:text-on-primary-container/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 mx-2 my-1 flex items-center px-4 py-3 rounded-lg transition-colors duration-200" href="/applications/">
+<span class="material-symbols-outlined mr-3" data-icon="menu_book">menu_book</span>
+<span class="font-label-bold text-label-bold">Courses</span>
+</a>
+            {% if user.role == "admin" %}
+            <a class="text-on-primary/80 dark:text-on-primary-container/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 mx-2 my-1 flex items-center px-4 py-3 rounded-lg transition-colors duration-200" href="/admin/">
+<span class="material-symbols-outlined mr-3" data-icon="manage_accounts">manage_accounts</span>
+<span class="font-label-bold text-label-bold">Users</span>
+</a>
+            {% endif %}
+            <a class="text-on-primary/80 dark:text-on-primary-container/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 mx-2 my-1 flex items-center px-4 py-3 rounded-lg transition-colors duration-200" href="/applications/">
+<span class="material-symbols-outlined mr-3" data-icon="description">description</span>
+<span class="font-label-bold text-label-bold">Applications</span>
+</a>
+<a class="text-on-primary/80 dark:text-on-primary-container/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 mx-2 my-1 flex items-center px-4 py-3 rounded-lg transition-colors duration-200" href="/interaction-log/">
+<span class="material-symbols-outlined mr-3" data-icon="list_alt">list_alt</span>
+<span class="font-label-bold text-label-bold">Interaction Log</span>
+</a>
+<a class="text-on-primary/80 dark:text-on-primary-container/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 mx-2 my-1 flex items-center px-4 py-3 rounded-lg transition-colors duration-200" href="/dashboard/">
+<span class="material-symbols-outlined mr-3" data-icon="history">history</span>
+<span class="font-label-bold text-label-bold">Recent Activity</span>
+</a>
+</nav>
+</aside>
+<!-- Main Content Shell -->
+<main class="ml-[260px] min-h-screen flex flex-col">
+<!-- TopNavBar (Mandatory Shell) -->
+<header class="fixed top-0 right-0 h-[72px] left-[260px] bg-surface-container-lowest dark:bg-surface-dim shadow-[0px_4px_12px_rgba(0,0,0,0.05)] border-b border-outline-variant dark:border-outline flex items-center justify-between px-gutter z-40">
+<div class="flex items-center space-x-6 w-1/2">
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" data-icon="search">search</span>
+<input class="w-full bg-surface-container-low border border-outline-variant rounded-full py-2 pl-10 pr-4 font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all" placeholder="Search students, courses or schools..." type="text"/>
+</div>
+</div>
+<div class="flex items-center space-x-4">
+<!-- Notifications Panel Trigger -->
+<div class="relative">
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors active:opacity-80 relative">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full border-2 border-surface-container-lowest"></span>
+</button>
+</div>
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors active:opacity-80">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+</button>
+<div class="h-8 w-px bg-outline-variant mx-2"></div>
+<div class="flex items-center gap-3">
+<div class="text-right hidden lg:block">
+<p class="font-label-bold text-label-bold text-on-surface">{{ user.full_name|default:user.email }}</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant capitalize">{{ user.role }}</p>
+</div>
+<div class="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-sm select-none">
+  {{ user.full_name|slice:":1"|upper|default:"U" }}
+</div>
+<a href="/logout/" title="Sign out" class="p-2 text-on-surface-variant hover:text-primary transition-colors" >
+  <span class="material-symbols-outlined text-[22px]">logout</span>
+</a>
+</div>
+</div>
+</header>
+<!-- Page Canvas -->
+<div class="mt-[72px] p-gutter">
+<!-- Header Section -->
+<div class="mb-8 flex justify-between items-end">
+<div>
+<h2 class="font-h1 text-h1 text-on-surface">Welcome back, Alex.</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant mt-1">Here is a snapshot of your current educational portfolio.</p>
+</div>
+                {% if user.role == "admin" %}
+                <div class="flex space-x-3">
+<button class="px-4 py-2 bg-surface-container-high border border-outline-variant rounded-lg font-label-bold text-label-bold text-on-surface hover:bg-surface-variant transition-colors flex items-center">
+<span class="material-symbols-outlined text-[18px] mr-2" data-icon="file_download">file_download</span>
+                        Export Reports
+                    </button>
+</div>
+                {% endif %}
+            </div>
+<!-- Alerts Section for Missing Docs/Approvals -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+<div class="alert-card bg-error-container border border-error/20 p-card_padding rounded-xl flex items-start shadow-sm">
+<span class="material-symbols-outlined text-error mr-4 bg-error/10 p-2 rounded-lg" data-icon="assignment_late">assignment_late</span>
+<div>
+<h4 class="font-label-bold text-label-bold text-on-error-container uppercase mb-1">Missing Documents</h4>
+<p class="font-body-md text-body-md text-on-surface-variant">There are <span class="font-bold text-error">12 students</span> with missing visa documentation for the 2024 Fall Intake.</p>
+<button class="mt-2 text-error font-label-bold text-label-bold flex items-center hover:underline">
+                            Review List <span class="material-symbols-outlined text-[16px] ml-1" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+<div class="alert-card bg-secondary-fixed/20 border border-secondary/20 p-card_padding rounded-xl flex items-start shadow-sm">
+<span class="material-symbols-outlined text-secondary mr-4 bg-secondary/10 p-2 rounded-lg" data-icon="approval">approval</span>
+<div>
+<h4 class="font-label-bold text-label-bold text-on-secondary-container uppercase mb-1">Pending Approvals</h4>
+<p class="font-body-md text-body-md text-on-surface-variant">You have <span class="font-bold text-secondary">4 application files</span> awaiting final sign-off from the admissions board.</p>
+<button class="mt-2 text-secondary font-label-bold text-label-bold flex items-center hover:underline">
+                            Go to Inbox <span class="material-symbols-outlined text-[16px] ml-1" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- KPI Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+<div class="bg-surface-container-lowest p-card_padding rounded-xl border border-outline-variant shadow-[0px_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0px_8px_20px_rgba(0,0,0,0.08)] transition-all">
+<div class="flex items-center justify-between mb-4">
+<span class="p-3 bg-secondary-fixed text-on-secondary-fixed-variant rounded-lg material-symbols-outlined" data-icon="person">person</span>
+<span class="text-secondary font-label-bold text-label-bold">+12%</span>
+</div>
+<h3 class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">My Students</h3>
+<p class="font-h2 text-h2 text-on-surface mt-1">1,248</p>
+</div>
+<div class="bg-surface-container-lowest p-card_padding rounded-xl border border-outline-variant shadow-[0px_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0px_8px_20px_rgba(0,0,0,0.08)] transition-all">
+<div class="flex items-center justify-between mb-4">
+<span class="p-3 bg-tertiary-fixed text-on-tertiary-fixed-variant rounded-lg material-symbols-outlined" data-icon="pending_actions">pending_actions</span>
+<span class="text-tertiary font-label-bold text-label-bold">4 Pending</span>
+</div>
+<h3 class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Pending Approvals</h3>
+<p class="font-h2 text-h2 text-on-surface mt-1">24</p>
+</div>
+<div class="bg-primary text-on-primary p-card_padding rounded-xl shadow-[0px_8px_24px_rgba(162,5,19,0.3)] hover:scale-[1.02] transition-all relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4 opacity-10">
+<span class="material-symbols-outlined text-[80px]" data-icon="priority_high">priority_high</span>
+</div>
+<div class="flex items-center justify-between mb-4 relative z-10">
+<span class="p-3 bg-on-primary text-primary rounded-lg material-symbols-outlined" data-icon="warning" data-weight="fill" style="font-variation-settings: 'FILL' 1;">warning</span>
+<span class="font-label-bold text-label-bold">Urgent</span>
+</div>
+<h3 class="font-label-sm text-label-sm text-on-primary/80 uppercase tracking-wider relative z-10">Priority Students</h3>
+<p class="font-h2 text-h2 text-on-primary mt-1 relative z-10">07</p>
+</div>
+<div class="bg-surface-container-lowest p-card_padding rounded-xl border border-outline-variant shadow-[0px_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0px_8px_20px_rgba(0,0,0,0.08)] transition-all">
+<div class="flex items-center justify-between mb-4">
+<span class="p-3 bg-primary-fixed text-on-primary-fixed-variant rounded-lg material-symbols-outlined" data-icon="apartment">apartment</span>
+<span class="text-on-surface-variant font-label-bold text-label-bold">Active</span>
+</div>
+<h3 class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Total Schools</h3>
+<p class="font-h2 text-h2 text-on-surface mt-1">82</p>
+</div>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-12 gap-6">
+<!-- Main Activity Feed & Table: 8 Columns -->
+<div class="col-span-12 lg:col-span-8 space-y-6">
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-[0px_4px_12px_rgba(0,0,0,0.05)] overflow-hidden">
+<div class="px-gutter py-5 border-b border-outline-variant flex items-center justify-between">
+<h3 class="font-h3 text-h3 text-on-surface">Recent Student Applications</h3>
+<a href="/applications/" class="text-secondary font-label-bold text-label-bold hover:underline">View All</a>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead class="bg-surface-container-low">
+<tr>
+<th class="px-gutter py-4 font-h3 text-label-bold text-on-surface-variant uppercase tracking-wider text-[11px]">Student Name</th>
+<th class="px-gutter py-4 font-h3 text-label-bold text-on-surface-variant uppercase tracking-wider text-[11px]">Course</th>
+<th class="px-gutter py-4 font-h3 text-label-bold text-on-surface-variant uppercase tracking-wider text-[11px]">School</th>
+<th class="px-gutter py-4 font-h3 text-label-bold text-on-surface-variant uppercase tracking-wider text-[11px]">Status</th>
+<th class="px-gutter py-4 font-h3 text-label-bold text-on-surface-variant uppercase tracking-wider text-[11px]">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant">
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="px-gutter py-4">
+<div class="flex items-center">
+<div class="h-8 w-8 rounded-full bg-secondary-fixed text-on-secondary-fixed-variant flex items-center justify-center font-bold mr-3">JD</div>
+<span class="font-body-md text-on-surface">{{ student.name_1 }}</span>
+</div>
+</td>
+<td class="px-gutter py-4 font-body-md text-on-surface-variant">Computer Science</td>
+<td class="px-gutter py-4 font-body-md text-on-surface-variant">Oxford Academy</td>
+<td class="px-gutter py-4">
+<span class="px-3 py-1 bg-secondary-fixed/30 text-on-secondary-fixed-variant rounded-full text-[10px] font-bold uppercase">Under Review</span>
+</td>
+<td class="px-gutter py-4">
+<a href="/student-profile/" class="p-1 text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined" data-icon="more_vert">more_vert</span></a>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="px-gutter py-4">
+<div class="flex items-center">
+<div class="h-8 w-8 rounded-full bg-primary-fixed text-on-primary-fixed-variant flex items-center justify-center font-bold mr-3">MS</div>
+<span class="font-body-md text-on-surface">{{ student.name_2 }}</span>
+</div>
+</td>
+<td class="px-gutter py-4 font-body-md text-on-surface-variant">Business Admin</td>
+<td class="px-gutter py-4 font-body-md text-on-surface-variant">Global Business Inst.</td>
+<td class="px-gutter py-4">
+<span class="px-3 py-1 bg-tertiary-fixed/30 text-on-tertiary-fixed-variant rounded-full text-[10px] font-bold uppercase">Pending Docs</span>
+</td>
+<td class="px-gutter py-4">
+<a href="/student-profile/" class="p-1 text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined" data-icon="more_vert">more_vert</span></a>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Enhanced Recent Activity Feed -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-card_padding shadow-[0px_4px_12px_rgba(0,0,0,0.05)]">
+<div class="flex items-center justify-between mb-6">
+<h3 class="font-h3 text-h3 text-on-surface">Recent Activity Feed</h3>
+<button class="p-2 bg-surface-container-low hover:bg-surface-variant rounded-lg transition-colors">
+<span class="material-symbols-outlined text-[18px]" data-icon="filter_list">filter_list</span>
+</button>
+</div>
+<div class="space-y-8">
+<div class="activity-feed-item flex space-x-4">
+<div class="flex-shrink-0 z-10">
+<div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary shadow-md">
+<span class="material-symbols-outlined text-[20px]" data-icon="description">description</span>
+</div>
+</div>
+<div class="flex-1">
+<p class="font-label-bold text-label-bold text-on-surface">New application submitted</p>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">{{ student.name_3 }} applied for Mechanical Engineering at Tech University.</p>
+<p class="font-label-sm text-label-sm text-outline mt-2">12 minutes ago</p>
+</div>
+</div>
+<div class="activity-feed-item flex space-x-4">
+<div class="flex-shrink-0 z-10">
+<div class="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-on-primary shadow-md">
+<span class="material-symbols-outlined text-[20px]" data-icon="check_circle">check_circle</span>
+</div>
+</div>
+<div class="flex-1">
+<p class="font-label-bold text-label-bold text-on-surface">Application Approved</p>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Michael Chen approved the application for Julianna Smith.</p>
+<p class="font-label-sm text-label-sm text-outline mt-2">2 hours ago</p>
+</div>
+</div>
+<div class="activity-feed-item flex space-x-4">
+<div class="flex-shrink-0 z-10">
+<div class="w-10 h-10 rounded-full bg-tertiary flex items-center justify-center text-on-primary shadow-md">
+<span class="material-symbols-outlined text-[20px]" data-icon="mail">mail</span>
+</div>
+</div>
+<div class="flex-1">
+<p class="font-label-bold text-label-bold text-on-surface">Email sent to student</p>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Automatic document request sent to {{ student.name_1 }}.</p>
+<p class="font-label-sm text-label-sm text-outline mt-2">5 hours ago</p>
+</div>
+</div>
+</div>
+<button class="w-full mt-6 py-3 border border-outline-variant rounded-lg text-on-surface-variant font-label-bold text-label-bold hover:bg-surface-container-low transition-colors">
+                            Load Older Activity
+                        </button>
+</div>
+</div>
+<!-- Side Panels: 4 Columns -->
+<div class="col-span-12 lg:col-span-4 space-y-6">
+<!-- Quick Notes Widget -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-card_padding shadow-[0px_4px_12px_rgba(0,0,0,0.05)]">
+<div class="flex items-center justify-between mb-4">
+<h3 class="font-h3 text-h3 text-on-surface">Quick Notes</h3>
+<button class="p-1 bg-primary text-on-primary rounded-full material-symbols-outlined text-[16px]" data-icon="add">add</button>
+</div>
+<div class="space-y-3">
+<div class="p-3 bg-tertiary-container text-on-tertiary-container rounded-lg border-l-4 border-tertiary">
+<p class="font-label-bold text-label-bold">Visa Update</p>
+<p class="font-body-md text-body-md mt-1 italic">Need to check visa status for international applicants by EOD Friday.</p>
+</div>
+<div class="p-3 bg-surface-container-low text-on-surface-variant rounded-lg border-l-4 border-outline">
+<p class="font-label-bold text-label-bold text-on-surface">Fall Intake 2024</p>
+<p class="font-body-md text-body-md mt-1">New scholarship opportunities for STEM students just released.</p>
+</div>
+</div>
+</div>
+<!-- Team Activity Leaderboard -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-card_padding shadow-[0px_4px_12px_rgba(0,0,0,0.05)]">
+<h3 class="font-h3 text-h3 text-on-surface mb-6">Team Activity</h3>
+<div class="space-y-6">
+<div class="flex items-center justify-between">
+<div class="flex items-center">
+<img alt="Team member" class="w-10 h-10 rounded-full border border-outline-variant" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCpin2eXuTwf5gqy1JrZ_go2BeYaJ3_3ymscw1DyDHoqCP6vo7yfW-c4j4AQ7q87oyMA0tEkBlgILcULDHiXX7F5_2qULLna5X4yid5lgh4w_iCQOLFkYZgf1CqxBGWgqWyiJJbhvEeAD2WTSJRx6GN6mClRLy8o9JmFh2gPEQLntLEjh6AElQkKvsQTir1Y5mzoefWkvSn-1ZrfSmObU9siFRERVyeQPPMbpNBaW3BGZjwDy_jqX_i3GkXWaWCdxWE9-VoSVMl8M7L"/>
+<div class="ml-3">
+<p class="font-label-bold text-label-bold text-on-surface">Sarah Johnson</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Closed 4 deals today</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-secondary" data-icon="star" data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center">
+<img alt="Team member" class="w-10 h-10 rounded-full border border-outline-variant" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAUlP87xtGdhU657hyO1ysyjh80NjJhBSHHlwfxzRRDwhz7jiYAinZ7xRkQc3SOWO7WIhQNNR-lmSjhgU0rPDcJpVqXReTr7ckMoV8U7tLIq0qC3K5Z6CtPrbOOVDiVcil7Yo3IQ5aamncHj4w-rPwON43F9UNkeqmXhGyNn274sSHI_TmRbMxLYyP3nkq0Rx6cNCrudbnSC3JEZAQYIL-3S9Cm-Pl9Qw9vxvb5nolUak-qYT_Q26PShFm4IsnjBQDIf5lCcjdBC1ZO"/>
+<div class="ml-3">
+<p class="font-label-bold text-label-bold text-on-surface">Michael Chen</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Added 12 new leads</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline" data-icon="star">star</span>
+</div>
+</div>
+</div>
+<!-- System Announcement Card -->
+<div class="bg-surface-container-high rounded-xl border border-primary/20 p-card_padding shadow-inner relative overflow-hidden">
+<div class="absolute -right-4 -bottom-4 text-primary/5">
+<span class="material-symbols-outlined text-[120px]" data-icon="campaign">campaign</span>
+</div>
+<h3 class="font-label-bold text-label-bold text-primary uppercase mb-2 relative z-10">System Announcement</h3>
+<p class="font-body-md text-body-md text-on-surface-variant relative z-10">The server migration will take place this Sunday at 02:00 AM. Expect up to 2 hours of downtime.</p>
+<button class="mt-4 font-label-bold text-label-bold text-primary flex items-center hover:translate-x-1 transition-transform relative z-10">
+                            Read Details <span class="material-symbols-outlined text-[16px] ml-1" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+<!-- Performance Widget (Visible only for admins) -->
+                    {% if user.role == "admin" %}
+                    <div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-card_padding shadow-[0px_4px_12px_rgba(0,0,0,0.05)]">
+<h3 class="font-h3 text-h3 text-on-surface mb-4">Admin Insights</h3>
+<div class="p-3 bg-secondary-container/10 border border-secondary/20 rounded-lg">
+<div class="flex items-center justify-between mb-2">
+<p class="font-label-sm text-label-sm text-on-surface-variant">Conversion Rate</p>
+<p class="font-label-bold text-label-bold text-secondary">64%</p>
+</div>
+<div class="w-full bg-outline-variant/30 h-2 rounded-full overflow-hidden">
+<div class="bg-secondary h-full" style="width: 64%"></div>
+</div>
+</div>
+<p class="mt-4 font-body-md text-body-md text-on-surface-variant">Team performance is up 12% compared to last month.</p>
+</div>
+                    {% endif %}
+                </div>
+</div>
+</div>
+</main>
+<!-- Floating Action Button (FAB) -->
+<button class="fixed bottom-8 right-8 bg-primary text-on-primary w-14 h-14 rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-90 transition-transform z-50">
+<span class="material-symbols-outlined text-[28px]" data-icon="add">add</span>
+</button>
+</body></html>

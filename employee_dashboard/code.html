@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Counselor Dashboard — Intelligent Education</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config={darkMode:"class",theme:{extend:{colors:{
+    "primary-fixed":"#ffdad6","on-surface-variant":"#5b403d","tertiary-fixed-dim":"#88ceff",
+    "surface-bright":"#fff8f7","on-primary":"#ffffff","surface-container-highest":"#f9dcd9",
+    "surface-variant":"#f9dcd9","surface-container":"#ffe9e6","outline":"#8f706c",
+    "inverse-primary":"#ffb4ac","tertiary":"#00557a","outline-variant":"#e4beba",
+    "secondary-fixed":"#d6e3ff","on-primary-fixed-variant":"#93000e",
+    "surface-container-lowest":"#ffffff","on-primary-container":"#ffe0dd",
+    "surface-container-low":"#fff0ef","on-surface":"#271816","error":"#ba1a1a",
+    "background":"#fff8f7","primary":"#a20513","surface":"#fff8f7",
+    "secondary-container":"#64a1ff","tertiary-fixed":"#c8e6ff",
+    "secondary":"#005db7","surface-container-high":"#ffe2de",
+    "on-secondary":"#ffffff","on-error":"#ffffff","primary-container":"#c62828",
+  },spacing:{"gutter":"24px","card_padding":"20px"},
+  fontFamily:{"label-bold":["Manrope"],"label-sm":["Manrope"],"h2":["Lexend"],"h3":["Lexend"],"body-lg":["Manrope"],"h1":["Lexend"],"body-md":["Manrope"]},
+  fontSize:{
+    "label-bold":["12px",{lineHeight:"1.2",letterSpacing:"0.05em",fontWeight:"700"}],
+    "label-sm":["12px",{lineHeight:"1.2",fontWeight:"500"}],
+    "h2":["24px",{lineHeight:"1.3",fontWeight:"600"}],
+    "h3":["20px",{lineHeight:"1.4",fontWeight:"600"}],
+    "body-lg":["16px",{lineHeight:"1.6",fontWeight:"400"}],
+    "h1":["32px",{lineHeight:"1.2",fontWeight:"700"}],
+    "body-md":["14px",{lineHeight:"1.5",fontWeight:"400"}],
+  }}}}
+</script>
+<style>
+  .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;}
+  .slide-panel{transition:transform .3s ease;}
+  .custom-scrollbar::-webkit-scrollbar{width:4px;}
+  .custom-scrollbar::-webkit-scrollbar-thumb{background:#e4beba;border-radius:6px;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="../supabase-config.js"></script>
+<link rel="icon" type="image/png" href="/media/brand/logo.png"/>
+</head>
+<body class="bg-background text-on-surface font-body-md">
+
+<!-- ── Sidebar ───────────────────────────────────────────────── -->
+<aside class="fixed left-0 top-0 h-full w-[260px] bg-primary shadow-lg flex flex-col py-6 z-50">
+  <div class="px-6 mb-8">
+    <img src="/media/brand/logo.png" alt="IE" class="w-10 h-10 rounded-lg object-contain bg-white p-0.5 mb-2 block"/>
+<a href="/"><h1 class="font-h2 text-h2 font-bold text-on-primary hover:opacity-90">Intelligent Education</h1></a>
+    <p class="font-label-bold text-label-bold text-on-primary/70 uppercase tracking-widest mt-1">Counselor Portal</p>
+  </div>
+  <nav class="flex-1 px-4 space-y-1 overflow-y-auto">
+    <a class="bg-on-primary-fixed-variant text-on-primary rounded-lg flex items-center px-4 py-3 mx-2 my-1 scale-95" href="/">
+      <span class="material-symbols-outlined mr-3">dashboard</span><span class="font-label-bold text-label-bold">Dashboard</span>
+    </a>
+    <!-- Students accordion -->
+    <div class="mx-2 my-1">
+      <button onclick="toggleStudentsMenu()"
+              class="w-full flex items-center px-4 py-3 text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 transition-colors rounded-lg">
+        <span class="material-symbols-outlined mr-3">group</span>
+        <span class="font-label-bold text-label-bold flex-1 text-left">Students</span>
+        <span class="material-symbols-outlined text-[16px] transition-transform duration-200" id="students-chevron">expand_more</span>
+      </button>
+      <div id="students-submenu" class="ml-10 mt-1 space-y-0.5 border-l-2 border-on-primary/20 pl-3 hidden">
+        <a href="/counselor-students/"
+           class="flex items-center gap-2 px-3 py-2 text-on-primary/70 hover:text-on-primary hover:bg-on-primary-fixed-variant/30 transition-colors rounded-lg text-[12px] font-label-bold">
+          <span class="material-symbols-outlined text-[15px]">person</span>My Students
+        </a>
+        <a href="/counselor-students/?tab=all"
+           class="flex items-center gap-2 px-3 py-2 text-on-primary/70 hover:text-on-primary hover:bg-on-primary-fixed-variant/30 transition-colors rounded-lg text-[12px] font-label-bold">
+          <span class="material-symbols-outlined text-[15px]">groups</span>All Students
+        </a>
+      </div>
+    </div>
+    {% if not is_editor %}
+    <a class="text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 flex items-center px-4 py-3 rounded-lg mx-2 my-1 transition-colors" href="/counselor-schools/">
+      <span class="material-symbols-outlined mr-3">school</span><span class="font-label-bold text-label-bold">Schools</span>
+    </a>
+    {% endif %}
+    <a class="text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 flex items-center px-4 py-3 rounded-lg mx-2 my-1 transition-colors" href="/counselor-interaction-log/">
+      <span class="material-symbols-outlined mr-3">list_alt</span><span class="font-label-bold text-label-bold">Interaction Log</span>
+      {% if unread_messages_count %}<span class="ml-auto bg-error text-on-error text-[10px] font-bold rounded-full px-1.5 py-0.5 min-w-[18px] text-center">{{ unread_messages_count }}</span>{% endif %}
+    </a>
+    <a class="text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 flex items-center px-4 py-3 rounded-lg mx-2 my-1 transition-colors" href="/counselor-activity/">
+      <span class="material-symbols-outlined mr-3">history</span><span class="font-label-bold text-label-bold">Recent Activity</span>
+    </a>
+  </nav>
+</aside>
+
+<!-- ── Top Nav ────────────────────────────────────────────────── -->
+<header class="fixed top-0 right-0 h-[72px] left-[260px] bg-surface-container-lowest shadow-[0px_4px_12px_rgba(0,0,0,0.05)] border-b border-outline-variant flex items-center justify-between px-gutter z-40">
+  <div class="flex items-center flex-1 max-w-md">
+    <div class="relative w-full">
+      <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
+      <input id="global-search" oninput="filterStudents(this.value);handleGlobalSearch(this.value,this)" onfocus="if(this.value.length>=2)handleGlobalSearch(this.value,this)" class="w-full bg-surface-container-low border border-outline-variant rounded-full py-2 pl-10 pr-4 font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary" placeholder="Search students, schools, courses…" type="text" autocomplete="off"/>
+    </div>
+  </div>
+  <div class="flex items-center gap-3 ml-4">
+    <div class="relative" id="notif-wrap">
+      <button id="notif-btn" onclick="toggleNotif()" class="relative p-2 text-on-surface-variant hover:text-primary transition-colors rounded-lg">
+        <span class="material-symbols-outlined">notifications</span>
+        <span id="notif-badge" class="{% if notif_unread_count %}absolute top-1 right-1 min-w-[18px] h-[18px] bg-error text-on-error text-[10px] font-bold rounded-full flex items-center justify-center{% else %}hidden{% endif %}">{{ notif_unread_count|default:"" }}</span>
+      </button>
+      <div id="notif-panel" class="hidden absolute right-0 top-full mt-2 w-80 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-xl z-50 overflow-hidden">
+        <div class="flex items-center justify-between px-4 py-3 border-b border-outline-variant">
+          <span class="font-label-bold text-label-bold text-on-surface">Notifications</span>
+          <button onclick="markAllRead(event)" class="text-xs text-primary hover:underline font-label-sm">Mark all read</button>
+        </div>
+        <div id="notif-list" class="max-h-[320px] overflow-y-auto divide-y divide-outline-variant/50">
+          <p class="text-center text-on-surface-variant py-8 text-sm">Loading…</p>
+        </div>
+      </div>
+    </div>
+    <a href="/logout/" title="Sign out" class="p-2 text-on-surface-variant hover:text-primary transition-colors rounded-lg">
+      <span class="material-symbols-outlined text-[22px]">logout</span>
+    </a>
+    <div class="h-8 w-px bg-outline-variant mx-1"></div>
+    <button onclick="toggleProfile()" class="flex items-center gap-3 hover:opacity-80 transition-opacity">
+      <div class="text-right hidden lg:block">
+        <p class="font-label-bold text-label-bold text-on-surface">{{ user.full_name|default:user.email }}</p>
+        <p class="font-label-sm text-label-sm text-on-surface-variant">{{ user.role|title }}</p>
+      </div>
+      {% if user.avatar %}
+      <img src="/my-avatar/" class="w-10 h-10 rounded-full object-cover border-2 border-primary/20" alt=""/>
+      {% else %}
+      <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary font-bold text-sm border-2 border-primary/20">{{ user.full_name|default:user.email|first|upper }}</div>
+      {% endif %}
+    </button>
+  </div>
+</header>
+
+<!-- ── Profile slide panel ────────────────────────────────────── -->
+<div id="profile-panel" class="slide-panel fixed top-0 right-0 h-full w-80 bg-surface-container-lowest border-l border-outline-variant shadow-2xl z-[60] flex flex-col translate-x-full">
+  <div class="flex items-center justify-between px-6 py-5 border-b border-outline-variant">
+    <h3 class="font-h3 text-h3 text-on-surface">My Profile</h3>
+    <button onclick="toggleProfile()" class="p-1 text-on-surface-variant hover:text-primary"><span class="material-symbols-outlined">close</span></button>
+  </div>
+  <form method="post" action="/counselor-profile-update/" enctype="multipart/form-data" class="flex-1 overflow-y-auto p-6 space-y-4">
+    {% csrf_token %}<input type="hidden" name="next" value="/">
+    <div class="flex flex-col items-center mb-4">
+      {% if user.avatar %}<img src="/my-avatar/" class="w-16 h-16 rounded-full object-cover border-2 border-outline-variant mb-2" alt=""/>
+      {% else %}<div class="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-on-primary font-bold text-2xl mb-2">{{ user.full_name|default:user.email|first|upper }}</div>{% endif %}
+      <label class="cursor-pointer text-[11px] font-label-bold text-secondary hover:underline">Change Photo<input type="file" name="avatar" accept="image/*" class="hidden" onchange="this.form.submit()"/></label>
+    </div>
+    <div><label class="font-label-bold text-label-bold text-on-surface-variant uppercase tracking-wider text-[11px]">Full Name</label><input name="full_name" value="{{ user.full_name }}" class="mt-1 w-full border border-outline-variant rounded-lg px-3 py-2 font-body-md text-on-surface focus:ring-2 focus:ring-primary outline-none" type="text"/></div>
+    <div><label class="font-label-bold text-label-bold text-on-surface-variant uppercase tracking-wider text-[11px]">Email</label><input name="email" value="{{ user.email }}" class="mt-1 w-full border border-outline-variant rounded-lg px-3 py-2 font-body-md text-on-surface focus:ring-2 focus:ring-primary outline-none" type="email"/></div>
+    <div><label class="font-label-bold text-label-bold text-on-surface-variant uppercase tracking-wider text-[11px]">Phone</label><input name="phone" value="{{ user.phone }}" class="mt-1 w-full border border-outline-variant rounded-lg px-3 py-2 font-body-md text-on-surface focus:ring-2 focus:ring-primary outline-none" type="text"/></div>
+    <div class="pt-2"><button type="submit" class="w-full bg-primary text-on-primary font-label-bold text-label-bold py-3 rounded-lg hover:brightness-110 transition-all">Save Changes</button></div>
+  </form>
+</div>
+<div id="profile-overlay" onclick="toggleProfile()" class="fixed inset-0 bg-black/30 z-[55] hidden"></div>
+
+<!-- ── Student detail slide panel ─────────────────────────────── -->
+<div id="student-panel" class="slide-panel fixed top-0 right-0 h-full w-[420px] bg-surface-container-lowest border-l border-outline-variant shadow-2xl z-[60] flex flex-col translate-x-full">
+  <div class="flex items-center justify-between px-6 py-5 border-b border-outline-variant shrink-0">
+    <h3 class="font-h3 text-h3 text-on-surface" id="sp-name">Student Profile</h3>
+    <button onclick="closeStudentPanel()" class="p-1 text-on-surface-variant hover:text-primary"><span class="material-symbols-outlined">close</span></button>
+  </div>
+  <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-5" id="sp-body">
+    <!-- populated by JS -->
+  </div>
+  <div class="border-t border-outline-variant px-6 py-4 shrink-0 flex gap-3" id="sp-actions">
+    <!-- populated by JS -->
+  </div>
+</div>
+<div id="student-overlay" onclick="closeStudentPanel()" class="fixed inset-0 bg-black/30 z-[55] hidden"></div>
+
+<!-- ── Main content ───────────────────────────────────────────── -->
+<main class="ml-[260px] mt-[72px] p-gutter min-h-screen">
+
+  <div class="mb-6">
+    <h2 class="font-h1 text-h1 text-on-surface">Welcome back, {{ user.full_name|default:user.email|truncatewords:1 }}.</h2>
+    <p class="font-body-lg text-body-lg text-on-surface-variant mt-1">Here is a snapshot of your current portfolio.</p>
+  </div>
+
+  <!-- KPI row -->
+  <div class="grid grid-cols-3 gap-5 mb-8">
+    <div class="bg-surface-container-lowest p-card_padding rounded-xl border border-outline-variant shadow-[0px_4px_12px_rgba(0,0,0,0.05)]">
+      <div class="flex items-center justify-between mb-3">
+        <span class="p-2.5 bg-secondary-fixed text-[#00468c] rounded-lg material-symbols-outlined">person</span>
+        <a href="/counselor-students/" class="font-label-bold text-label-bold text-secondary hover:underline text-[11px]">View All</a>
+      </div>
+      <p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">My Students</p>
+      <p class="font-h2 text-h2 text-on-surface mt-1">{{ my_students_count }}</p>
+    </div>
+    <div class="bg-surface-container-lowest p-card_padding rounded-xl border border-outline-variant shadow-[0px_4px_12px_rgba(0,0,0,0.05)]">
+      <div class="flex items-center justify-between mb-3">
+        <span class="p-2.5 bg-tertiary-fixed text-[#004c6e] rounded-lg material-symbols-outlined">groups</span>
+        <a href="/counselor-students/" class="font-label-bold text-label-bold text-tertiary hover:underline text-[11px]">Browse</a>
+      </div>
+      <p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">All Students</p>
+      <p class="font-h2 text-h2 text-on-surface mt-1">{{ all_students_count }}</p>
+    </div>
+    <div class="bg-surface-container-lowest p-card_padding rounded-xl border border-outline-variant shadow-[0px_4px_12px_rgba(0,0,0,0.05)]">
+      <div class="flex items-center justify-between mb-3">
+        <span class="p-2.5 bg-primary-fixed text-on-primary-fixed-variant rounded-lg material-symbols-outlined">school</span>
+        <a href="/counselor-schools/" class="font-label-bold text-label-bold text-primary hover:underline text-[11px]">Manage</a>
+      </div>
+      <p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Total Schools</p>
+      <p class="font-h2 text-h2 text-on-surface mt-1">{{ total_schools_count }}</p>
+    </div>
+  </div>
+
+  <!-- ═══ STUDENTS SECTION (expandable, tabbed) ══════════════ -->
+  <section class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-[0px_4px_12px_rgba(0,0,0,0.05)] overflow-hidden mb-8">
+    <!-- Header -->
+    <div class="px-gutter py-5 border-b border-outline-variant flex items-center justify-between gap-4 flex-wrap">
+      <div>
+        <h3 class="font-h3 text-h3 text-on-surface">Students</h3>
+        <p class="font-label-sm text-label-sm text-on-surface-variant mt-0.5">Click a row to view full application</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <!-- Tab switcher -->
+        <div class="flex items-center gap-1 bg-surface-container-low rounded-lg p-1">
+          <button onclick="counselorSwitchTab('my')" id="counselor-tab-my"
+                  class="px-3 py-1.5 rounded-md font-label-bold text-[11px] bg-surface-container-lowest text-on-surface shadow-sm transition-all">
+            My Students <span class="ml-1 text-[10px] text-on-surface-variant">({{ my_students_count }})</span>
+          </button>
+          <button onclick="counselorSwitchTab('all')" id="counselor-tab-all"
+                  class="px-3 py-1.5 rounded-md font-label-bold text-[11px] text-on-surface-variant hover:text-on-surface transition-all">
+            All Students <span class="ml-1 text-[10px] text-on-surface-variant">({{ all_students_count }})</span>
+          </button>
+        </div>
+        <button onclick="counselorToggleStudents()" title="Collapse/Expand" class="p-1.5 text-on-surface-variant hover:text-primary transition-colors rounded-lg hover:bg-surface-container-low">
+          <span class="material-symbols-outlined text-[20px]" id="counselor-students-toggle-icon">expand_less</span>
+        </button>
+      </div>
+    </div>
+
+    <div id="counselor-students-body">
+
+      <!-- My Students panel -->
+      <div id="counselor-panel-my" class="counselor-student-panel">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left" id="students-table">
+            <thead class="bg-surface-container-low">
+              <tr>
+                <th class="px-5 py-3 font-label-bold text-label-bold text-on-surface-variant uppercase tracking-wider text-[11px]">Student</th>
+                <th class="px-5 py-3 font-label-bold text-label-bold text-on-surface-variant uppercase tracking-wider text-[11px]">Course</th>
+                <th class="px-5 py-3 font-label-bold text-label-bold text-on-surface-variant uppercase tracking-wider text-[11px]">Your Role</th>
+                <th class="px-5 py-3 font-label-bold text-label-bold text-on-surface-variant uppercase tracking-wider text-[11px]">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-outline-variant">
+              {% for s in my_students %}
+              <tr class="hover:bg-surface-container-low transition-colors cursor-pointer student-row counselor-row-my"
+                  data-name="{{ s.full_name|escapejs }}"
+                  data-email="{{ s.email|escapejs }}"
+                  data-phone="{{ s.phone|escapejs }}"
+                  data-course="{{ s.course.name|default:'—'|escapejs }}"
+                  data-counselor="{{ s.counselor.full_name|default:s.counselor.email|default:'—'|escapejs }}"
+                  data-poc="{{ s.poc.full_name|default:s.poc.email|default:'—'|escapejs }}"
+                  data-code="{{ s.student_code|escapejs }}"
+                  data-pk="{{ s.pk }}"
+                  onclick="openStudentPanel(this)">
+                <td class="px-5 py-3.5">
+                  <div class="flex items-center gap-3">
+                    {% if s.user and s.user.avatar %}<img src="/user-avatar/{{ s.user.pk }}/" class="h-9 w-9 rounded-full object-cover shrink-0" alt=""/>{% else %}<div class="h-9 w-9 rounded-full bg-secondary-fixed text-[#00468c] flex items-center justify-center font-bold text-sm shrink-0">{{ s.full_name|first|upper }}</div>{% endif %}
+                    <div>
+                      <p class="font-label-bold text-label-bold text-on-surface">{{ s.full_name }}</p>
+                      <p class="font-label-sm text-label-sm text-on-surface-variant">{{ s.email }}</p>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-5 py-3.5 font-body-md text-on-surface-variant">{{ s.course.name|default:"—" }}</td>
+                <td class="px-5 py-3.5">
+                  {% if s.counselor_id == user.pk %}
+                  <span class="px-2 py-0.5 bg-primary-fixed text-on-primary-fixed-variant rounded-full font-label-bold text-[10px]">Counselor</span>
+                  {% else %}
+                  <span class="px-2 py-0.5 bg-secondary-fixed text-[#00468c] rounded-full font-label-bold text-[10px]">POC</span>
+                  {% endif %}
+                </td>
+                <td class="px-5 py-3.5" onclick="event.stopPropagation()">
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <a href="/student-application/{{ s.pk }}/" class="flex items-center gap-1 px-2.5 py-1 bg-primary text-on-primary rounded-lg font-label-bold text-[10px] hover:bg-primary-container transition-colors">
+                      <span class="material-symbols-outlined text-[12px]">open_in_new</span>View
+                    </a>
+                    <a href="/counselor-interaction-log/?t=student&id={{ s.pk }}" class="flex items-center gap-1 px-2.5 py-1 bg-secondary/10 text-secondary rounded-lg font-label-bold text-[10px] hover:bg-secondary/20 transition-colors">
+                      <span class="material-symbols-outlined text-[12px]">list_alt</span>Log
+                    </a>
+                    {% if not is_editor %}
+                    <a href="/counselor-schools/?student_id={{ s.pk }}" class="flex items-center gap-1 px-2.5 py-1 bg-surface-container-high text-on-surface rounded-lg font-label-bold text-[10px] hover:bg-outline-variant transition-colors">
+                      <span class="material-symbols-outlined text-[12px]">school</span>Schools
+                    </a>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="4" class="px-5 py-12 text-center">
+                <span class="material-symbols-outlined text-[44px] text-on-surface-variant mb-3 block">person_off</span>
+                <p class="font-label-bold text-label-bold text-on-surface-variant">No students assigned to you yet</p>
+              </td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- All Students panel -->
+      <div id="counselor-panel-all" class="counselor-student-panel hidden">
+        <div class="px-gutter pt-4 pb-2">
+          <div class="relative max-w-sm">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
+            <input oninput="counselorFilterAll(this.value)" placeholder="Search all students…"
+                   class="w-full pl-9 pr-4 py-2 bg-background border border-outline-variant rounded-lg font-body-md text-body-md focus:ring-2 focus:ring-secondary focus:outline-none"/>
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left">
+            <thead class="bg-surface-container-low">
+              <tr>
+                <th class="px-5 py-3 font-label-bold text-label-bold text-on-surface-variant uppercase tracking-wider text-[11px]">Student</th>
+                <th class="px-5 py-3 font-label-bold text-label-bold text-on-surface-variant uppercase tracking-wider text-[11px]">Course</th>
+                <th class="px-5 py-3 font-label-bold text-label-bold text-on-surface-variant uppercase tracking-wider text-[11px]">Counselor</th>
+                <th class="px-5 py-3 font-label-bold text-label-bold text-on-surface-variant uppercase tracking-wider text-[11px]">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-outline-variant" id="all-students-tbody">
+              {% for s in all_students %}
+              <tr class="hover:bg-surface-container-low transition-colors counselor-row-all">
+                <td class="px-5 py-3.5">
+                  <div class="flex items-center gap-3">
+                    {% if s.user and s.user.avatar %}<img src="/user-avatar/{{ s.user.pk }}/" class="h-9 w-9 rounded-full object-cover shrink-0" alt=""/>{% else %}<div class="h-9 w-9 rounded-full bg-primary-fixed text-on-primary-fixed-variant flex items-center justify-center font-bold text-sm shrink-0">{{ s.full_name|first|upper }}</div>{% endif %}
+                    <div>
+                      <p class="font-label-bold text-label-bold text-on-surface">{{ s.full_name }}</p>
+                      <p class="font-label-sm text-label-sm text-on-surface-variant">{{ s.email }}</p>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-5 py-3.5 font-body-md text-on-surface-variant text-[12px]">{{ s.course.name|default:"—" }}</td>
+                <td class="px-5 py-3.5 font-body-md text-on-surface-variant text-[12px]">{{ s.counselor.full_name|default:"—" }}</td>
+                <td class="px-5 py-3.5">
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <a href="/student-application/{{ s.pk }}/" class="flex items-center gap-1 px-2.5 py-1 bg-primary text-on-primary rounded-lg font-label-bold text-[10px] hover:bg-primary-container transition-colors">
+                      <span class="material-symbols-outlined text-[12px]">open_in_new</span>View
+                    </a>
+                    <a href="/counselor-interaction-log/?t=student&id={{ s.pk }}" class="flex items-center gap-1 px-2.5 py-1 bg-secondary/10 text-secondary rounded-lg font-label-bold text-[10px] hover:bg-secondary/20 transition-colors">
+                      <span class="material-symbols-outlined text-[12px]">list_alt</span>Log
+                    </a>
+                  </div>
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="4" class="px-5 py-10 text-center text-on-surface-variant font-label-sm text-[12px]">No students found.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <div class="p-4 bg-surface-container-low flex justify-center border-t border-outline-variant">
+          <a href="/counselor-students/" class="text-primary font-label-bold hover:underline text-[12px]">Full Students Management Page →</a>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══ PRIORITY LIST SECTION ══════════════════════════════════════ -->
+  <section class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-[0px_4px_12px_rgba(0,0,0,0.05)] overflow-hidden mb-8" id="priority-list-section">
+    <!-- Header -->
+    <div class="px-gutter py-5 border-b border-outline-variant flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <span class="material-symbols-outlined text-primary text-[22px]">priority_high</span>
+        <div>
+          <h3 class="font-h3 text-h3 text-on-surface">Priority List</h3>
+          <p class="font-label-sm text-label-sm text-on-surface-variant mt-0.5">Action items sorted by urgency</p>
+        </div>
+      </div>
+      <button onclick="empTogglePriority()" title="Collapse/Expand" class="p-1.5 text-on-surface-variant hover:text-primary transition-colors rounded-lg hover:bg-surface-container-low">
+        <span class="material-symbols-outlined text-[20px]" id="emp-priority-toggle-icon">expand_less</span>
+      </button>
+    </div>
+
+    <div id="emp-priority-body">
+
+      <!-- RED: High Priority -->
+      <div class="border-b border-outline-variant" id="emp-red-band">
+        <div class="px-gutter py-3 bg-red-50 flex items-center gap-2 border-b border-red-100">
+          <span class="inline-block w-2.5 h-2.5 rounded-full bg-red-500 shrink-0"></span>
+          <span class="font-label-bold text-[11px] text-red-700 uppercase tracking-wider">High Priority</span>
+          <span class="ml-1 text-red-500 font-label-bold text-[11px]" id="emp-red-count">({{ red_items|length }})</span>
+        </div>
+        <div id="emp-red-items">
+          {% for item in red_items %}
+          <div class="priority-item flex items-center gap-4 px-gutter py-3.5 border-b border-red-50 hover:bg-red-50/40 transition-colors" id="pi-emp-{{ item.type }}-{{ item.item_id }}">
+            <span class="material-symbols-outlined text-red-500 text-[20px] shrink-0">{{ item.icon }}</span>
+            <div class="flex-1 min-w-0">
+              <p class="font-label-bold text-label-bold text-on-surface text-[12px] truncate">{{ item.title }}</p>
+              <p class="font-label-sm text-label-sm text-on-surface-variant text-[11px] truncate">{{ item.subtitle }}</p>
+            </div>
+            <a href="/student-application/{{ item.student_pk }}/" class="shrink-0 px-2.5 py-1 bg-surface-container-low text-on-surface rounded-lg font-label-bold text-[10px] hover:bg-outline-variant transition-colors">View</a>
+            <button onclick="dismissPriorityItem('{{ item.type }}', {{ item.item_id }}, 'pi-emp-{{ item.type }}-{{ item.item_id }}', 'emp-red-count', 'emp-red-items')"
+                    class="shrink-0 px-2.5 py-1 bg-red-100 text-red-700 rounded-lg font-label-bold text-[10px] hover:bg-red-200 transition-colors active:scale-95">Done</button>
+          </div>
+          {% empty %}
+          <p class="px-gutter py-4 text-on-surface-variant font-label-sm text-[11px] italic">No high-priority items.</p>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- YELLOW: Low Priority -->
+      <div class="border-b border-outline-variant" id="emp-yellow-band">
+        <div class="px-gutter py-3 bg-yellow-50 flex items-center gap-2 border-b border-yellow-100">
+          <span class="inline-block w-2.5 h-2.5 rounded-full bg-yellow-400 shrink-0"></span>
+          <span class="font-label-bold text-[11px] text-yellow-700 uppercase tracking-wider">Low Priority</span>
+          <span class="ml-1 text-yellow-500 font-label-bold text-[11px]" id="emp-yellow-count">({{ yellow_items|length }})</span>
+        </div>
+        <div id="emp-yellow-items">
+          {% for item in yellow_items %}
+          <div class="priority-item flex items-center gap-4 px-gutter py-3.5 border-b border-yellow-50 hover:bg-yellow-50/40 transition-colors" id="pi-emp-{{ item.type }}-{{ item.item_id }}">
+            <span class="material-symbols-outlined text-yellow-500 text-[20px] shrink-0">{{ item.icon }}</span>
+            <div class="flex-1 min-w-0">
+              <p class="font-label-bold text-label-bold text-on-surface text-[12px] truncate">{{ item.title }}</p>
+              <p class="font-label-sm text-label-sm text-on-surface-variant text-[11px] truncate">{{ item.subtitle }}</p>
+            </div>
+            <a href="/student-application/{{ item.student_pk }}/" class="shrink-0 px-2.5 py-1 bg-surface-container-low text-on-surface rounded-lg font-label-bold text-[10px] hover:bg-outline-variant transition-colors">View</a>
+            <button onclick="dismissPriorityItem('{{ item.type }}', {{ item.item_id }}, 'pi-emp-{{ item.type }}-{{ item.item_id }}', 'emp-yellow-count', 'emp-yellow-items')"
+                    class="shrink-0 px-2.5 py-1 bg-yellow-100 text-yellow-700 rounded-lg font-label-bold text-[10px] hover:bg-yellow-200 transition-colors active:scale-95">Done</button>
+          </div>
+          {% empty %}
+          <p class="px-gutter py-4 text-on-surface-variant font-label-sm text-[11px] italic">No low-priority items.</p>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- GREEN: Newly Added -->
+      <div id="emp-green-band">
+        <div class="px-gutter py-3 bg-green-50 flex items-center gap-2 border-b border-green-100">
+          <span class="inline-block w-2.5 h-2.5 rounded-full bg-green-500 shrink-0"></span>
+          <span class="font-label-bold text-[11px] text-green-700 uppercase tracking-wider">Newly Added</span>
+          <span class="ml-1 text-green-500 font-label-bold text-[11px]" id="emp-green-count">({{ green_items|length }})</span>
+        </div>
+        <div id="emp-green-items">
+          {% for item in green_items %}
+          <div class="priority-item flex items-center gap-4 px-gutter py-3.5 border-b border-green-50 hover:bg-green-50/40 transition-colors" id="pi-emp-{{ item.type }}-{{ item.item_id }}">
+            <span class="material-symbols-outlined text-green-500 text-[20px] shrink-0">{{ item.icon }}</span>
+            <div class="flex-1 min-w-0">
+              <p class="font-label-bold text-label-bold text-on-surface text-[12px] truncate">{{ item.title }}</p>
+              <p class="font-label-sm text-label-sm text-on-surface-variant text-[11px] truncate">{{ item.subtitle }}</p>
+            </div>
+            <a href="/student-application/{{ item.student_pk }}/" class="shrink-0 px-2.5 py-1 bg-surface-container-low text-on-surface rounded-lg font-label-bold text-[10px] hover:bg-outline-variant transition-colors">View</a>
+            <button onclick="dismissPriorityItem('{{ item.type }}', {{ item.item_id }}, 'pi-emp-{{ item.type }}-{{ item.item_id }}', 'emp-green-count', 'emp-green-items')"
+                    class="shrink-0 px-2.5 py-1 bg-green-100 text-green-700 rounded-lg font-label-bold text-[10px] hover:bg-green-200 transition-colors active:scale-95">Done</button>
+          </div>
+          {% empty %}
+          <p class="px-gutter py-4 text-on-surface-variant font-label-sm text-[11px] italic">No newly added items.</p>
+          {% endfor %}
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══ SCHOOLS SECTION ══════════════════════════════════════ -->
+  <section class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-[0px_4px_12px_rgba(0,0,0,0.05)] overflow-hidden">
+    <div class="px-gutter py-5 border-b border-outline-variant flex items-center justify-between gap-4">
+      <div>
+        <h3 class="font-h3 text-h3 text-on-surface">Schools</h3>
+        <p class="font-label-sm text-label-sm text-on-surface-variant mt-0.5">{% if is_editor %}Browse available schools{% else %}Browse or add a new school{% endif %}</p>
+      </div>
+      {% if not is_editor %}
+      <button onclick="toggleAddSchool()" id="add-school-btn"
+              class="flex items-center gap-1.5 px-4 py-2 bg-primary text-on-primary font-label-bold text-label-bold rounded-lg hover:bg-primary-container transition-colors text-[12px]">
+        <span class="material-symbols-outlined text-[16px]">add</span>Add School
+      </button>
+      {% endif %}
+    </div>
+
+    {% if not is_editor %}
+    <!-- Add school inline form (hidden by default) -->
+    <div id="add-school-form" class="hidden border-b border-outline-variant bg-surface-container-low px-gutter py-5">
+      {% if school_save_message %}
+      <div class="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-800 font-label-bold text-[12px] flex items-center gap-2">
+        <span class="material-symbols-outlined text-[16px]">check_circle</span>{{ school_save_message }}
+      </div>
+      {% endif %}
+      {% if school_error_message %}
+      <div class="mb-4 p-3 bg-error/10 border border-error/30 rounded-lg text-error font-label-bold text-[12px] flex items-center gap-2">
+        <span class="material-symbols-outlined text-[16px]">error</span>{{ school_error_message }}
+      </div>
+      {% endif %}
+      <p class="font-label-bold text-label-bold text-on-surface mb-4 uppercase tracking-wider text-[11px]">New School Details</p>
+      <form method="post" class="grid grid-cols-2 gap-4">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_school">
+        <div>
+          <label class="font-label-bold text-label-bold text-on-surface-variant text-[11px] uppercase tracking-wider">School Name <span class="text-error">*</span></label>
+          <input name="name" type="text" required placeholder="e.g. University of Oxford"
+                 class="mt-1 w-full border border-outline-variant rounded-lg px-3 py-2 font-body-md text-on-surface focus:ring-2 focus:ring-primary focus:border-primary outline-none bg-white"/>
+        </div>
+        <div>
+          <label class="font-label-bold text-label-bold text-on-surface-variant text-[11px] uppercase tracking-wider">Country <span class="text-error">*</span></label>
+          <input name="country" type="text" required placeholder="e.g. United Kingdom"
+                 class="mt-1 w-full border border-outline-variant rounded-lg px-3 py-2 font-body-md text-on-surface focus:ring-2 focus:ring-primary focus:border-primary outline-none bg-white"/>
+        </div>
+        <div>
+          <label class="font-label-bold text-label-bold text-on-surface-variant text-[11px] uppercase tracking-wider">Website</label>
+          <input name="website" type="url" placeholder="https://…"
+                 class="mt-1 w-full border border-outline-variant rounded-lg px-3 py-2 font-body-md text-on-surface focus:ring-2 focus:ring-primary focus:border-primary outline-none bg-white"/>
+        </div>
+        <div>
+          <label class="font-label-bold text-label-bold text-on-surface-variant text-[11px] uppercase tracking-wider">Application Deadline</label>
+          <input name="deadline" type="date"
+                 class="mt-1 w-full border border-outline-variant rounded-lg px-3 py-2 font-body-md text-on-surface focus:ring-2 focus:ring-primary focus:border-primary outline-none bg-white"/>
+        </div>
+        <div class="col-span-2">
+          <label class="font-label-bold text-label-bold text-on-surface-variant text-[11px] uppercase tracking-wider">Description</label>
+          <textarea name="description" rows="2" placeholder="Brief description…"
+                    class="mt-1 w-full border border-outline-variant rounded-lg px-3 py-2 font-body-md text-on-surface focus:ring-2 focus:ring-primary focus:border-primary outline-none bg-white resize-none"></textarea>
+        </div>
+        <div class="col-span-2 flex gap-3 justify-end">
+          <button type="button" onclick="toggleAddSchool()" class="px-4 py-2 border border-outline-variant rounded-lg font-label-bold text-label-bold text-on-surface hover:bg-surface-container transition-colors text-[12px]">Cancel</button>
+          <button type="submit" class="px-5 py-2 bg-primary text-on-primary rounded-lg font-label-bold text-label-bold hover:bg-primary-container transition-colors text-[12px] flex items-center gap-1">
+            <span class="material-symbols-outlined text-[14px]">add</span>Add School
+          </button>
+        </div>
+      </form>
+    </div>
+    {% endif %}
+
+    <!-- Schools search + list -->
+    <div class="px-gutter pt-4 pb-3">
+      <div class="relative max-w-sm">
+        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
+        <input id="school-search" oninput="filterSchools(this.value)" placeholder="Search schools…" type="text"
+               class="w-full pl-9 pr-4 py-2 border border-outline-variant rounded-lg font-body-md text-body-md focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none bg-surface-container-low"/>
+      </div>
+    </div>
+
+    <div class="divide-y divide-outline-variant" id="schools-body">
+      {% for school in all_schools %}
+      <div class="school-row px-gutter py-4">
+        <div class="flex items-center gap-4 mb-3">
+          <div class="w-9 h-9 rounded-lg bg-primary-fixed flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-on-primary-fixed-variant text-[16px]">school</span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 flex-wrap">
+              <p class="font-label-bold text-label-bold text-on-surface">{{ school.name }}</p>
+            </div>
+            <div class="flex items-center gap-3 text-[12px] text-on-surface-variant mt-0.5">
+              <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[13px]">location_on</span>{{ school.country }}</span>
+              {% if school.website %}<a href="{{ school.website }}" target="_blank" class="flex items-center gap-1 text-secondary hover:underline"><span class="material-symbols-outlined text-[13px]">open_in_new</span>Website</a>{% endif %}
+              {% if school.deadline %}<span class="flex items-center gap-1 text-error"><span class="material-symbols-outlined text-[13px]">event</span>Deadline: {{ school.deadline|date:"M d, Y" }}</span>{% endif %}
+            </div>
+          </div>
+
+        </div>
+        {% if school.courses.all %}
+        <div class="ml-13 flex flex-wrap gap-2 pl-[52px]">
+          {% for c in school.courses.all %}
+          <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-outline-variant bg-surface-container-low text-[11px]">
+            <span class="font-bold text-on-surface-variant uppercase tracking-wide">{{ c.code }}</span>
+            <span class="text-on-surface font-label-bold">{{ c.name }}</span>
+            {% if c.duration_weeks %}<span class="text-on-surface-variant">· {{ c.duration_weeks }}w</span>{% endif %}
+            {% if c.fee_amount %}<span class="text-on-surface-variant">· ${{ c.fee_amount|floatformat:0 }}</span>{% endif %}
+            {% if not c.is_active %}<span class="text-error font-bold">(inactive)</span>{% endif %}
+          </span>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="pl-[52px] font-label-sm text-label-sm text-on-surface-variant italic">No courses yet</p>
+        {% endif %}
+      </div>
+      {% empty %}
+      <div class="px-gutter py-10 text-center">
+        <span class="material-symbols-outlined text-[36px] text-on-surface-variant block mb-2">school</span>
+        <p class="font-label-sm text-label-sm text-on-surface-variant">No schools found. Add one above.</p>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- ═══ PINNED NOTES ══════════════════════════════════════════ -->
+  {% if pinned_notes %}
+  <section class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-[0px_4px_12px_rgba(0,0,0,0.05)] overflow-hidden mb-8">
+    <div class="px-gutter py-4 border-b border-outline-variant flex items-center gap-2" style="background:linear-gradient(135deg,#fff7ed,#fef3c7);">
+      <span class="material-symbols-outlined text-[18px]" style="color:#a20513;font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 20;">push_pin</span>
+      <h3 class="font-label-bold text-[12px] uppercase tracking-widest" style="color:#a20513;">Pinned Notes</h3>
+    </div>
+    <div class="divide-y divide-outline-variant">
+      {% for note in pinned_notes %}
+      <div class="px-gutter py-4 flex items-start gap-4 hover:bg-surface-container-low transition-colors">
+        <div class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5" style="background:#fff7ed;">
+          <span class="material-symbols-outlined text-[18px]" style="color:#a20513;">sticky_note_2</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 mb-0.5 flex-wrap">
+            <span class="font-label-bold text-label-bold text-on-surface">{{ note.student.full_name|default:note.student.email }}</span>
+            <span class="font-label-sm text-label-sm text-on-surface-variant">·</span>
+            <span class="font-label-sm text-label-sm text-on-surface-variant">{{ note.created_at|date:"M j, Y" }}</span>
+            {% if note.created_by %}
+            <span class="font-label-sm text-label-sm text-on-surface-variant">· {{ note.created_by.full_name|default:note.created_by.email }}</span>
+            {% endif %}
+          </div>
+          <p class="font-body-md text-body-md text-on-surface leading-snug">{{ note.description|truncatechars:200 }}</p>
+        </div>
+        <a href="/counselor-interaction-log/?t=student&id={{ note.student.pk }}" class="text-secondary hover:underline font-label-sm text-[11px] uppercase tracking-widest flex-shrink-0 mt-1">View →</a>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+</main>
+
+<!-- ── Student data for JS panel ─────────────────────────────── -->
+<script id="students-json" type="application/json">
+[{% for s in my_students %}{"pk":{{ s.pk }},"name":"{{ s.full_name|escapejs }}","email":"{{ s.email|escapejs }}","phone":"{{ s.phone|escapejs }}","code":"{{ s.student_code|escapejs }}","course":"{{ s.course.name|default:'—'|escapejs }}","counselor":"{{ s.counselor.full_name|default:s.counselor.email|default:'—'|escapejs }}","poc":"{{ s.poc.full_name|default:s.poc.email|default:'—'|escapejs }}","nationality":"{{ s.nationality|escapejs }}","dob":"{{ s.dob|default:''|escapejs }}","gender":"{{ s.gender|escapejs }}","passport":"{{ s.passport_number|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}]
+</script>
+
+<script>
+/* ── profile panel ── */
+function toggleProfile() {
+  const panel = document.getElementById("profile-panel");
+  const ov = document.getElementById("profile-overlay");
+  const open = !panel.classList.contains("translate-x-full");
+  panel.classList.toggle("translate-x-full", open);
+  ov.classList.toggle("hidden", open);
+}
+
+/* ── student panel ── */
+const studentData = JSON.parse(document.getElementById("students-json").textContent);
+
+function openStudentPanel(row) {
+  const pk = parseInt(row.dataset.pk);
+  const s = studentData.find(x => x.pk === pk);
+  if (!s) return;
+
+  document.getElementById("sp-name").textContent = s.name;
+
+  const rows = [
+    ["Student Code", s.code],
+    ["Email", s.email],
+    ["Phone", s.phone || "—"],
+    ["Date of Birth", s.dob || "—"],
+    ["Gender", s.gender || "—"],
+    ["Nationality", s.nationality || "—"],
+    ["Passport No.", s.passport || "—"],
+    ["Course", s.course],
+    ["Counselor", s.counselor],
+    ["Point of Contact", s.poc],
+  ];
+
+  document.getElementById("sp-body").innerHTML = `
+    <div class="grid grid-cols-2 gap-3">
+      ${rows.map(([label, val]) => `
+        <div class="bg-surface-container-low rounded-lg p-3">
+          <p class="font-label-bold text-[10px] text-on-surface-variant uppercase tracking-wider mb-0.5">${label}</p>
+          <p class="font-label-bold text-label-bold text-on-surface text-[12px]">${esc(val)}</p>
+        </div>
+      `).join("")}
+    </div>
+  `;
+
+  document.getElementById("sp-actions").innerHTML = `
+    <a href="/student-profile/${s.pk}/" class="flex-1 flex items-center justify-center gap-1.5 py-2 bg-primary text-on-primary rounded-lg font-label-bold text-[12px] hover:bg-[#c62828] transition-colors">
+      <span class="material-symbols-outlined text-[16px]">open_in_new</span>Full Profile
+    </a>
+    <a href="/counselor-interaction-log/?t=student&id=${s.pk}" class="flex-1 flex items-center justify-center gap-1.5 py-2 bg-secondary/10 text-secondary border border-secondary/30 rounded-lg font-label-bold text-[12px] hover:bg-secondary/20 transition-colors">
+      <span class="material-symbols-outlined text-[16px]">list_alt</span>Log
+    </a>
+    {% if not is_editor %}
+    <a href="/counselor-schools/?student_id=${s.pk}" class="flex-1 flex items-center justify-center gap-1.5 py-2 bg-surface-container-high text-on-surface border border-outline-variant rounded-lg font-label-bold text-[12px] hover:bg-outline-variant transition-colors">
+      <span class="material-symbols-outlined text-[16px]">school</span>Schools
+    </a>
+    {% endif %}
+  `;
+
+  document.getElementById("student-panel").classList.remove("translate-x-full");
+  document.getElementById("student-overlay").classList.remove("hidden");
+}
+
+function closeStudentPanel() {
+  document.getElementById("student-panel").classList.add("translate-x-full");
+  document.getElementById("student-overlay").classList.add("hidden");
+}
+
+function esc(s) {
+  return String(s ?? "—").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+/* ── add school form toggle ── */
+function toggleAddSchool() {
+  const form = document.getElementById("add-school-form");
+  const btn  = document.getElementById("add-school-btn");
+  const open = !form.classList.contains("hidden");
+  form.classList.toggle("hidden", open);
+  btn.textContent = open ? "" : "";
+  if (open) {
+    btn.innerHTML = '<span class="material-symbols-outlined text-[16px]">add</span>Add School';
+  } else {
+    btn.innerHTML = '<span class="material-symbols-outlined text-[16px]">close</span>Cancel';
+  }
+}
+
+{% if school_save_message or not school_error_message is None and school_error_message %}
+// Auto-open form panel if there's a message (after POST)
+document.addEventListener("DOMContentLoaded", () => {
+  {% if school_save_message or school_error_message %}
+  document.getElementById("add-school-form").classList.remove("hidden");
+  document.getElementById("add-school-btn").innerHTML = '<span class="material-symbols-outlined text-[16px]">close</span>Cancel';
+  {% endif %}
+});
+{% endif %}
+
+/* ── sidebar students accordion ── */
+function toggleStudentsMenu() {
+  const menu = document.getElementById('students-submenu');
+  const chevron = document.getElementById('students-chevron');
+  const isOpen = !menu.classList.contains('hidden');
+  menu.classList.toggle('hidden', isOpen);
+  chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
+}
+
+function goToStudentTab(tab) {
+  const body = document.getElementById('counselor-students-body');
+  const icon = document.getElementById('counselor-students-toggle-icon');
+  if (body.classList.contains('hidden')) {
+    body.classList.remove('hidden');
+    icon.textContent = 'expand_less';
+  }
+  counselorSwitchTab(tab);
+  body.closest('section').scrollIntoView({behavior: 'smooth', block: 'start'});
+}
+
+/* ── counselor student tabs ── */
+function counselorSwitchTab(tab) {
+  document.querySelectorAll('.counselor-student-panel').forEach(p => p.classList.add('hidden'));
+  document.getElementById('counselor-panel-' + tab).classList.remove('hidden');
+  const active = 'px-3 py-1.5 rounded-md font-label-bold text-[11px] bg-surface-container-lowest text-on-surface shadow-sm transition-all';
+  const inactive = 'px-3 py-1.5 rounded-md font-label-bold text-[11px] text-on-surface-variant hover:text-on-surface transition-all';
+  document.getElementById('counselor-tab-my').className = (tab === 'my' ? active : inactive);
+  document.getElementById('counselor-tab-all').className = (tab === 'all' ? active : inactive);
+}
+
+function counselorToggleStudents() {
+  const body = document.getElementById('counselor-students-body');
+  const icon = document.getElementById('counselor-students-toggle-icon');
+  const hidden = body.classList.toggle('hidden');
+  icon.textContent = hidden ? 'expand_more' : 'expand_less';
+}
+
+function counselorFilterAll(q) {
+  const val = q.toLowerCase();
+  document.querySelectorAll('.counselor-row-all').forEach(row => {
+    row.style.display = row.textContent.toLowerCase().includes(val) ? '' : 'none';
+  });
+}
+
+/* ── student search filter (My Students tab) ── */
+function filterStudents(q) {
+  const val = q.toLowerCase();
+  document.querySelectorAll("#students-table .student-row").forEach(row => {
+    const text = (row.dataset.name + " " + row.dataset.email + " " + row.dataset.course).toLowerCase();
+    row.style.display = text.includes(val) ? "" : "none";
+  });
+}
+
+/* ── schools search filter ── */
+function filterSchools(q) {
+  const val = q.toLowerCase();
+  document.querySelectorAll("#schools-table .school-row").forEach(row => {
+    row.style.display = row.textContent.toLowerCase().includes(val) ? "" : "none";
+  });
+}
+
+// ── Notifications ──────────────────────────────────────────────────────────
+(function () {
+  let _open = false;
+  function _csrf() { const m = document.cookie.match(/csrftoken=([^;]+)/); return m ? m[1] : ''; }
+  function _esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  function _badge(n) {
+    const el = document.getElementById('notif-badge');
+    if (!el) return;
+    if (n > 0) {
+      el.textContent = n > 99 ? '99+' : n;
+      el.className = 'absolute top-1 right-1 min-w-[18px] h-[18px] bg-error text-on-error text-[10px] font-bold rounded-full flex items-center justify-center';
+    } else {
+      el.className = 'hidden';
+    }
+  }
+
+  function _icon(title) {
+    const t = title.toLowerCase();
+    if (t.includes('message')) return 'chat';
+    if (t.includes('note')) return 'sticky_note_2';
+    if (t.includes('school')) return 'school';
+    return 'notifications';
+  }
+
+  function _render(notifs) {
+    const el = document.getElementById('notif-list');
+    if (!notifs.length) { el.innerHTML = '<p class="text-center text-on-surface-variant py-8 text-sm">No notifications yet</p>'; return; }
+    el.innerHTML = notifs.map(n => `
+      <div data-nid="${n.id}" onclick="_nRead(${n.id},this)" class="flex items-start gap-3 px-4 py-3 hover:bg-surface-container-low cursor-pointer transition-colors${n.read ? ' opacity-60' : ''}">
+        <span class="material-symbols-outlined ${n.read ? 'text-on-surface-variant' : 'text-primary'} mt-0.5 text-[18px] flex-shrink-0">${_icon(n.title)}</span>
+        <div class="flex-1 min-w-0">
+          <p class="font-label-bold text-label-bold text-on-surface text-sm">${_esc(n.title)}</p>
+          ${n.message ? `<p class="text-xs text-on-surface-variant mt-0.5 line-clamp-2">${_esc(n.message)}</p>` : ''}
+          <p class="text-[10px] text-on-surface-variant mt-1">${n.created_at}</p>
+        </div>
+        ${!n.read ? '<span class="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-2"></span>' : ''}
+      </div>`).join('');
+  }
+
+  async function _load() {
+    try {
+      const r = await fetch('/api/notifications/');
+      if (!r.ok) return;
+      const d = await r.json();
+      _badge(d.unread_count);
+      _render(d.notifications);
+    } catch (_) {}
+  }
+
+  window.toggleNotif = function () {
+    _open = !_open;
+    document.getElementById('notif-panel').classList.toggle('hidden', !_open);
+    if (_open) _load();
+  };
+
+  window._nRead = async function (id, el) {
+    await fetch(`/api/notifications/${id}/read/`, {method:'POST', headers:{'X-CSRFToken':_csrf()}});
+    el.classList.add('opacity-60');
+    el.querySelector('.w-2.h-2.rounded-full.bg-primary')?.remove();
+    const b = document.getElementById('notif-badge');
+    _badge(Math.max(0, parseInt(b.textContent||'0') - 1));
+  };
+
+  window.markAllRead = async function (e) {
+    e?.stopPropagation();
+    await fetch('/api/notifications/read-all/', {method:'POST', headers:{'X-CSRFToken':_csrf()}});
+    document.querySelectorAll('#notif-list [data-nid]').forEach(el => {
+      el.classList.add('opacity-60');
+      el.querySelector('.w-2.h-2.rounded-full.bg-primary')?.remove();
+    });
+    _badge(0);
+  };
+
+  function _wsConnect() {
+    const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+    const ws = new WebSocket(`${proto}://${location.host}/ws/notifications/`);
+    ws.onmessage = function (e) {
+      const d = JSON.parse(e.data);
+      if (d.type === 'notify') {
+        const b = document.getElementById('notif-badge');
+        _badge(parseInt(b.textContent||'0') + 1);
+        if (_open) _load();
+      }
+    };
+    ws.onclose = function () { setTimeout(_wsConnect, 3000); };
+  }
+
+  document.addEventListener('click', function (e) {
+    if (!document.getElementById('notif-wrap')?.contains(e.target)) {
+      _open = false;
+      document.getElementById('notif-panel')?.classList.add('hidden');
+    }
+  });
+
+  _wsConnect();
+  _load();
+})();
+
+// ── Global Search Dropdown ────────────────────────────────────────────────────
+(function () {
+  let _timer = null, _lastQ = '';
+  function _esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function _inp() { return document.getElementById('global-search'); }
+  function _close() { const d=document.getElementById('gs-dropdown'); if(d) d.classList.add('hidden'); }
+  function _render(data) {
+    const inp = _inp(); if(!inp) return;
+    let dd = document.getElementById('gs-dropdown');
+    if(!dd){
+      dd = document.createElement('div');
+      dd.id = 'gs-dropdown';
+      dd.className = 'absolute left-0 top-full mt-1 w-full bg-surface-container-lowest border border-outline-variant rounded-xl shadow-2xl z-[99] overflow-hidden max-h-[440px] overflow-y-auto';
+      inp.closest('.relative').appendChild(dd);
+    }
+    const {students=[], schools=[], courses=[]} = data;
+    if (!students.length && !schools.length && !courses.length) {
+      dd.innerHTML = '<p class="px-4 py-6 text-center text-on-surface-variant text-sm font-body-md">No results found</p>';
+      dd.classList.remove('hidden'); return;
+    }
+    let h = '';
+    if (students.length) {
+      h += '<div class="px-4 pt-3 pb-1.5 border-b border-outline-variant/50 bg-surface-container-low"><span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Students</span></div>';
+      students.forEach(s => { h += `<a href="${s.url}" class="flex items-center gap-3 px-4 py-3 hover:bg-surface-container-low transition-colors border-b border-outline-variant/20 group"><div class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-xs shrink-0">${_esc((s.name[0]||'?').toUpperCase())}</div><div class="min-w-0 flex-1"><p class="font-bold text-[13px] text-on-surface group-hover:text-primary transition-colors truncate">${_esc(s.name)}</p><p class="text-[11px] text-on-surface-variant truncate">${_esc(s.code)}${s.course?' · '+_esc(s.course):''}</p></div><span class="material-symbols-outlined text-[16px] text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity shrink-0">chevron_right</span></a>`; });
+    }
+    if (schools.length) {
+      h += '<div class="px-4 pt-3 pb-1.5 border-b border-outline-variant/50 bg-surface-container-low"><span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Schools</span></div>';
+      schools.forEach(s => { h += `<a href="${s.url}" class="flex items-center gap-3 px-4 py-3 hover:bg-surface-container-low transition-colors border-b border-outline-variant/20 group"><div class="w-8 h-8 rounded-full bg-tertiary/10 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-[16px] text-tertiary">school</span></div><div class="min-w-0 flex-1"><p class="font-bold text-[13px] text-on-surface group-hover:text-primary transition-colors truncate">${_esc(s.name)}</p><p class="text-[11px] text-on-surface-variant">${_esc(s.country)}</p></div><span class="material-symbols-outlined text-[16px] text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity shrink-0">chevron_right</span></a>`; });
+    }
+    if (courses.length) {
+      h += '<div class="px-4 pt-3 pb-1.5 border-b border-outline-variant/50 bg-surface-container-low"><span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Courses</span></div>';
+      courses.forEach(c => { h += `<div class="flex items-center gap-3 px-4 py-3 border-b border-outline-variant/20"><div class="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-[16px] text-secondary">menu_book</span></div><div class="min-w-0 flex-1"><p class="font-bold text-[13px] text-on-surface truncate">${_esc(c.name)}</p><p class="text-[11px] text-on-surface-variant truncate">${c.code?_esc(c.code)+' · ':''}${_esc(c.school)}</p></div></div>`; });
+    }
+    dd.innerHTML = h;
+    dd.classList.remove('hidden');
+  }
+  window.handleGlobalSearch = function(q) {
+    clearTimeout(_timer);
+    if (!q || q.length < 2) { _close(); return; }
+    if (q === _lastQ) { document.getElementById('gs-dropdown')?.classList.remove('hidden'); return; }
+    _timer = setTimeout(async () => {
+      try { const r = await fetch('/search/?q='+encodeURIComponent(q)); if(!r.ok) return; _lastQ=q; _render(await r.json()); } catch(_){}
+    }, 280);
+  };
+  document.addEventListener('click', e => {
+    const inp=_inp(), dd=document.getElementById('gs-dropdown');
+    if(dd && inp && !dd.contains(e.target) && e.target!==inp) _close();
+  });
+  document.addEventListener('keydown', e => { if(e.key==='Escape') { _close(); _inp()?.blur(); } });
+})();
+
+// ── Priority List ─────────────────────────────────────────────────────────────
+function empTogglePriority() {
+  const body = document.getElementById('emp-priority-body');
+  const icon = document.getElementById('emp-priority-toggle-icon');
+  const hidden = body.classList.toggle('hidden');
+  icon.textContent = hidden ? 'expand_more' : 'expand_less';
+}
+
+async function dismissPriorityItem(itemType, itemId, elementId, countId, containerId) {
+  const el = document.getElementById(elementId);
+  const countEl = document.getElementById(countId);
+  if (!el) return;
+  el.style.transition = 'opacity 0.3s, max-height 0.3s';
+  el.style.opacity = '0';
+  el.style.overflow = 'hidden';
+  el.style.maxHeight = el.offsetHeight + 'px';
+  setTimeout(() => { el.style.maxHeight = '0'; el.style.padding = '0'; }, 50);
+  setTimeout(() => { el.remove(); }, 350);
+  if (countEl) {
+    const current = parseInt((countEl.textContent || '(0)').replace(/\D/g,'')) || 0;
+    countEl.textContent = '(' + Math.max(0, current - 1) + ')';
+  }
+  const csrf = document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '';
+  try {
+    await fetch('/dismiss-priority-item/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': csrf },
+      body: 'item_type=' + encodeURIComponent(itemType) + '&item_id=' + encodeURIComponent(itemId),
+    });
+  } catch (_) {}
+}
+</script>
+
+<!-- ===== FOOTER ===== -->
+<footer style="margin-left:260px;" class="border-t border-[#e4beba] bg-[#fff0ef] py-4 px-6 text-center text-xs text-[#5b403d]">
+  <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-1">
+    <button onclick="document.getElementById('tc-modal').classList.remove('hidden')" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">Terms &amp; Conditions</button>
+    <span class="text-[#e4beba]">|</span>
+    <button onclick="document.getElementById('pp-modal').classList.remove('hidden')" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">Privacy Policy</button>
+    <span class="text-[#e4beba]">|</span>
+    <span>Website: <a href="https://www.intelligenteducation.org" target="_blank" rel="noopener noreferrer" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">www.intelligenteducation.org</a></span>
+    <span class="text-[#e4beba]">|</span>
+    <span>Email: <a href="mailto:ho@intelligenteducation.org" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">ho@intelligenteducation.org</a></span>
+  </div>
+</footer>
+
+<!-- T&amp;C Modal -->
+<div id="tc-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-black/40 p-4" onclick="if(event.target===this)this.classList.add('hidden')">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-[#e4beba]">
+      <h2 class="text-lg font-semibold text-[#271816]" style="font-family:'Lexend',sans-serif;">Terms &amp; Conditions</h2>
+      <button onclick="document.getElementById('tc-modal').classList.add('hidden')" class="text-[#5b403d] hover:text-[#271816] transition-colors rounded-full p-1 hover:bg-[#ffe9e6]">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="overflow-y-auto px-6 py-5 text-sm text-[#271816] leading-relaxed">
+      <h3 class="text-base font-semibold text-[#a20513] mb-1" style="font-family:'Lexend',sans-serif;">Intelligent Education CRM Platform</h3>
+      <p class="text-[#5b403d] text-xs mb-4">Effective Date: May 13, 2026</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">1. Introduction</h4>
+      <p class="mb-2">Welcome to the Intelligent Education CRM Platform (&ldquo;Platform&rdquo;), operated by Intelligent Education (&ldquo;Intelligent Education,&rdquo; &ldquo;Company,&rdquo; &ldquo;we,&rdquo; &ldquo;our,&rdquo; or &ldquo;us&rdquo;).</p>
+      <p class="mb-2">These Terms and Conditions (&ldquo;Terms&rdquo;) govern access to and use of the Platform, including all associated services, software, AI-assisted features, communications, databases, dashboards, document management tools, and integrations.</p>
+      <p class="mb-2">By accessing or using the Platform, you agree to comply with and be legally bound by these Terms.</p>
+      <p class="mb-4 font-medium text-[#a20513]">If you do not agree with these Terms, you must not use the Platform.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">2. Purpose of the Platform</h4>
+      <p class="mb-2">The Platform is designed to assist Intelligent Education in managing:</p>
+      <ul class="list-disc pl-5 mb-2 space-y-1">
+        <li>Student and client relationships</li>
+        <li>Admission application workflows</li>
+        <li>Counseling and communication processes</li>
+        <li>Document collection and storage</li>
+        <li>Internal operational management</li>
+        <li>AI-assisted productivity and workflow support</li>
+      </ul>
+      <p class="mb-2">The Platform is intended solely for use by:</p>
+      <ul class="list-disc pl-5 mb-4 space-y-1">
+        <li>Authorized employees, counselors, and representatives of Intelligent Education</li>
+        <li>Registered clients and students associated with Intelligent Education</li>
+      </ul>
+
+      <h4 class="font-semibold text-[#271816] mb-1">3. Eligibility</h4>
+      <p class="mb-2">By using the Platform, you represent and warrant that:</p>
+      <ul class="list-disc pl-5 mb-2 space-y-1">
+        <li>You are legally capable of entering into a binding agreement under applicable law;</li>
+        <li>The information provided by you is accurate and complete;</li>
+        <li>You will use the Platform only for lawful purposes.</li>
+      </ul>
+      <p class="mb-4">If you are accessing the Platform on behalf of an organization or institution, you confirm that you are authorized to do so.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">4. User Accounts and Access</h4>
+      <p class="mb-2">Users may be required to create an account to access certain features. You agree to:</p>
+      <ul class="list-disc pl-5 mb-2 space-y-1">
+        <li>Maintain the confidentiality of your login credentials;</li>
+        <li>Restrict unauthorized access to your account;</li>
+        <li>Notify Intelligent Education immediately of any unauthorized use or security breach.</li>
+      </ul>
+      <p class="mb-2">Intelligent Education reserves the right to suspend or terminate accounts that:</p>
+      <ul class="list-disc pl-5 mb-4 space-y-1">
+        <li>Violate these Terms;</li>
+        <li>Engage in fraudulent, abusive, or unlawful conduct;</li>
+        <li>Attempt unauthorized access to systems or data.</li>
+      </ul>
+
+      <h4 class="font-semibold text-[#271816] mb-1">5. Data Collection and Storage</h4>
+      <p class="mb-2">The Platform may collect, process, and store personal and sensitive information, including but not limited to: names and contact details, academic records, identification documents, passport information, financial information, visa-related documentation, and application-related materials.</p>
+      <p class="mb-2">Data may be securely stored and processed using third-party infrastructure including Supabase, Railway, Google, and OpenAI.</p>
+      <p class="mb-4">While reasonable security measures are implemented, Intelligent Education does not guarantee absolute security of data transmission or storage systems.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">6. AI-Assisted Features Disclaimer</h4>
+      <p class="mb-2">The Platform may use artificial intelligence to assist with recommendations, workflow automation, draft generation, data processing, and communication support.</p>
+      <p class="mb-2">AI-generated outputs may contain inaccuracies, should not be treated as professional legal, immigration, financial, or admission advice, and require independent human review.</p>
+      <p class="mb-4">Intelligent Education makes no guarantees regarding the accuracy, reliability, or suitability of AI-generated outputs.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">7. No Guarantee of Admission or Visa Approval</h4>
+      <p class="mb-4">Use of the Platform does not guarantee admission to any educational institution, scholarship awards, visa approval, immigration outcomes, employment opportunities, or academic/professional success. All such decisions are made solely by the relevant authorities and institutions.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">8. Acceptable Use</h4>
+      <p class="mb-4">Users agree not to upload unlawful or fraudulent content, attempt unauthorized system access, interfere with Platform security, reverse engineer or exploit the Platform, or use it for illegal purposes. Intelligent Education reserves the right to investigate and take legal action for misuse.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">9. Intellectual Property</h4>
+      <p class="mb-4">All Platform content, branding, software, workflows, designs, and features are owned by or licensed to Intelligent Education. Users may not copy, reproduce, redistribute, modify, or commercially exploit any part of the Platform without prior written consent.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">10. Third-Party Services and Integrations</h4>
+      <p class="mb-4">The Platform integrates with third-party services including Google, Gmail, OpenAI, Supabase, and Railway. Intelligent Education is not responsible for third-party outages, data losses, policy changes, or service interruptions outside its reasonable control. Use of third-party services may be subject to their respective terms.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">11. Service Availability</h4>
+      <p class="mb-4">The Platform is provided on an &ldquo;as is&rdquo; and &ldquo;as available&rdquo; basis. Intelligent Education does not guarantee continuous uptime, error-free operation, or uninterrupted access. Maintenance, updates, or third-party failures may temporarily affect availability.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">12. Limitation of Liability</h4>
+      <p class="mb-2">To the maximum extent permitted by law, Intelligent Education shall not be liable for indirect, incidental, consequential, special, or punitive damages arising from use of the Platform, AI inaccuracies, data loss, admission or visa outcomes, service interruptions, unauthorized access, or third-party failures.</p>
+      <p class="mb-4">In no event shall Intelligent Education&rsquo;s total liability exceed the amount paid, if any, by the user for access during the preceding three (3) months.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">13. Indemnification</h4>
+      <p class="mb-4">Users agree to indemnify and hold harmless Intelligent Education, its employees, affiliates, contractors, and representatives from any claims, liabilities, or expenses arising from violation of these Terms, misuse of the Platform, or violation of applicable laws or third-party rights.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">14. Suspension and Termination</h4>
+      <p class="mb-4">Intelligent Education reserves the right to suspend or terminate access at any time, without prior notice, for security concerns, policy violations, fraudulent activity, misuse, or legal compliance requirements.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">15. Privacy</h4>
+      <p class="mb-4">Use of the Platform is also subject to the Intelligent Education Privacy Policy. Users acknowledge and consent to the collection, storage, and processing of data necessary for Platform operation.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">16. Governing Law and Jurisdiction</h4>
+      <p class="mb-4">These Terms shall be governed by the laws of India. Any disputes shall be subject to the exclusive jurisdiction of the courts located in India.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">17. Modifications to Terms</h4>
+      <p class="mb-4">Intelligent Education reserves the right to modify these Terms at any time. Updated versions may be published within the Platform or via official communications. Continued use of the Platform after modifications constitutes acceptance of the revised Terms.</p>
+
+      <h4 class="font-semibold text-[#271816] mb-1">18. Contact Information</h4>
+      <p>For questions regarding these Terms, contact:<br/><strong>Intelligent Education</strong><br/>Email: <a href="mailto:ho@intelligenteducation.org" class="text-[#a20513] underline">ho@intelligenteducation.org</a></p>
+    </div>
+  </div>
+</div>
+<!-- Privacy Policy Modal -->
+<div id="pp-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-black/40 p-4" onclick="if(event.target===this)this.classList.add('hidden')">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-[#e4beba]">
+      <h2 class="text-lg font-semibold text-[#271816]" style="font-family:'Lexend',sans-serif;">Privacy Policy</h2>
+      <button onclick="document.getElementById('pp-modal').classList.add('hidden')" class="text-[#5b403d] hover:text-[#271816] transition-colors rounded-full p-1 hover:bg-[#ffe9e6]">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="overflow-y-auto px-6 py-5 text-sm text-[#271816] leading-relaxed space-y-3">
+      <h3 class="text-base font-semibold text-[#a20513]" style="font-family:'Lexend',sans-serif;">Intelligent Education CRM Platform</h3>
+      <p class="text-[#5b403d] text-xs">Effective Date: May 13, 2026</p>
+
+      <h4 class="font-semibold text-[#271816]">1. Introduction</h4>
+      <p>This Privacy Policy explains how Intelligent Education (&ldquo;Intelligent Education,&rdquo; &ldquo;Company,&rdquo; &ldquo;we,&rdquo; &ldquo;our,&rdquo; or &ldquo;us&rdquo;) collects, uses, stores, processes, and protects personal information through the Intelligent Education CRM Platform (&ldquo;Platform&rdquo;).</p>
+      <p>By accessing or using the Platform, you consent to the practices described in this Privacy Policy.</p>
+
+      <h4 class="font-semibold text-[#271816]">2. Scope of This Policy</h4>
+      <p>This Privacy Policy applies to students and clients, counselors and employees, authorized representatives, and all users interacting with the Platform and related services — including information collected through the CRM Platform, forms and applications, email communications, AI-assisted features, and integrated third-party services.</p>
+
+      <h4 class="font-semibold text-[#271816]">3. Information We Collect</h4>
+      <p><strong>Personal Information:</strong> Full name, date of birth, gender, nationality, contact details, address, email address, phone number.</p>
+      <p><strong>Academic &amp; Professional:</strong> Academic transcripts, test scores, resume/CV, educational history, employment details.</p>
+      <p><strong>Identity &amp; Verification Documents:</strong> Passport copies, government-issued identification, visa-related documents, financial statements, supporting application documents.</p>
+      <p><strong>Technical &amp; Usage Information:</strong> IP address, device information, browser type, login activity, usage analytics, system logs.</p>
+      <p><strong>Communication Data:</strong> Emails, messages, counseling notes, application discussions, AI-assisted communication records.</p>
+
+      <h4 class="font-semibold text-[#271816]">4. How We Use Information</h4>
+      <p>We use collected information to manage student applications and workflows, provide counseling and support services, process admissions-related activities, manage communications, generate AI-assisted recommendations and drafts, improve Platform functionality and security, maintain internal operational records, and fulfill legal and compliance obligations.</p>
+
+      <h4 class="font-semibold text-[#271816]">5. AI-Assisted Processing</h4>
+      <p>The Platform may use artificial intelligence technologies including OpenAI to generate drafts, provide workflow assistance, support administrative tasks, and improve productivity. AI-generated content may not always be accurate, should be independently reviewed, and does not constitute legal, immigration, or professional advice.</p>
+
+      <h4 class="font-semibold text-[#271816]">6. Third-Party Service Providers</h4>
+      <p>We may use trusted third-party platforms including Supabase, Railway, Google services and APIs, Gmail integrations, and OpenAI. These providers may process or store data under their own policies. We are not responsible for the independent privacy practices of third-party services.</p>
+
+      <h4 class="font-semibold text-[#271816]">7. Data Storage and Security</h4>
+      <p>We implement commercially reasonable technical and organizational safeguards to protect personal information from unauthorized access, disclosure, alteration, loss, and misuse. However, no internet-based platform can guarantee absolute security. Users acknowledge and accept inherent cybersecurity and transmission risks.</p>
+
+      <h4 class="font-semibold text-[#271816]">8. Data Sharing and Disclosure</h4>
+      <p>We do not sell personal information. We may disclose information to authorized employees and counselors, to educational institutions for applications, to government or visa authorities when necessary, to service providers supporting Platform operations, or when required by law, legal process, or regulatory obligations.</p>
+
+      <h4 class="font-semibold text-[#271816]">9. Data Retention</h4>
+      <p>We retain personal information only as long as reasonably necessary for business operations, application management, legal compliance, dispute resolution, and recordkeeping purposes. We reserve the right to retain certain records where legally required or operationally necessary.</p>
+
+      <h4 class="font-semibold text-[#271816]">10. User Rights</h4>
+      <p>Subject to applicable law, users may request access to their personal information, correction of inaccurate data, deletion of certain data, restriction of processing, or withdrawal of consent where applicable. Requests may be subject to identity verification, legal obligations, and operational requirements.</p>
+
+      <h4 class="font-semibold text-[#271816]">11. Cookies and Analytics</h4>
+      <p>The Platform may use cookies, session technologies, analytics tools, and tracking technologies to improve user experience, security, and performance. Users may disable certain cookies through browser settings, though some features may not function properly.</p>
+
+      <h4 class="font-semibold text-[#271816]">12. Children&rsquo;s Privacy</h4>
+      <p>The Platform is not intentionally directed toward children under the age required by applicable law without appropriate authorization or supervision. Where required, users represent that appropriate consent has been obtained from parents or legal guardians.</p>
+
+      <h4 class="font-semibold text-[#271816]">13. International Data Processing</h4>
+      <p>Data may be processed or stored on servers in different jurisdictions depending on the infrastructure and service providers used. By using the Platform, users consent to such transfers and processing where legally permitted.</p>
+
+      <h4 class="font-semibold text-[#271816]">14. Limitation of Liability</h4>
+      <p>To the fullest extent permitted by law, Intelligent Education shall not be liable for unauthorized access, cyberattacks, third-party breaches, data transmission failures, service interruptions, or losses arising from external systems or providers. Users use the Platform at their own risk.</p>
+
+      <h4 class="font-semibold text-[#271816]">15. Changes to This Privacy Policy</h4>
+      <p>We may update this Privacy Policy periodically. Updated versions may be posted on the Platform with a revised effective date. Continued use of the Platform after updates constitutes acceptance of the revised Privacy Policy.</p>
+
+      <h4 class="font-semibold text-[#271816]">16. Contact Information</h4>
+      <p>For questions or privacy-related requests, contact:<br/><strong>Intelligent Education</strong><br/>Email: <a href="mailto:ho@intelligenteducation.org" class="text-[#a20513] underline">ho@intelligenteducation.org</a></p>
+    </div>
+  </div>
+</div>
+<!-- ===== /FOOTER ===== -->
+</body>
+</html>
