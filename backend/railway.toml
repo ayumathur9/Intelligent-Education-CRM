@@ -1,2 +1,3 @@
 [deploy]
+startCommand = "daphne config.asgi:application --bind 0.0.0.0 --port 8000"
 restartPolicyType = "on_failure"
