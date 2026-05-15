@@ -14,6 +14,9 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 
 COPY . /app
 
+# Run collectstatic at build time (no DB needed, speeds up container startup)
+RUN DJANGO_SECRET_KEY=build-placeholder DJANGO_DEBUG=0 python manage.py collectstatic --noinput
+
 EXPOSE 8000
 
-CMD ["sh", "-c", "python manage.py collectstatic --noinput && python manage.py migrate && daphne config.asgi:application --bind 0.0.0.0 --port 8000"]
+CMD ["sh", "-c", "python manage.py migrate && daphne config.asgi:application --bind 0.0.0.0 --port 8000 --proxy-headers"]
