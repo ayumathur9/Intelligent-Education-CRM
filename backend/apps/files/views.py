@@ -4,6 +4,8 @@ import mimetypes
 import uuid
 
 from django.conf import settings
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.parsers import MultiPartParser
@@ -12,7 +14,6 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.common.supabase_client import get_supabase_client
 from apps.users.models import Role
 
 from .models import FileObject
@@ -59,33 +60,21 @@ class FileUploadView(APIView):
             return Response({"detail": error}, status=status.HTTP_400_BAD_REQUEST)
 
         ext = file.name.rsplit(".", 1)[-1].lower()
-        path = f"{uuid.uuid4()}.{ext}"
+        path = f"uploads/{uuid.uuid4()}.{ext}"
         sniffed = mimetypes.guess_type(file.name)[0]
         content_type = sniffed or (file.content_type or "application/octet-stream")
 
-        bucket = settings.SUPABASE_STORAGE_BUCKET
-        client = get_supabase_client()
         try:
-            result = client.storage.from_(bucket).upload(
-                path=path,
-                file=file.read(),
-                file_options={"content-type": content_type},
-            )
-            # supabase-py v2 raises on failure; if it returns an error object, surface it.
-            if hasattr(result, "error") and result.error:
-                return Response(
-                    {"detail": f"Storage upload failed: {result.error}"},
-                    status=status.HTTP_502_BAD_GATEWAY,
-                )
+            default_storage.save(path, ContentFile(file.read()))
         except Exception as exc:
             return Response(
                 {"detail": f"Storage upload failed: {exc}"},
                 status=status.HTTP_502_BAD_GATEWAY,
             )
 
-        public_url = f"{settings.SUPABASE_PUBLIC_URL_BASE}/{bucket}/{path}"
+        public_url = f"{settings.MEDIA_URL}{path}"
         obj = FileObject.objects.create(
-            bucket=bucket,
+            bucket="local",
             path=path,
             public_url=public_url,
             content_type=content_type,
