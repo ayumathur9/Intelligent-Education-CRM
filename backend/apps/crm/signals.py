@@ -1,11 +1,32 @@
 from __future__ import annotations
 
+import uuid
+
+from django.conf import settings
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
 from apps.audit.services import log_activity
 
 from .models import Course, Enquiry, FollowUp, Lead, Student
+
+
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def auto_create_student_profile(sender, instance, created: bool, **kwargs):
+    """Auto-create a crm_student record when a user with role 'student' is created."""
+    if not created:
+        return
+    if getattr(instance, "role", None) != "student":
+        return
+    if Student.objects.filter(user=instance).exists():
+        return
+    code = f"STU-{uuid.uuid4().hex[:8].upper()}"
+    Student.objects.create(
+        user=instance,
+        student_code=code,
+        full_name=instance.full_name or instance.email,
+        email=instance.email,
+    )
 
 
 def _actor_from_instance(instance):
