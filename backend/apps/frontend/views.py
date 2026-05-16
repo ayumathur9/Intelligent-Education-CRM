@@ -23,22 +23,19 @@ _LOGIN_URL = "/login/"
 _logger = logging.getLogger(__name__)
 
 
-def _upload_to_supabase(file_obj, folder: str, filename: str) -> str:
-    """Upload file_obj to Supabase Storage and return the public URL."""
-    from apps.common.supabase_client import get_supabase_client  # lazy: avoids broken websockets.asyncio at import time
-    bucket = django_settings.SUPABASE_STORAGE_BUCKET
+def _save_to_local(file_obj, folder: str, filename: str) -> str:
+    """Save file_obj to local MEDIA_ROOT and return the /media/... URL."""
+    from django.core.files.base import ContentFile
+    from django.core.files.storage import default_storage
     path = f"{folder}/{filename}"
-    content_type = mimetypes.guess_type(filename)[0] or "application/octet-stream"
-    client = get_supabase_client()
-    data = file_obj.read()
-    # upsert=True overwrites existing file with same path
-    client.storage.from_(bucket).upload(
-        path=path,
-        file=data,
-        file_options={"content-type": content_type, "upsert": "true"},
-    )
-    public_base = getattr(django_settings, "SUPABASE_PUBLIC_URL_BASE", "").rstrip("/")
-    return f"{public_base}/{bucket}/{path}"
+    if default_storage.exists(path):
+        default_storage.delete(path)
+    default_storage.save(path, ContentFile(file_obj.read()))
+    return f"{django_settings.MEDIA_URL}{path}"
+
+
+# Keep old name as alias so call sites don't need updating yet.
+_upload_to_supabase = _save_to_local
 
 _STUDENT_SIDEBAR_ITEMS = [
     ("dashboard", "/", "Dashboard"),
@@ -931,65 +928,21 @@ def view_profile_doc(request, doc_id):
     if not is_owner and not is_privileged:
         return HttpResponseForbidden("Access denied.")
 
-    from apps.common.supabase_client import get_supabase_client
-    bucket = django_settings.SUPABASE_STORAGE_BUCKET
-    # file_path is stored as full public URL; extract the storage path from it
-    # format: .../object/public/<bucket>/<path>  OR  .../object/sign/<bucket>/<path>
-    file_path = doc.file_path
-    prefix = f"/object/public/{bucket}/"
-    if prefix in file_path:
-        storage_path = file_path.split(prefix, 1)[1].split("?")[0]
-    else:
-        # fallback: derive path from folder structure
-        storage_path = file_path
-
-    client = get_supabase_client()
-    result = client.storage.from_(bucket).create_signed_url(storage_path, expires_in=3600)
-    # supabase-py v2 returns {"signedURL": "..."}; guard against SDK shape changes.
-    signed_url = result.get("signedURL") or result.get("signedUrl") or result.get("signed_url")
-    if not signed_url:
-        _logger.error(
-            "create_signed_url returned unexpected shape for path=%s: %s",
-            storage_path, list(result.keys()) if isinstance(result, dict) else repr(result),
-        )
-        return HttpResponseNotFound("Could not generate download link.")
-
+    file_url = doc.file_path
     force_download = request.GET.get("download")
     if force_download:
-        signed_url += ("&" if "?" in signed_url else "?") + f"download={force_download}"
-
-    return _redirect(signed_url)
+        file_url += ("&" if "?" in file_url else "?") + f"download={force_download}"
+    return _redirect(file_url)
 
 
 # ─── Avatar proxy helpers ─────────────────────────────────────────────────────
 
 def _avatar_redirect(avatar_value):
-    """Return a redirect response for an avatar field value (local path or Supabase URL)."""
+    """Return a redirect response for an avatar field value."""
     from django.http import HttpResponseNotFound
     if not avatar_value:
         return HttpResponseNotFound()
-    if avatar_value.startswith("/media/"):
-        from django.shortcuts import redirect as _redir
-        return _redir(avatar_value)
-    bucket = django_settings.SUPABASE_STORAGE_BUCKET
-    prefix = f"/object/public/{bucket}/"
-    storage_path = avatar_value.split(prefix, 1)[1].split("?")[0] if prefix in avatar_value else avatar_value
-    try:
-        from apps.common.supabase_client import get_supabase_client
-        client = get_supabase_client()
-        result = client.storage.from_(bucket).create_signed_url(storage_path, expires_in=3600)
-        signed_url = result.get("signedURL") or result.get("signedUrl") or result.get("signed_url")
-        if not signed_url:
-            _logger.error(
-                "_avatar_redirect: unexpected signed URL shape for path=%s: %s",
-                storage_path, list(result.keys()) if isinstance(result, dict) else repr(result),
-            )
-            return HttpResponseNotFound()
-        from django.shortcuts import redirect as _redir
-        return _redir(signed_url)
-    except Exception:
-        _logger.exception("_avatar_redirect: failed to generate signed URL for path %s", storage_path)
-        return HttpResponseNotFound()
+    return redirect(avatar_value)
 
 
 @login_required(login_url=_LOGIN_URL)
