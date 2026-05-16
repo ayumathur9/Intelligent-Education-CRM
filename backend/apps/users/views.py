@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from django.conf import settings
-from django.core.mail import send_mail
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -31,14 +30,8 @@ class RegisterView(generics.CreateAPIView):
 
     def perform_create(self, serializer):
         user = serializer.save()
-        if settings.EMAIL_HOST_USER and settings.EMAIL_HOST_PASSWORD:
-            send_mail(
-                subject="Welcome to Intelligent Education CRM",
-                message=f"Hi {user.full_name or user.email},\n\nWelcome to Intelligent Education CRM.",
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[user.email],
-                fail_silently=True,
-            )
+        from apps.common.email_service import send_welcome_email
+        send_welcome_email(user)
 
 
 class LoginView(APIView):
@@ -76,15 +69,10 @@ class PasswordResetRequestView(APIView):
         token_obj = ser.save()
 
         # Always return success to avoid account enumeration.
-        if token_obj and settings.EMAIL_HOST_USER and settings.EMAIL_HOST_PASSWORD:
+        if token_obj:
+            from apps.common.email_service import send_password_reset_email
             reset_link = f"{settings.FRONTEND_BASE_URL.rstrip('/')}/reset-password.html?token={token_obj.token}"
-            send_mail(
-                subject="Reset your password",
-                message=f"Use this link to reset your password:\n{reset_link}\n\nThis link expires in 30 minutes.",
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[token_obj.user.email],
-                fail_silently=True,
-            )
+            send_password_reset_email(token_obj.user, reset_link)
 
         return Response({"detail": "If the email exists, a reset link was sent."})
 

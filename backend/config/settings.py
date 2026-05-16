@@ -91,12 +91,22 @@ TEMPLATES = [
 WSGI_APPLICATION = "config.wsgi.application"
 ASGI_APPLICATION = "config.asgi.application"
 
-DATABASE_URL = os.getenv("DATABASE_URL")
-DATABASES = {"default": dj_database_url.config(default=DATABASE_URL, conn_max_age=600, ssl_require=not DEBUG)}
+DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
+# Railway sometimes injects non-standard schemes; normalise to postgresql://
+if DATABASE_URL and DATABASE_URL.startswith("railwaypostgresql://"):
+    DATABASE_URL = "postgresql://" + DATABASE_URL[len("railwaypostgresql://"):]
 
-# Use Postgres by default; fall back to sqlite only if DATABASE_URL missing (local convenience).
 if not DATABASE_URL:
+    if not DEBUG:
+        raise RuntimeError(
+            "DATABASE_URL environment variable is not set. "
+            "Production deployments require a persistent PostgreSQL database. "
+            "On Railway: add the PostgreSQL plugin to your project and redeploy."
+        )
+    # Local dev convenience: fall back to SQLite
     DATABASES = {"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": BASE_DIR / "db.sqlite3"}}
+else:
+    DATABASES = {"default": dj_database_url.config(default=DATABASE_URL, conn_max_age=600, ssl_require=not DEBUG)}
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},

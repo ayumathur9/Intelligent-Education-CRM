@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from django.conf import settings
-from django.db.models.signals import post_delete, post_save
+from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
 
 from apps.audit.services import log_activity
@@ -27,18 +27,28 @@ def auto_create_student_profile(sender, instance, created: bool, **kwargs):
 
 
 def _actor_from_instance(instance):
-    # For create/update from API we also set created_by in views; signals fallback to that.
     return getattr(instance, "created_by", None) or getattr(instance, "assigned_to", None)
 
 
-@receiver(post_save, sender=Lead)
-def lead_saved(sender, instance: Lead, created: bool, **kwargs):
-    log_activity(actor=_actor_from_instance(instance), action="lead.created" if created else "lead.updated", instance=instance)
+# ── Student assignment tracking ──────────────────────────────────────────────
 
-
-@receiver(post_delete, sender=Lead)
-def lead_deleted(sender, instance: Lead, **kwargs):
-    log_activity(actor=_actor_from_instance(instance), action="lead.deleted", instance=instance)
+@receiver(pre_save, sender=Student)
+def student_pre_save(sender, instance: Student, **kwargs):
+    """Capture old counselor/editor/poc IDs before save so we can detect changes."""
+    if not instance.pk:
+        instance._pre_counselor_id = None
+        instance._pre_editor_id = None
+        instance._pre_poc_id = None
+        return
+    try:
+        old = Student.objects.get(pk=instance.pk)
+        instance._pre_counselor_id = old.counselor_id
+        instance._pre_editor_id = old.editor_id
+        instance._pre_poc_id = old.poc_id
+    except Student.DoesNotExist:
+        instance._pre_counselor_id = None
+        instance._pre_editor_id = None
+        instance._pre_poc_id = None
 
 
 @receiver(post_save, sender=Student)
@@ -48,6 +58,32 @@ def student_saved(sender, instance: Student, created: bool, **kwargs):
         action="student.created" if created else "student.updated",
         instance=instance,
     )
+    _send_assignment_emails(instance)
+
+
+def _send_assignment_emails(instance: Student) -> None:
+    from apps.common.email_service import send_assignment_email
+
+    checks = [
+        ("counselor", instance.counselor, getattr(instance, "_pre_counselor_id", None), "Counselor"),
+        ("editor", instance.editor, getattr(instance, "_pre_editor_id", None), "Editor"),
+        ("poc", instance.poc, getattr(instance, "_pre_poc_id", None), "Point of Contact"),
+    ]
+    for _field, staff_user, old_id, label in checks:
+        if staff_user and staff_user.pk != old_id:
+            send_assignment_email(staff_user, instance, label)
+
+
+# ── Other model signals ──────────────────────────────────────────────────────
+
+@receiver(post_save, sender=Lead)
+def lead_saved(sender, instance: Lead, created: bool, **kwargs):
+    log_activity(actor=_actor_from_instance(instance), action="lead.created" if created else "lead.updated", instance=instance)
+
+
+@receiver(post_delete, sender=Lead)
+def lead_deleted(sender, instance: Lead, **kwargs):
+    log_activity(actor=_actor_from_instance(instance), action="lead.deleted", instance=instance)
 
 
 @receiver(post_save, sender=Course)
@@ -71,4 +107,3 @@ def followup_saved(sender, instance: FollowUp, created: bool, **kwargs):
         action="followup.created" if created else "followup.updated",
         instance=instance,
     )
-
