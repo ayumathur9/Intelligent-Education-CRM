@@ -34,8 +34,7 @@ def _save_to_local(file_obj, folder: str, filename: str) -> str:
     return f"{django_settings.MEDIA_URL}{path}"
 
 
-# Keep old name as alias so call sites don't need updating yet.
-_upload_to_supabase = _save_to_local
+_upload_to_supabase = _save_to_local  # alias kept for existing call sites
 
 _STUDENT_SIDEBAR_ITEMS = [
     ("dashboard", "/", "Dashboard"),
@@ -1589,7 +1588,7 @@ def _handle_document_upload(request, student, school):
             if not is_privileged and not is_uploader:
                 return "Permission denied: you may only delete files you uploaded."
 
-            # Email a copy of the file before marking deleted (file stays in Supabase).
+            # Email a copy of the file before marking deleted.
             file_bytes = None
             file_url = doc.file_url or ""
             if file_url.startswith("http"):
@@ -1606,7 +1605,7 @@ def _handle_document_upload(request, student, school):
                 mime = _mt.guess_type(doc.file_name)[0] or "application/octet-stream"
                 _send_doc_deleted_email(student, doc.file_name, doc.category, file_bytes, doc.file_name, mime)
 
-            # Soft-delete: stamp deleted_at, keep DB record and Supabase file intact.
+            # Soft-delete: stamp deleted_at, keep DB record and file intact.
             doc.deleted_at = timezone.now()
             doc.save(update_fields=["deleted_at"])
             return "Document deleted."
@@ -1625,7 +1624,7 @@ def _handle_document_upload(request, student, school):
     try:
         public_url = _upload_to_supabase(uploaded_file, storage_folder, unique_name)
     except Exception as exc:
-        _logger.exception("School doc upload to Supabase failed: student=%s school=%s", student.pk, school.pk)
+        _logger.exception("School doc upload failed: student=%s school=%s", student.pk, school.pk)
         return f"Upload failed: {exc}"
 
     StudentSchoolDocument.objects.create(
