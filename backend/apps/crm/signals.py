@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import uuid
-
 from django.conf import settings
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
@@ -20,10 +18,9 @@ def auto_create_student_profile(sender, instance, created: bool, **kwargs):
         return
     if Student.objects.filter(user=instance).exists():
         return
-    code = f"STU-{uuid.uuid4().hex[:8].upper()}"
+    # student_code is auto-assigned in Student.save()
     Student.objects.create(
         user=instance,
-        student_code=code,
         full_name=instance.full_name or instance.email,
         email=instance.email,
     )

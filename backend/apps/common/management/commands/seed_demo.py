@@ -59,7 +59,7 @@ class Command(BaseCommand):
         )
 
         student, _ = Student.objects.get_or_create(
-            student_code="IE-STU-0001",
+            student_code="STU-0001",
             defaults={
                 "user": student_user,
                 "full_name": student_user.full_name,

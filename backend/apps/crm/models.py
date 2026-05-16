@@ -228,6 +228,21 @@ class Student(models.Model):
     class Meta:
         indexes = [models.Index(fields=["is_active", "student_code"])]
 
+    @classmethod
+    def generate_student_code(cls) -> str:
+        from django.db.models import Max
+        last = cls.objects.aggregate(Max("student_code"))["student_code__max"]
+        if last and last.startswith("STU-") and last[4:].isdigit():
+            next_num = int(last[4:]) + 1
+        else:
+            next_num = 1
+        return f"STU-{next_num:04d}"
+
+    def save(self, *args, **kwargs):
+        if not self.student_code:
+            self.student_code = self.__class__.generate_student_code()
+        super().save(*args, **kwargs)
+
     def __str__(self) -> str:
         return self.student_code
 
