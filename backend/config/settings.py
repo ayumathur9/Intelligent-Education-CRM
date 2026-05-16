@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import sys
 from datetime import timedelta
 from pathlib import Path
 
@@ -96,14 +97,18 @@ DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
 if DATABASE_URL and DATABASE_URL.startswith("railwaypostgresql://"):
     DATABASE_URL = "postgresql://" + DATABASE_URL[len("railwaypostgresql://"):]
 
+# Management commands that run at build time and don't touch the database.
+_NO_DB_COMMANDS = {"collectstatic", "compress", "compilemessages", "check"}
+_running_no_db_command = bool(set(sys.argv) & _NO_DB_COMMANDS)
+
 if not DATABASE_URL:
-    if not DEBUG:
+    if not DEBUG and not _running_no_db_command:
         raise RuntimeError(
             "DATABASE_URL environment variable is not set. "
             "Production deployments require a persistent PostgreSQL database. "
             "On Railway: add the PostgreSQL plugin to your project and redeploy."
         )
-    # Local dev convenience: fall back to SQLite
+    # Local dev / build-time fallback: SQLite
     DATABASES = {"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": BASE_DIR / "db.sqlite3"}}
 else:
     DATABASES = {"default": dj_database_url.config(default=DATABASE_URL, conn_max_age=600, ssl_require=not DEBUG)}
