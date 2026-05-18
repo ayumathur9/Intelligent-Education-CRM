@@ -120,6 +120,10 @@
           #main-header { left:0 !important; }
           .main-content { margin-left:0 !important; }
           #main-footer { margin-left:0 !important; }
+          /* Notification panel: full-width on mobile */
+          #notif-panel { position:fixed !important; top:72px; left:8px; right:8px; width:auto !important; }
+          /* Hide user name text on mobile */
+          .header-user-text { display:none; }
         }
         #hamburger-btn { display:none; }
         @media (max-width:1023px) { #hamburger-btn { display:inline-flex; } }
@@ -211,7 +215,7 @@
 </div>
 <div class="h-8 w-[1px] bg-outline-variant"></div>
 <div class="flex items-center space-x-3 cursor-pointer active:opacity-80 transition-opacity">
-<div class="text-right">
+<div class="text-right header-user-text">
 <p class="font-label-bold text-label-bold text-on-surface">{{ user.full_name|default:user.email }}</p>
 <p class="font-label-sm text-label-sm text-on-surface-variant">{{ user.role|title }}</p>
 </div>

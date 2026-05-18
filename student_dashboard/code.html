@@ -88,8 +88,8 @@
   .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
   body { background-color: #f8f9fa; }
   /* ── Responsive sidebar ── */
-  #sidebar { transition: transform 0.3s ease; }
-  #sidebar-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:48; display:none; }
+  #sidebar { transition: transform 0.3s ease; z-index: 50; }
+  #sidebar-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:49; display:none; }
   #sidebar-overlay.open { display:block; }
   @media (max-width:1023px) {
     #sidebar { transform:translateX(-260px); }
@@ -97,6 +97,18 @@
     #main-header { left:0 !important; }
     .main-content { margin-left:0 !important; }
     #main-footer { margin-left:0 !important; }
+    /* Hide search bar on small phones, show on sm+ */
+    .header-search { display:none; }
+    /* Hide user name text, keep avatar */
+    .header-user-text { display:none; }
+    /* Notification panel: fixed full-width on mobile */
+    #notif-panel { position:fixed; top:72px; left:8px; right:8px; width:auto !important; }
+    /* Remove separator border on mobile */
+    .header-sep { display:none; }
+  }
+  @media (min-width:481px) {
+    .header-search { display:block; }
+    #notif-panel { position:absolute; top:100%; left:auto; right:0; width:20rem; }
   }
   #hamburger-btn { display:none; }
   @media (max-width:1023px) { #hamburger-btn { display:inline-flex; } }
@@ -143,45 +155,46 @@
 </aside>
 
 <!-- Top Navbar -->
-<header id="main-header" class="fixed top-0 right-0 h-[72px] left-[260px] bg-surface-container-lowest shadow-[0px_4px_12px_rgba(0,0,0,0.05)] border-b border-outline-variant flex items-center justify-between px-gutter z-10">
-  <div class="flex items-center gap-4 flex-1">
-<button id="hamburger-btn" onclick="toggleSidebar()" class="p-2 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-colors mr-2 flex-shrink-0" aria-label="Open navigation">
+<header id="main-header" class="fixed top-0 right-0 h-[72px] left-[260px] bg-surface-container-lowest shadow-[0px_4px_12px_rgba(0,0,0,0.05)] border-b border-outline-variant flex items-center justify-between px-4 lg:px-gutter z-40">
+  <div class="flex items-center gap-2 flex-1 min-w-0">
+<button id="hamburger-btn" onclick="toggleSidebar()" class="p-2 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-colors mr-1 flex-shrink-0" aria-label="Open navigation">
   <span class="material-symbols-outlined">menu</span>
 </button>
-    <div class="relative w-full max-w-md">
+    <div class="header-search relative w-full max-w-md">
       <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
       <input class="w-full pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant rounded-lg focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none font-body-md text-body-md" placeholder="Search schools, applications..." type="text"/>
     </div>
   </div>
-  <div class="flex items-center gap-6">
-    <div class="flex items-center gap-3 border-r border-outline-variant pr-6">
-      <div class="relative" id="notif-wrap">
-        <button id="notif-btn" onclick="toggleNotif()" class="relative p-2 text-on-surface-variant hover:text-primary transition-colors rounded-lg">
-          <span class="material-symbols-outlined">notifications</span>
-          <span id="notif-badge" class="{% if notif_unread_count %}absolute top-1 right-1 min-w-[18px] h-[18px] bg-error text-on-error text-[10px] font-bold rounded-full flex items-center justify-center{% else %}hidden{% endif %}">{{ notif_unread_count|default:"" }}</span>
-        </button>
-        <div id="notif-panel" class="hidden absolute right-0 top-full mt-2 w-80 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-xl z-50 overflow-hidden">
-          <div class="flex items-center justify-between px-4 py-3 border-b border-outline-variant">
-            <span class="font-label-bold text-label-bold text-on-surface">Notifications</span>
-            <button onclick="markAllRead(event)" class="text-xs text-primary hover:underline font-label-sm">Mark all read</button>
-          </div>
-          <div id="notif-list" class="max-h-[320px] overflow-y-auto divide-y divide-outline-variant/50">
-            <p class="text-center text-on-surface-variant py-8 text-sm">Loading…</p>
-          </div>
+  <div class="flex items-center gap-3">
+    <!-- Notification bell always visible -->
+    <div class="relative" id="notif-wrap">
+      <button id="notif-btn" onclick="toggleNotif()" class="relative p-2 text-on-surface-variant hover:text-primary transition-colors rounded-lg">
+        <span class="material-symbols-outlined">notifications</span>
+        <span id="notif-badge" class="{% if notif_unread_count %}absolute top-1 right-1 min-w-[18px] h-[18px] bg-error text-on-error text-[10px] font-bold rounded-full flex items-center justify-center{% else %}hidden{% endif %}">{{ notif_unread_count|default:"" }}</span>
+      </button>
+      <div id="notif-panel" class="hidden absolute right-0 top-full mt-2 w-80 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-xl z-50 overflow-hidden">
+        <div class="flex items-center justify-between px-4 py-3 border-b border-outline-variant">
+          <span class="font-label-bold text-label-bold text-on-surface">Notifications</span>
+          <button onclick="markAllRead(event)" class="text-xs text-primary hover:underline font-label-sm">Mark all read</button>
+        </div>
+        <div id="notif-list" class="max-h-[320px] overflow-y-auto divide-y divide-outline-variant/50">
+          <p class="text-center text-on-surface-variant py-8 text-sm">Loading…</p>
         </div>
       </div>
-      <a href="/logout/" title="Sign out" class="p-2 text-on-surface-variant hover:text-primary transition-colors rounded-lg">
-        <span class="material-symbols-outlined text-[22px]">logout</span>
-      </a>
     </div>
-    <div class="flex items-center gap-3">
-      <div class="text-right">
+    <a href="/logout/" title="Sign out" class="p-2 text-on-surface-variant hover:text-primary transition-colors rounded-lg">
+      <span class="material-symbols-outlined text-[22px]">logout</span>
+    </a>
+    <!-- Separator — hidden on mobile -->
+    <div class="hidden sm:block h-8 w-px bg-outline-variant mx-1"></div>
+    <div class="flex items-center gap-2">
+      <div class="text-right header-user-text">
         <p class="font-label-bold text-label-bold text-on-surface">{{ user.full_name|default:user.email }}</p>
         <p class="font-label-sm text-label-sm text-on-surface-variant">
           {% if student_obj %}ID: {{ student_obj.student_code }}{% else %}Student{% endif %}
         </p>
       </div>
-      <button onclick="openProfileDrawer()" title="View My Profile" class="block rounded-full hover:ring-2 hover:ring-primary transition-all cursor-pointer">
+      <button onclick="openProfileDrawer()" title="View My Profile" class="block rounded-full hover:ring-2 hover:ring-primary transition-all cursor-pointer flex-shrink-0">
         {% if user.avatar %}
         <img src="/my-avatar/" class="w-10 h-10 rounded-full object-cover border-2 border-outline-variant" alt="Profile"/>
         {% else %}
@@ -198,18 +211,18 @@
 <main id="main-content" class="main-content ml-[260px] pt-[72px] min-h-screen p-gutter">
 
   <!-- Welcome Section -->
-  <section class="mb-8">
-    <div class="flex items-end justify-between">
+  <section class="mb-6 sm:mb-8">
+    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
       <div>
-        <h1 class="font-h1 text-h1 text-on-surface mb-1">Welcome back, {{ user.full_name|default:"Student"|truncatewords:1 }}</h1>
-        <p class="font-body-lg text-body-lg text-on-surface-variant">Here is what's happening with your application journey today.</p>
+        <h1 class="font-h1 text-h1 text-on-surface mb-1 text-2xl sm:text-[32px]">Welcome back, {{ user.full_name|default:"Student"|truncatewords:1 }}</h1>
+        <p class="font-body-lg text-body-lg text-on-surface-variant text-sm sm:text-base">Here is what's happening with your application journey today.</p>
       </div>
-      <div class="flex gap-3">
-        <a href="/schools/" class="px-6 py-2.5 bg-primary text-on-primary font-label-bold text-label-bold rounded-lg shadow-sm hover:shadow-md transition-all active:scale-95">
+      <div class="flex flex-wrap gap-3">
+        <a href="/schools/" class="px-4 sm:px-6 py-2.5 bg-primary text-on-primary font-label-bold text-label-bold rounded-lg shadow-sm hover:shadow-md transition-all active:scale-95 text-sm">
           View My Schools
         </a>
         {% if counselor %}
-        <a href="mailto:{{ counselor.email }}" class="px-6 py-2.5 border border-secondary text-secondary font-label-bold text-label-bold rounded-lg hover:bg-secondary/5 transition-all">
+        <a href="mailto:{{ counselor.email }}" class="px-4 sm:px-6 py-2.5 border border-secondary text-secondary font-label-bold text-label-bold rounded-lg hover:bg-secondary/5 transition-all text-sm">
           Contact Counselor
         </a>
         {% endif %}
@@ -218,7 +231,7 @@
   </section>
 
   <!-- Metrics Grid -->
-  <div class="grid grid-cols-3 gap-6 mb-8">
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-8">
     <!-- Preferred Schools -->
     <div class="bg-surface-container-lowest p-card_padding rounded-xl border border-outline-variant shadow-[0px_4px_12px_rgba(0,0,0,0.05)] flex flex-col justify-between border-l-4 border-l-primary">
       <div class="flex justify-between items-start">
