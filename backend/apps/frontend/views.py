@@ -1064,8 +1064,21 @@ def interaction_log(request):
     from apps.chat.models import ChatMessage
 
     student = _get_student_for_user(request.user)
+
+    if request.method == "POST" and student:
+        description = request.POST.get("description", "").strip()
+        if description:
+            StudentActivity.objects.create(
+                student=student,
+                activity_type="note_added",
+                description=description,
+                created_by=request.user,
+            )
+        return redirect("/interaction-log/")
+
     messages = []
     notes = []
+    pinned_notes = []
 
     if student:
         messages_qs = list(
