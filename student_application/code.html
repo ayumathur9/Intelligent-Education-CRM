@@ -48,13 +48,26 @@
   .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;}
   body{background-color:#fff8f7;font-family:'Manrope',sans-serif;}
   .custom-shadow{box-shadow:0px 4px 12px rgba(0,0,0,0.05);}
+  /* ── Responsive sidebar ── */
+  #sidebar { transition: transform 0.3s ease; }
+  #sidebar-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:48; display:none; }
+  #sidebar-overlay.open { display:block; }
+  @media (max-width:1023px) {
+    #sidebar { transform:translateX(-260px); }
+    #sidebar.sidebar-open { transform:translateX(0); }
+    #main-header { left:0 !important; }
+    .main-content { margin-left:0 !important; }
+    #main-footer { margin-left:0 !important; }
+  }
+  #hamburger-btn { display:none; }
+  @media (max-width:1023px) { #hamburger-btn { display:inline-flex; } }
 </style>
 <link rel="icon" type="image/png" href="/static/brand/logo.png"/>
 </head>
 <body class="bg-background text-on-background">
-
+<div id="sidebar-overlay" onclick="toggleSidebar()"></div>
 <!-- ── Sidebar ─────────────────────────────────────────────────── -->
-<aside class="fixed left-0 top-0 h-full w-[260px] bg-primary flex flex-col py-6 space-y-2 shadow-lg z-50">
+<aside id="sidebar" class="fixed left-0 top-0 h-full w-[260px] bg-primary flex flex-col py-6 space-y-2 shadow-lg z-50">
   <div class="px-6 mb-8">
     <img src="/static/brand/logo.png" alt="IE" class="w-10 h-10 rounded-lg object-contain bg-white p-0.5 mb-2 block"/>
 <a href="/"><h2 class="font-h2 text-h2 font-bold text-on-primary">Intelligent Education</h2></a>
@@ -132,8 +145,11 @@
 </aside>
 
 <!-- ── Top Navbar ──────────────────────────────────────────────── -->
-<header class="fixed top-0 right-0 h-[72px] left-[260px] bg-surface-container-lowest flex items-center justify-between px-6 z-40 shadow-[0px_4px_12px_rgba(0,0,0,0.05)] border-b border-outline-variant">
+<header id="main-header" class="fixed top-0 right-0 h-[72px] left-[260px] bg-surface-container-lowest flex items-center justify-between px-6 z-40 shadow-[0px_4px_12px_rgba(0,0,0,0.05)] border-b border-outline-variant">
   <div class="flex items-center gap-3">
+<button id="hamburger-btn" onclick="toggleSidebar()" class="p-2 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-colors mr-2 flex-shrink-0" aria-label="Open navigation">
+  <span class="material-symbols-outlined">menu</span>
+</button>
     <a href="javascript:history.back()" class="flex items-center gap-1.5 text-on-surface-variant hover:text-primary transition-colors font-label-bold text-[12px] p-2 rounded-lg hover:bg-surface-container-low">
       <span class="material-symbols-outlined text-[20px]">arrow_back</span>Back
     </a>
@@ -154,7 +170,7 @@
 </header>
 
 <!-- ── Main Content ────────────────────────────────────────────── -->
-<main class="ml-[260px] pt-[72px] min-h-screen p-6 bg-background">
+<main id="main-content" class="main-content ml-[260px] pt-[72px] min-h-screen p-6 bg-background">
   <div class="max-w-[1200px] mx-auto space-y-6">
 
     <!-- 1. Student Header -->
@@ -654,6 +670,17 @@
 </button>
 
 <script>
+function toggleSidebar() {
+  const sb = document.getElementById('sidebar');
+  const ov = document.getElementById('sidebar-overlay');
+  if (!sb) return;
+  sb.classList.toggle('sidebar-open');
+  ov.classList.toggle('open');
+  document.body.style.overflow = sb.classList.contains('sidebar-open') ? 'hidden' : '';
+}
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') { const sb = document.getElementById('sidebar'); if (sb && sb.classList.contains('sidebar-open')) toggleSidebar(); }
+});
 function switchSchool(pk) {
   document.querySelectorAll('.school-panel').forEach(p => p.classList.add('hidden'));
   const panel = document.getElementById('school-panel-' + pk);
@@ -676,7 +703,7 @@ function toggleStudentsMenu() {
 </script>
 
 <!-- ===== FOOTER ===== -->
-<footer style="margin-left:260px;" class="border-t border-[#e4beba] bg-[#fff0ef] py-4 px-6 text-center text-xs text-[#5b403d]">
+<footer id="main-footer" style="margin-left:260px;" class="border-t border-[#e4beba] bg-[#fff0ef] py-4 px-6 text-center text-xs text-[#5b403d]">
   <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-1">
     <button onclick="document.getElementById('tc-modal').classList.remove('hidden')" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">Terms &amp; Conditions</button>
     <span class="text-[#e4beba]">|</span>

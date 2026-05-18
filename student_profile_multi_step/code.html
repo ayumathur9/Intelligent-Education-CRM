@@ -32,6 +32,19 @@
             background-color: #fee2e2;
             color: #ef4444;
         }
+        /* ── Responsive sidebar ── */
+        #sidebar { transition: transform 0.3s ease; }
+        #sidebar-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:48; display:none; }
+        #sidebar-overlay.open { display:block; }
+        @media (max-width:1023px) {
+          #sidebar { transform:translateX(-260px); }
+          #sidebar.sidebar-open { transform:translateX(0); }
+          #main-header { left:0 !important; }
+          .main-content { margin-left:0 !important; }
+          #main-footer { margin-left:0 !important; }
+        }
+        #hamburger-btn { display:none; }
+        @media (max-width:1023px) { #hamburger-btn { display:inline-flex; } }
     </style>
 <script id="tailwind-config">
         tailwind.config = {
@@ -127,8 +140,9 @@
 <script src="../supabase-config.js"></script>
 </head>
 <body class="font-body-md text-on-surface bg-background">
+<div id="sidebar-overlay" onclick="toggleSidebar()"></div>
 <!-- SIDEBAR -->
-<aside class="fixed left-0 top-0 h-full w-[260px] bg-primary dark:bg-primary-container flex flex-col py-6 space-y-2 shadow-lg z-50">
+<aside id="sidebar" class="fixed left-0 top-0 h-full w-[260px] bg-primary dark:bg-primary-container flex flex-col py-6 space-y-2 shadow-lg z-50">
 <div class="px-6 mb-8">
 <a href="/"><h1 class="font-h2 text-h2 font-bold text-on-primary">Intelligent Education</h1></a>
 <p class="font-label-bold text-label-bold text-on-primary/70 uppercase tracking-widest">CRM Portal</p>
@@ -157,7 +171,10 @@
 </nav>
 </aside>
 <!-- TOP NAVBAR -->
-<header class="fixed top-0 right-0 h-[72px] left-[260px] bg-surface-container-lowest flex items-center justify-between px-gutter shadow-[0px_4px_12px_rgba(0,0,0,0.05)] border-b border-outline-variant z-40">
+<header id="main-header" class="fixed top-0 right-0 h-[72px] left-[260px] bg-surface-container-lowest flex items-center justify-between px-gutter shadow-[0px_4px_12px_rgba(0,0,0,0.05)] border-b border-outline-variant z-40">
+<button id="hamburger-btn" onclick="toggleSidebar()" class="p-2 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-colors mr-2 flex-shrink-0" aria-label="Open navigation">
+  <span class="material-symbols-outlined">menu</span>
+</button>
 <div class="flex items-center bg-surface-container-low px-4 py-2 rounded-full w-96 border border-outline-variant">
 <span class="material-symbols-outlined text-outline" data-icon="search">search</span>
 <input class="bg-transparent border-none focus:ring-0 text-body-md w-full ml-2" placeholder="Search students, courses..." type="text"/>
@@ -178,7 +195,7 @@
 </div>
 </header>
 <!-- MAIN CONTENT -->
-<main class="ml-[260px] mt-[72px] p-gutter">
+<main id="main-content" class="main-content ml-[260px] mt-[72px] p-gutter">
 <div class="max-w-7xl mx-auto space-y-gutter">
 <!-- BREADCRUMBS -->
 <nav class="flex items-center space-x-2 text-on-surface-variant font-label-sm mb-6">
@@ -363,7 +380,7 @@
 </footer>
 
 <!-- ===== FOOTER ===== -->
-<footer style="margin-left:260px;" class="border-t border-[#e4beba] bg-[#fff0ef] py-4 px-6 text-center text-xs text-[#5b403d]">
+<footer id="main-footer" style="margin-left:260px;" class="border-t border-[#e4beba] bg-[#fff0ef] py-4 px-6 text-center text-xs text-[#5b403d]">
   <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-1">
     <button onclick="document.getElementById('tc-modal').classList.remove('hidden')" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">Terms &amp; Conditions</button>
     <span class="text-[#e4beba]">|</span>
@@ -551,4 +568,17 @@
   </div>
 </div>
 <!-- ===== /FOOTER ===== -->
+<script>
+function toggleSidebar() {
+  const sb = document.getElementById('sidebar');
+  const ov = document.getElementById('sidebar-overlay');
+  if (!sb) return;
+  sb.classList.toggle('sidebar-open');
+  ov.classList.toggle('open');
+  document.body.style.overflow = sb.classList.contains('sidebar-open') ? 'hidden' : '';
+}
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') { const sb = document.getElementById('sidebar'); if (sb && sb.classList.contains('sidebar-open')) toggleSidebar(); }
+});
+</script>
 </body></html>

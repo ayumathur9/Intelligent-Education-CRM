@@ -64,14 +64,29 @@
   .custom-scrollbar::-webkit-scrollbar-thumb { background: #e4beba; border-radius: 10px; }
   .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #8f706c; }
   #chat-messages { scroll-behavior: smooth; }
+  /* ── Responsive sidebar ── */
+  #sidebar { transition: transform 0.3s ease; }
+  #sidebar-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:48; display:none; }
+  #sidebar-overlay.open { display:block; }
+  @media (max-width:1023px) {
+    #sidebar { transform:translateX(-260px); }
+    #sidebar.sidebar-open { transform:translateX(0); }
+    #main-header { left:0 !important; }
+    .main-content { margin-left:0 !important; }
+    #main-footer { margin-left:0 !important; }
+    .chat-layout { flex-direction: column; height: auto !important; }
+    body { overflow: auto !important; height: auto !important; }
+  }
+  #hamburger-btn { display:none; }
+  @media (max-width:1023px) { #hamburger-btn { display:inline-flex; } }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="../supabase-config.js"></script>
 </head>
 <body class="bg-background font-body-md text-on-background antialiased overflow-hidden h-screen">
-
+<div id="sidebar-overlay" onclick="toggleSidebar()"></div>
 <!-- Sidebar -->
-<aside class="fixed left-0 top-0 h-full w-[260px] bg-primary flex flex-col py-6 shadow-lg z-50">
+<aside id="sidebar" class="fixed left-0 top-0 h-full w-[260px] bg-primary flex flex-col py-6 shadow-lg z-50">
   <div class="px-6 mb-6">
     <a href="/"><h1 class="font-h2 text-h2 font-bold text-on-primary">Intelligent Education</h1></a>
     <p class="font-label-bold text-label-bold text-on-primary/60 uppercase tracking-wider">Student Portal</p>
@@ -119,8 +134,11 @@
 </aside>
 
 <!-- Top Nav -->
-<header class="fixed top-0 right-0 h-[72px] left-[260px] bg-surface-container-lowest flex items-center justify-between px-gutter shadow-[0px_4px_12px_rgba(0,0,0,0.05)] border-b border-outline-variant z-40">
+<header id="main-header" class="fixed top-0 right-0 h-[72px] left-[260px] bg-surface-container-lowest flex items-center justify-between px-gutter shadow-[0px_4px_12px_rgba(0,0,0,0.05)] border-b border-outline-variant z-40">
   <div>
+<button id="hamburger-btn" onclick="toggleSidebar()" class="p-2 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-colors mr-2 flex-shrink-0" aria-label="Open navigation">
+  <span class="material-symbols-outlined">menu</span>
+</button>
     <h2 class="font-h3 text-h3 text-on-surface">Notes &amp; Chat</h2>
     <nav class="text-[12px] text-on-surface-variant flex gap-1 items-center">
       <a href="/" class="hover:text-primary">Dashboard</a>
@@ -144,7 +162,7 @@
 </header>
 
 <!-- Main layout: messages + right panel -->
-<main class="ml-[260px] pt-[72px] h-screen flex">
+<main id="main-content" class="main-content chat-layout ml-[260px] pt-[72px] h-screen flex">
 
   <!-- Chat Column -->
   <section class="flex-1 flex flex-col min-w-0">
@@ -309,6 +327,17 @@
 </main>
 
 <script>
+function toggleSidebar() {
+  const sb = document.getElementById('sidebar');
+  const ov = document.getElementById('sidebar-overlay');
+  if (!sb) return;
+  sb.classList.toggle('sidebar-open');
+  ov.classList.toggle('open');
+  document.body.style.overflow = sb.classList.contains('sidebar-open') ? 'hidden' : '';
+}
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') { const sb = document.getElementById('sidebar'); if (sb && sb.classList.contains('sidebar-open')) toggleSidebar(); }
+});
   const studentId = {{ student_id|default:"null" }};
   const currentUserId = {{ user.pk }};
   const currentUserName = "{{ user.full_name|default:user.email|escapejs }}";
@@ -434,7 +463,7 @@
 </script>
 
 <!-- ===== FOOTER ===== -->
-<footer style="margin-left:260px;" class="border-t border-[#e4beba] bg-[#fff0ef] py-4 px-6 text-center text-xs text-[#5b403d]">
+<footer id="main-footer" style="margin-left:260px;" class="border-t border-[#e4beba] bg-[#fff0ef] py-4 px-6 text-center text-xs text-[#5b403d]">
   <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-1">
     <button onclick="document.getElementById('tc-modal').classList.remove('hidden')" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">Terms &amp; Conditions</button>
     <span class="text-[#e4beba]">|</span>

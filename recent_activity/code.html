@@ -65,15 +65,28 @@
   .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
   body { background-color: #f8f9fa; }
   .timeline-line { position: absolute; left: 19px; top: 40px; bottom: 0; width: 2px; background: #e4beba; }
+  /* ── Responsive sidebar ── */
+  #sidebar { transition: transform 0.3s ease; }
+  #sidebar-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:48; display:none; }
+  #sidebar-overlay.open { display:block; }
+  @media (max-width:1023px) {
+    #sidebar { transform:translateX(-260px); }
+    #sidebar.sidebar-open { transform:translateX(0); }
+    #main-header { left:0 !important; }
+    .main-content { margin-left:0 !important; }
+    #main-footer { margin-left:0 !important; }
+  }
+  #hamburger-btn { display:none; }
+  @media (max-width:1023px) { #hamburger-btn { display:inline-flex; } }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="../supabase-config.js"></script>
 <link rel="icon" type="image/png" href="/static/brand/logo.png"/>
 </head>
 <body class="font-body-md text-body-md text-on-surface">
-
+<div id="sidebar-overlay" onclick="toggleSidebar()"></div>
 <!-- Sidebar -->
-<aside class="fixed left-0 top-0 h-full w-[260px] bg-primary shadow-lg flex flex-col py-6">
+<aside id="sidebar" class="fixed left-0 top-0 h-full w-[260px] bg-primary shadow-lg flex flex-col py-6">
   <div class="px-6 mb-6">
     <img src="/static/brand/logo.png" alt="IE" class="w-10 h-10 rounded-lg object-contain bg-white p-0.5 mb-2 block"/>
 <a href="/"><h2 class="font-h2 text-h2 font-bold text-on-primary">Intelligent Education</h2></a>
@@ -104,8 +117,11 @@
 </aside>
 
 <!-- Top Navbar -->
-<header class="fixed top-0 right-0 h-[72px] left-[260px] bg-surface-container-lowest shadow-[0px_4px_12px_rgba(0,0,0,0.05)] border-b border-outline-variant flex items-center justify-between px-gutter z-10">
+<header id="main-header" class="fixed top-0 right-0 h-[72px] left-[260px] bg-surface-container-lowest shadow-[0px_4px_12px_rgba(0,0,0,0.05)] border-b border-outline-variant flex items-center justify-between px-gutter z-10">
   <div>
+<button id="hamburger-btn" onclick="toggleSidebar()" class="p-2 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-colors mr-2 flex-shrink-0" aria-label="Open navigation">
+  <span class="material-symbols-outlined">menu</span>
+</button>
     <h1 class="font-h3 text-h3 text-on-surface">Recent Activity</h1>
     <nav class="text-[12px] text-on-surface-variant flex gap-1 items-center">
       <a href="/" class="hover:text-primary">Dashboard</a>
@@ -125,7 +141,7 @@
 </header>
 
 <!-- Main Content -->
-<main class="ml-[260px] pt-[72px] min-h-screen p-gutter">
+<main id="main-content" class="main-content ml-[260px] pt-[72px] min-h-screen p-gutter">
 
   <div class="max-w-3xl mx-auto">
 
@@ -217,6 +233,17 @@
 </main>
 
 <script>
+function toggleSidebar() {
+  const sb = document.getElementById('sidebar');
+  const ov = document.getElementById('sidebar-overlay');
+  if (!sb) return;
+  sb.classList.toggle('sidebar-open');
+  ov.classList.toggle('open');
+  document.body.style.overflow = sb.classList.contains('sidebar-open') ? 'hidden' : '';
+}
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') { const sb = document.getElementById('sidebar'); if (sb && sb.classList.contains('sidebar-open')) toggleSidebar(); }
+});
   function filterActivity(type) {
     document.querySelectorAll('.act-filter-btn').forEach(btn => {
       const active = btn.dataset.type === type;
@@ -232,7 +259,7 @@
 </script>
 
 <!-- ===== FOOTER ===== -->
-<footer style="margin-left:260px;" class="border-t border-[#e4beba] bg-[#fff0ef] py-4 px-6 text-center text-xs text-[#5b403d]">
+<footer id="main-footer" style="margin-left:260px;" class="border-t border-[#e4beba] bg-[#fff0ef] py-4 px-6 text-center text-xs text-[#5b403d]">
   <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-1">
     <button onclick="document.getElementById('tc-modal').classList.remove('hidden')" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">Terms &amp; Conditions</button>
     <span class="text-[#e4beba]">|</span>
