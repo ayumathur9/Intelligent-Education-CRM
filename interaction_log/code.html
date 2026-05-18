@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html class="light" lang="en">
 <head>
 <meta charset="utf-8"/>
@@ -50,8 +50,8 @@
   .note-card { transition: box-shadow 0.15s ease, transform 0.15s ease; }
   .note-card:hover { box-shadow: 0 8px 28px rgba(161,118,0,0.18) !important; transform: translateY(-1px); }
   /* ── Responsive sidebar ── */
-  #sidebar { transition: transform 0.3s ease; }
-  #sidebar-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:48; display:none; }
+  #sidebar { transition: transform 0.3s ease; z-index: 500; }
+  #sidebar-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:499; display:none; }
   #sidebar-overlay.open { display:block; }
   @media (max-width:1023px) {
     #sidebar { transform:translateX(-260px); }

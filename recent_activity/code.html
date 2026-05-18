@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html class="light" lang="en">
 <head>
 <meta charset="utf-8"/>
@@ -66,8 +66,8 @@
   body { background-color: #f8f9fa; }
   .timeline-line { position: absolute; left: 19px; top: 40px; bottom: 0; width: 2px; background: #e4beba; }
   /* ── Responsive sidebar ── */
-  #sidebar { transition: transform 0.3s ease; }
-  #sidebar-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:48; display:none; }
+  #sidebar { transition: transform 0.3s ease; z-index: 500; }
+  #sidebar-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:499; display:none; }
   #sidebar-overlay.open { display:block; }
   @media (max-width:1023px) {
     #sidebar { transform:translateX(-260px); }

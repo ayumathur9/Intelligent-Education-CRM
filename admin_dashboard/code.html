@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 
 <html class="light" lang="en"><head>
 <meta charset="utf-8"/>
@@ -111,8 +111,8 @@
         .custom-shadow { box-shadow: 0px 4px 12px rgba(0,0,0,0.05); }
         .custom-shadow-hover:hover { box-shadow: 0px 8px 20px rgba(0,0,0,0.08); }
         /* ── Responsive sidebar ── */
-        #sidebar { transition: transform 0.3s ease; }
-        #sidebar-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:48; display:none; }
+        #sidebar { transition: transform 0.3s ease; z-index: 500; }
+        #sidebar-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:499; display:none; }
         #sidebar-overlay.open { display:block; }
         @media (max-width:1023px) {
           #sidebar { transform:translateX(-260px); }
@@ -122,8 +122,9 @@
           #main-footer { margin-left:0 !important; }
           /* Notification panel: full-width on mobile */
           #notif-panel { position:fixed !important; top:72px; left:8px; right:8px; width:auto !important; }
-          /* Hide user name text on mobile */
+          /* Hide user name text and search on mobile */
           .header-user-text { display:none; }
+          .header-search { display:none; }
         }
         #hamburger-btn { display:none; }
         @media (max-width:1023px) { #hamburger-btn { display:inline-flex; } }
@@ -186,7 +187,7 @@
 <button id="hamburger-btn" onclick="toggleSidebar()" class="p-2 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-colors mr-2 flex-shrink-0" aria-label="Open navigation">
   <span class="material-symbols-outlined">menu</span>
 </button>
-<div class="relative w-full">
+<div class="header-search relative w-full">
 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" data-icon="search">search</span>
 <input id="global-search" oninput="filterAll(this.value);handleGlobalSearch(this.value,this)" onfocus="if(this.value.length>=2)handleGlobalSearch(this.value,this)" class="w-full pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant rounded-lg focus:ring-2 focus:ring-secondary focus:outline-none font-body-md text-body-md" placeholder="Search students, schools, courses…" type="text" autocomplete="off"/>
 </div>

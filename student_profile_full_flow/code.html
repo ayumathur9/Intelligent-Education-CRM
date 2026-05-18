@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html class="light" lang="en">
 <head>
 <meta charset="utf-8"/>
@@ -15,8 +15,8 @@
   }
   body { background-color: #fff8f7; }
   /* ── Responsive sidebar ── */
-  #sidebar { transition: transform 0.3s ease; }
-  #sidebar-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:48; display:none; }
+  #sidebar { transition: transform 0.3s ease; z-index: 500; }
+  #sidebar-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:499; display:none; }
   #sidebar-overlay.open { display:block; }
   @media (max-width:1023px) {
     #sidebar { transform:translateX(-260px); }
@@ -24,6 +24,7 @@
     #main-header { left:0 !important; }
     .main-content { margin-left:0 !important; }
     #main-footer { margin-left:0 !important; }
+    footer.version-footer { margin-left:0 !important; }
   }
   #hamburger-btn { display:none; }
   @media (max-width:1023px) { #hamburger-btn { display:inline-flex; } }
@@ -908,7 +909,7 @@
 </main>
 
 <!-- FOOTER -->
-<footer class="ml-[260px] p-gutter border-t border-outline-variant text-center text-on-surface-variant font-label-sm">
+<footer class="version-footer p-gutter border-t border-outline-variant text-center text-on-surface-variant font-label-sm" style="margin-left:260px;">
   <p>© 2024 Intelligent Education CRM. All Rights Reserved. | v2.4.0</p>
 </footer>
 
