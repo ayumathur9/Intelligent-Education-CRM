@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html class="light" lang="en">
 <head>
 <meta charset="utf-8"/>
@@ -97,6 +97,8 @@
     #main-header { left:0 !important; }
     .main-content { margin-left:0 !important; }
     #main-footer { margin-left:0 !important; }
+    #main-header > div:first-child { display:flex !important; align-items:center !important; gap:6px; min-width:0; overflow:hidden; }
+    #main-header > div:first-child > nav { display:none !important; }
     /* Hide search bar on small phones, show on sm+ */
     .header-search { display:none; }
     /* Hide user name text, keep avatar */
