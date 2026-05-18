@@ -134,9 +134,10 @@
         @media (max-width:1023px) {
           #sidebar { transform:translateX(-260px); }
           #sidebar.sidebar-open { transform:translateX(0); }
-          #main-header { left:0 !important; }
+          #main-header { left:0 !important; width:100% !important; }
           .main-content { margin-left:0 !important; }
           #main-footer { margin-left:0 !important; }
+          .header-user-text { display:none; }
         }
         #hamburger-btn { display:none; }
         @media (max-width:1023px) { #hamburger-btn { display:inline-flex; } }
@@ -197,7 +198,7 @@
 <a href="/logout/" title="Sign out" class="ml-2 p-2 text-on-surface-variant hover:text-primary transition-colors rounded-lg" ><span class="material-symbols-outlined text-[22px]">logout</span></a>
 <span class="material-symbols-outlined text-primary cursor-pointer active:opacity-80 transition-opacity" data-icon="help">help</span>
 <div class="flex items-center space-x-3 border-l pl-6 border-outline-variant">
-<div class="text-right">
+<div class="text-right header-user-text">
 <p class="font-label-bold text-label-bold text-on-surface">{{ user.full_name|default:user.email }}</p>
 <p class="font-label-sm text-label-sm text-on-surface-variant">{{ user.role|title }}</p>
 </div>

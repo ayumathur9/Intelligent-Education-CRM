@@ -21,8 +21,11 @@
     #sidebar { transform:translateX(-260px); }
     #sidebar.sidebar-open { transform:translateX(0); }
     #main-header { left:0 !important; }
-    .main-content { margin-left:0 !important; }
+    .main-content { margin-left:0 !important; flex-direction: column !important; height: auto !important; }
     #main-footer { margin-left:0 !important; }
+    body { overflow:auto !important; height:auto !important; }
+    .student-panel { width:100% !important; max-height:40vh; border-right:none !important; border-bottom:1px solid #e4beba; }
+    .activity-panel { overflow:visible !important; height:auto !important; }
   }
   #hamburger-btn { display:none; }
   @media (max-width:1023px) { #hamburger-btn { display:inline-flex; } }
@@ -83,7 +86,7 @@
 <main id="main-content" class="main-content ml-[260px] mt-[72px] flex h-[calc(100vh-72px)]">
 
   <!-- Left panel: student list -->
-  <div class="w-[280px] shrink-0 border-r border-outline-variant bg-surface-container-lowest flex flex-col">
+  <div class="student-panel w-[280px] shrink-0 border-r border-outline-variant bg-surface-container-lowest flex flex-col overflow-y-auto">
     <div class="p-4 border-b border-outline-variant">
       <p class="font-label-bold text-label-bold text-on-surface-variant uppercase tracking-wider mb-2">Select Student</p>
       <input id="student-search" oninput="filterStudents()" placeholder="Search…" type="text"
@@ -109,7 +112,7 @@
   </div>
 
   <!-- Right panel: activity feed -->
-  <div class="flex-1 flex flex-col overflow-hidden">
+  <div class="activity-panel flex-1 flex flex-col overflow-hidden">
     {% if selected_student %}
     <!-- Student header -->
     <div class="bg-surface-container-lowest border-b border-outline-variant px-6 py-4 flex items-center gap-4 shrink-0">

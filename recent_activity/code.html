@@ -75,6 +75,7 @@
     #main-header { left:0 !important; }
     .main-content { margin-left:0 !important; }
     #main-footer { margin-left:0 !important; }
+    .header-user-text { display:none; }
   }
   #hamburger-btn { display:none; }
   @media (max-width:1023px) { #hamburger-btn { display:inline-flex; } }
@@ -117,7 +118,7 @@
 </aside>
 
 <!-- Top Navbar -->
-<header id="main-header" class="fixed top-0 right-0 h-[72px] left-[260px] bg-surface-container-lowest shadow-[0px_4px_12px_rgba(0,0,0,0.05)] border-b border-outline-variant flex items-center justify-between px-gutter z-10">
+<header id="main-header" class="fixed top-0 right-0 h-[72px] left-[260px] bg-surface-container-lowest shadow-[0px_4px_12px_rgba(0,0,0,0.05)] border-b border-outline-variant flex items-center justify-between px-gutter z-40">
   <div>
 <button id="hamburger-btn" onclick="toggleSidebar()" class="p-2 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-colors mr-2 flex-shrink-0" aria-label="Open navigation">
   <span class="material-symbols-outlined">menu</span>
@@ -135,7 +136,7 @@
     </a>
     <div class="flex items-center gap-2">
       {% if user.avatar %}<img src="/my-avatar/" class="w-9 h-9 rounded-full object-cover border border-outline-variant" alt=""/>{% else %}<div class="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-on-primary font-bold text-sm">{{ user.full_name|default:user.email|first|upper }}</div>{% endif %}
-      <p class="font-label-bold text-label-bold text-on-surface">{{ user.full_name|default:user.email }}</p>
+      <p class="font-label-bold text-label-bold text-on-surface header-user-text">{{ user.full_name|default:user.email }}</p>
     </div>
   </div>
 </header>
