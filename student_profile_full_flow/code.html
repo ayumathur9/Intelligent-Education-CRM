@@ -27,6 +27,7 @@
     #main-header > div:first-child { display:flex !important; align-items:center !important; gap:6px; min-width:0; overflow:hidden; }
     #main-header > div:first-child > nav { display:none !important; }
     footer.version-footer { margin-left:0 !important; }
+    .header-search { display:none !important; }
   }
   #hamburger-btn { display:none; }
   @media (max-width:1023px) { #hamburger-btn { display:inline-flex; } }
@@ -195,7 +196,7 @@
 <button id="hamburger-btn" onclick="toggleSidebar()" class="p-2 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-colors mr-2 flex-shrink-0" aria-label="Open navigation">
   <span class="material-symbols-outlined">menu</span>
 </button>
-  <div class="flex items-center bg-surface-container-low px-4 py-2 rounded-full w-96 border border-outline-variant">
+  <div class="header-search flex items-center bg-surface-container-low px-4 py-2 rounded-full w-96 border border-outline-variant">
     <span class="material-symbols-outlined text-outline">search</span>
     <input class="bg-transparent border-none focus:ring-0 text-body-md w-full ml-2" placeholder="Search students, courses..." type="text"/>
   </div>

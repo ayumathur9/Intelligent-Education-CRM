@@ -51,6 +51,7 @@
     #main-header > div:first-child > nav { display:none !important; }
     #notif-panel { position:fixed !important; top:72px; left:8px; right:8px; width:auto !important; }
     .header-user-text { display:none; }
+    .header-search { display:none !important; }
   }
   #hamburger-btn { display:none; }
   @media (max-width:1023px) { #hamburger-btn { display:inline-flex; } }
@@ -112,7 +113,7 @@
 <button id="hamburger-btn" onclick="toggleSidebar()" class="p-2 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-colors mr-2 flex-shrink-0" aria-label="Open navigation">
   <span class="material-symbols-outlined">menu</span>
 </button>
-    <div class="relative w-full">
+    <div class="header-search relative w-full">
       <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
       <input id="global-search" oninput="filterStudents(this.value);handleGlobalSearch(this.value,this)" onfocus="if(this.value.length>=2)handleGlobalSearch(this.value,this)" class="w-full bg-surface-container-low border border-outline-variant rounded-full py-2 pl-10 pr-4 font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary" placeholder="Search students, schools, courses…" type="text" autocomplete="off"/>
     </div>
