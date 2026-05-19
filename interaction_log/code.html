@@ -78,6 +78,13 @@
     <img src="/static/brand/logo.png" alt="IE" class="w-10 h-10 rounded-lg object-contain bg-white p-0.5 mb-2 block"/>
 <a href="/"><h1 class="font-h2 text-h2 font-bold text-on-primary">Intelligent Education</h1></a>
     <p class="font-label-bold text-label-bold text-on-primary/60 uppercase tracking-wider">Student Portal</p>
+    <div class="flex items-center gap-3 mt-4 pt-4 border-t border-on-primary/20">
+      {% if user.avatar %}<img src="/my-avatar/" class="w-10 h-10 rounded-full object-cover border-2 border-on-primary/30 shrink-0" alt=""/>{% else %}<div class="w-10 h-10 rounded-full bg-on-primary-fixed-variant flex items-center justify-center text-on-primary font-bold text-sm shrink-0">{{ user.full_name|default:user.email|first|upper }}</div>{% endif %}
+      <div class="min-w-0">
+        <p class="font-label-bold text-label-bold text-on-primary truncate">{{ user.full_name|default:user.email }}</p>
+        <p class="font-label-sm text-label-sm text-on-primary/60">My Profile</p>
+      </div>
+    </div>
   </div>
   <nav class="flex-1 px-2 space-y-1 overflow-y-auto custom-scrollbar">
     <a class="flex items-center gap-3 px-4 py-3 text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg mx-2 my-1" href="/">
@@ -103,15 +110,21 @@
   <div class="mx-4 mb-4 bg-on-primary-fixed-variant/20 rounded-xl p-4 border border-on-primary/20">
     <p class="font-label-bold text-label-bold text-on-primary/60 uppercase tracking-wider mb-3">Your Team</p>
     {% if counselor %}
-    <div class="mb-2">
-      <p class="font-label-bold text-label-bold text-on-primary/80 text-[11px]">Counselor</p>
-      <p class="font-label-bold text-label-bold text-on-primary text-[12px]">{{ counselor.full_name|default:counselor.email }}</p>
+    <div class="flex items-center gap-2 mb-3">
+      {% if counselor.avatar %}<img src="/user-avatar/{{ counselor.pk }}/" class="w-8 h-8 rounded-full object-cover shrink-0" alt=""/>{% else %}<div class="w-8 h-8 rounded-full bg-on-primary-fixed-variant flex items-center justify-center text-on-primary font-bold text-sm shrink-0">{{ counselor.full_name|default:counselor.email|first|upper }}</div>{% endif %}
+      <div class="min-w-0">
+        <p class="font-label-bold text-label-bold text-on-primary/80 text-[10px] uppercase tracking-wider">Counselor</p>
+        <p class="font-label-bold text-label-bold text-on-primary text-[12px] truncate">{{ counselor.full_name|default:counselor.email }}</p>
+      </div>
     </div>
     {% endif %}
     {% if poc %}
-    <div class="border-t border-on-primary/20 pt-2">
-      <p class="font-label-bold text-label-bold text-on-primary/80 text-[11px]">Point of Contact</p>
-      <p class="font-label-bold text-label-bold text-on-primary text-[12px]">{{ poc.full_name|default:poc.email }}</p>
+    <div class="flex items-center gap-2 border-t border-on-primary/20 pt-3">
+      {% if poc.avatar %}<img src="/user-avatar/{{ poc.pk }}/" class="w-8 h-8 rounded-full object-cover shrink-0" alt=""/>{% else %}<div class="w-8 h-8 rounded-full bg-on-primary-fixed-variant flex items-center justify-center text-on-primary font-bold text-sm shrink-0">{{ poc.full_name|default:poc.email|first|upper }}</div>{% endif %}
+      <div class="min-w-0">
+        <p class="font-label-bold text-label-bold text-on-primary/80 text-[10px] uppercase tracking-wider">Point of Contact</p>
+        <p class="font-label-bold text-label-bold text-on-primary text-[12px] truncate">{{ poc.full_name|default:poc.email }}</p>
+      </div>
     </div>
     {% endif %}
   </div>

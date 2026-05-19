@@ -111,7 +111,7 @@
       <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
       <input id="global-search" oninput="handleGlobalSearch(this.value,this)" onfocus="if(this.value.length>=2)handleGlobalSearch(this.value,this)" placeholder="Search students, schools…" class="w-full border border-outline-variant rounded-lg pl-10 pr-3 py-2 font-body-md text-body-md focus:ring-2 focus:ring-secondary focus:outline-none bg-surface-container-low" type="text" autocomplete="off"/>
     </div>
-    <div class="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-on-primary font-bold text-sm">{{ user.full_name|default:user.email|first|upper }}</div>
+    {% if user.avatar %}<img src="/my-avatar/" class="w-9 h-9 rounded-full object-cover border border-outline-variant" alt=""/>{% else %}<div class="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-on-primary font-bold text-sm">{{ user.full_name|default:user.email|first|upper }}</div>{% endif %}
   </div>
 </header>
 
@@ -137,9 +137,7 @@
       {% for s in students %}
       <a href="/student-profile/?student_id={{ s.pk }}"
          class="student-item flex items-center gap-3 px-4 py-3 border-b border-outline-variant/50 transition-colors hover:bg-surface-container">
-        <div class="w-9 h-9 rounded-full {% if selected_student and selected_student.pk == s.pk %}bg-primary text-on-primary{% else %}bg-secondary-fixed text-on-secondary-fixed-variant{% endif %} flex items-center justify-center font-bold text-sm shrink-0">
-          {{ s.full_name|first|upper }}
-        </div>
+        {% if s.user and s.user.avatar %}<img src="/user-avatar/{{ s.user.pk }}/" class="w-9 h-9 rounded-full object-cover shrink-0" alt=""/>{% else %}<div class="w-9 h-9 rounded-full {% if selected_student and selected_student.pk == s.pk %}bg-primary text-on-primary{% else %}bg-secondary-fixed text-on-secondary-fixed-variant{% endif %} flex items-center justify-center font-bold text-sm shrink-0">{{ s.full_name|first|upper }}</div>{% endif %}
         <div class="flex-1 min-w-0">
           <p class="font-label-bold text-label-bold text-on-surface truncate">{{ s.full_name }}</p>
           <p class="font-label-sm text-label-sm text-on-surface-variant truncate">{{ s.email|default:"No email" }}</p>
@@ -184,9 +182,7 @@
     <!-- Student header -->
     <div class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm p-6 mb-6">
       <div class="flex items-start gap-5">
-        <div class="w-16 h-16 rounded-xl bg-primary flex items-center justify-center text-on-primary text-2xl font-bold shrink-0">
-          {{ selected_student.full_name|first|upper }}
-        </div>
+        {% if selected_student.user and selected_student.user.avatar %}<img src="/user-avatar/{{ selected_student.user.pk }}/" class="w-16 h-16 rounded-xl object-cover shrink-0" alt=""/>{% else %}<div class="w-16 h-16 rounded-xl bg-primary flex items-center justify-center text-on-primary text-2xl font-bold shrink-0">{{ selected_student.full_name|first|upper }}</div>{% endif %}
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-3 flex-wrap mb-1">
             <h2 class="font-h2 text-h2 text-on-surface">{{ selected_student.full_name }}</h2>

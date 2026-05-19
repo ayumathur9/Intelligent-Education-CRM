@@ -105,7 +105,7 @@
       {% for u in counselor_users %}
       <a href="/counselor-notes/?t=dm&id={{ u.pk }}"
          class="flex items-center gap-3 px-3 py-2.5 rounded-lg mb-1 transition-colors {% if thread_type == 'dm' and thread_id == u.pk|stringformat:'s' %}bg-primary text-on-primary{% else %}hover:bg-surface-container{% endif %}">
-        <div class="w-8 h-8 rounded-full {% if thread_type == 'dm' and thread_id == u.pk|stringformat:'s' %}bg-on-primary text-primary{% else %}bg-secondary text-on-secondary{% endif %} flex items-center justify-center font-bold text-sm shrink-0">{{ u.full_name|default:u.email|first|upper }}</div>
+        {% if u.avatar %}<img src="/user-avatar/{{ u.pk }}/" class="w-8 h-8 rounded-full object-cover shrink-0" alt=""/>{% else %}<div class="w-8 h-8 rounded-full {% if thread_type == 'dm' and thread_id == u.pk|stringformat:'s' %}bg-on-primary text-primary{% else %}bg-secondary text-on-secondary{% endif %} flex items-center justify-center font-bold text-sm shrink-0">{{ u.full_name|default:u.email|first|upper }}</div>{% endif %}
         <div class="min-w-0">
           <p class="font-label-bold text-label-bold {% if thread_type == 'dm' and thread_id == u.pk|stringformat:'s' %}text-on-primary{% else %}text-on-surface{% endif %} truncate">{{ u.full_name|default:u.email }}</p>
           <p class="font-label-sm text-label-sm {% if thread_type == 'dm' and thread_id == u.pk|stringformat:'s' %}text-on-primary/70{% else %}text-on-surface-variant{% endif %} truncate">{{ u.role|title }}</p>
@@ -131,7 +131,7 @@
     <!-- Chat header -->
     <div class="px-6 py-3 border-b border-outline-variant bg-surface-container-lowest flex items-center gap-4 shrink-0">
       {% if active_student %}
-      <div class="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-on-primary font-bold">{{ active_student.full_name|first|upper }}</div>
+      {% if active_student.user and active_student.user.avatar %}<img src="/user-avatar/{{ active_student.user.pk }}/" class="w-9 h-9 rounded-full object-cover shrink-0" alt=""/>{% else %}<div class="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-on-primary font-bold shrink-0">{{ active_student.full_name|first|upper }}</div>{% endif %}
       <div>
         <p class="font-label-bold text-label-bold text-on-surface">{{ active_student.full_name }}</p>
         <p class="font-label-sm text-label-sm text-on-surface-variant">Student · {{ active_student.email }}</p>
@@ -141,7 +141,7 @@
         <a href="/counselor-activity/?student_id={{ active_student.pk }}" class="text-[11px] font-label-bold text-on-surface-variant hover:underline flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">history</span>Activity</a>
       </div>
       {% elif active_counselor %}
-      <div class="w-9 h-9 rounded-full bg-secondary flex items-center justify-center text-on-secondary font-bold">{{ active_counselor.full_name|default:active_counselor.email|first|upper }}</div>
+      {% if active_counselor.avatar %}<img src="/user-avatar/{{ active_counselor.pk }}/" class="w-9 h-9 rounded-full object-cover shrink-0" alt=""/>{% else %}<div class="w-9 h-9 rounded-full bg-secondary flex items-center justify-center text-on-secondary font-bold shrink-0">{{ active_counselor.full_name|default:active_counselor.email|first|upper }}</div>{% endif %}
       <div>
         <p class="font-label-bold text-label-bold text-on-surface">{{ active_counselor.full_name|default:active_counselor.email }}</p>
         <p class="font-label-sm text-label-sm text-on-surface-variant">{{ active_counselor.role|title }} · {{ active_counselor.email }}</p>
@@ -168,11 +168,11 @@
             <p class="font-body-md" style="word-break:break-word">{{ msg.content }}</p>
           </div>
         </div>
-        <div class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm shrink-0 self-end">{{ user.full_name|default:user.email|first|upper }}</div>
+        {% if user.avatar %}<img src="/my-avatar/" class="w-8 h-8 rounded-full object-cover shrink-0 self-end" alt=""/>{% else %}<div class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm shrink-0 self-end">{{ user.full_name|default:user.email|first|upper }}</div>{% endif %}
       </div>
       {% else %}
       <div class="flex gap-3">
-        <div class="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-on-secondary font-bold text-sm shrink-0 self-end">{{ msg.sender.full_name|default:msg.sender.email|first|upper }}</div>
+        {% if msg.sender.avatar %}<img src="/user-avatar/{{ msg.sender.pk }}/" class="w-8 h-8 rounded-full object-cover shrink-0 self-end" alt=""/>{% else %}<div class="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-on-secondary font-bold text-sm shrink-0 self-end">{{ msg.sender.full_name|default:msg.sender.email|first|upper }}</div>{% endif %}
         <div class="max-w-[70%]">
           <p class="text-[11px] text-on-surface/60 mb-1">{{ msg.sender.full_name|default:msg.sender.email }} · {{ msg.created_at|date:"M d, H:i" }}</p>
           <div class="bg-white border border-outline-variant px-4 py-3 rounded-2xl rounded-bl-sm shadow-sm">
