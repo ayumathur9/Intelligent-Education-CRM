@@ -174,14 +174,14 @@
 </header>
 
 <!-- ── Main Content ────────────────────────────────────────────── -->
-<main id="main-content" class="main-content ml-[260px] pt-[72px] min-h-screen p-6 bg-background">
+<main id="main-content" class="main-content ml-[260px] pt-[72px] min-h-screen p-4 sm:p-6 bg-background">
   <div class="max-w-[1200px] mx-auto space-y-6">
 
     <!-- 1. Student Header -->
-    <section class="bg-surface-container-lowest p-8 rounded-xl border border-outline-variant custom-shadow space-y-8">
-      <div class="flex flex-wrap items-start justify-between gap-6">
-        <div class="flex items-center gap-6">
-          <div class="w-20 h-20 rounded-full bg-primary-fixed flex items-center justify-center border-2 border-primary-fixed-dim overflow-hidden shrink-0">
+    <section class="bg-surface-container-lowest p-5 sm:p-8 rounded-xl border border-outline-variant custom-shadow space-y-6 sm:space-y-8">
+      <div class="flex flex-wrap items-start justify-between gap-4">
+        <div class="flex items-center gap-4">
+          <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-primary-fixed flex items-center justify-center border-2 border-primary-fixed-dim overflow-hidden shrink-0">
             {% if student.user and student.user.avatar %}
             <img src="/user-avatar/{{ student.user.pk }}/" alt="{{ student.full_name }}" class="w-full h-full object-cover"/>
             {% else %}
@@ -365,7 +365,7 @@
     <!-- 3. School Application Workflow -->
     {% if school_panels %}
     <section class="space-y-5">
-      <div class="flex items-center justify-between bg-surface-container-high p-6 rounded-xl border border-outline-variant">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-surface-container-high p-5 sm:p-6 rounded-xl border border-outline-variant gap-4">
         <div class="flex items-center gap-4">
           <span class="material-symbols-outlined text-primary text-3xl">school</span>
           <div>
@@ -373,7 +373,7 @@
             <p class="text-body-md text-on-surface-variant">Manage documentation for university applications</p>
           </div>
         </div>
-        <div class="relative min-w-[300px]">
+        <div class="relative w-full sm:min-w-[300px] sm:w-auto">
           <label class="absolute -top-2 left-3 bg-surface-container-high px-1 text-label-sm font-bold text-primary text-[10px]">Select School</label>
           <select id="school-select" onchange="switchSchool(this.value)"
                   class="w-full bg-surface-container-lowest border border-outline rounded-lg py-3 px-4 focus:ring-2 focus:ring-primary text-body-md font-bold text-on-surface">
@@ -386,7 +386,7 @@
 
       {% for panel in school_panels %}
       <div id="school-panel-{{ panel.school.pk }}"
-           class="school-panel bg-surface-container-lowest border border-outline-variant rounded-xl p-6 custom-shadow{% if not forloop.first %} hidden{% endif %}">
+           class="school-panel bg-surface-container-lowest border border-outline-variant rounded-xl p-4 sm:p-6 custom-shadow{% if not forloop.first %} hidden{% endif %}">
 
         <div class="flex items-center justify-between mb-4 border-b border-outline-variant pb-4 flex-wrap gap-3">
           <h4 class="font-h3 text-h3 text-on-surface">
@@ -641,10 +641,10 @@
 
           <input type="hidden" name="category" value="lor"/>
 
-          <div class="mt-6 flex justify-between items-center border-t border-outline-variant pt-4">
+          <div class="mt-6 flex flex-col sm:flex-row justify-between items-start sm:items-center border-t border-outline-variant pt-4 gap-3">
             <p class="text-body-md text-on-surface-variant italic text-[12px]">Requirements may vary per school selection.</p>
             <a href="/counselor-schools/{{ student.pk }}/schools/{{ panel.school.pk }}/documents/"
-               class="bg-primary text-on-primary px-6 py-2.5 rounded-lg font-bold text-[13px] shadow-sm hover:bg-primary-container transition-all">
+               class="w-full sm:w-auto text-center bg-primary text-on-primary px-6 py-2.5 rounded-lg font-bold text-[13px] shadow-sm hover:bg-primary-container transition-all">
               Validate School Documents
             </a>
           </div>

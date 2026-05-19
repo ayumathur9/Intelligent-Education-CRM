@@ -154,11 +154,38 @@
     <!-- Sub-header -->
     <div class="px-6 py-3 border-b border-outline-variant bg-surface-container-lowest flex items-center gap-4 shrink-0">
       <span class="material-symbols-outlined text-primary">sticky_note_2</span>
-      <div>
+      <div class="flex-1 min-w-0">
         <p class="font-label-bold text-label-bold text-on-surface">Notes</p>
-        <p class="font-label-sm text-label-sm text-on-surface-variant">Notes left by your support team.</p>
+        <p class="font-label-sm text-label-sm text-on-surface-variant">Notes from you and your support team.</p>
       </div>
+      {% if student_id %}
+      <button onclick="toggleNoteForm()" id="add-note-btn"
+        class="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-on-primary rounded-lg font-label-bold text-[11px] hover:bg-primary-container transition-colors shrink-0">
+        <span class="material-symbols-outlined text-[15px]">add_circle</span>Add Note
+      </button>
+      {% endif %}
     </div>
+
+    <!-- Add Note Form -->
+    {% if student_id %}
+    <div id="note-form" class="hidden px-6 py-4 border-b border-outline-variant bg-surface-container-low shrink-0">
+      <form method="post" action="/interaction-log/">
+        {% csrf_token %}
+        <label class="font-label-bold text-[11px] uppercase tracking-wider text-on-surface-variant block mb-2">New Note</label>
+        <textarea name="description" rows="3" required
+          placeholder="Write your note here…"
+          class="w-full border border-outline-variant rounded-lg px-3 py-2 font-body-md text-[13px] text-on-surface focus:ring-2 focus:ring-primary outline-none resize-none bg-white"></textarea>
+        <div class="flex justify-end gap-2 mt-2">
+          <button type="button" onclick="toggleNoteForm()"
+            class="px-4 py-1.5 border border-outline-variant rounded-lg font-label-bold text-[11px] text-on-surface hover:bg-surface-container transition-colors">Cancel</button>
+          <button type="submit"
+            class="px-4 py-1.5 bg-primary text-on-primary rounded-lg font-label-bold text-[11px] hover:bg-primary-container transition-colors flex items-center gap-1">
+            <span class="material-symbols-outlined text-[13px]">save</span>Save Note
+          </button>
+        </div>
+      </form>
+    </div>
+    {% endif %}
 
     <div id="notes-feed" class="flex-1 overflow-y-auto custom-scrollbar px-8 py-7"
          style="background:#faf6f4 repeating-linear-gradient(0deg,transparent,transparent 35px,rgba(228,190,186,0.18) 35px,rgba(228,190,186,0.18) 36px)">
@@ -176,7 +203,12 @@
           <span class="material-symbols-outlined text-[28px]" style="color:#a16207;font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">sticky_note_2</span>
         </div>
         <p class="font-label-bold text-label-bold text-on-surface mb-1">No notes yet</p>
-        <p class="font-body-md text-body-md text-on-surface-variant/70">Notes from your support team will appear here.</p>
+        <p class="font-body-md text-body-md text-on-surface-variant/70 mb-4">Add your first note or wait for your support team to leave one.</p>
+        {% if student_id %}
+        <button onclick="toggleNoteForm()" class="flex items-center gap-1.5 px-4 py-2 bg-primary text-on-primary rounded-lg font-label-bold text-[12px] hover:bg-primary-container transition-colors mx-auto">
+          <span class="material-symbols-outlined text-[16px]">add_circle</span>Add a Note
+        </button>
+        {% endif %}
       </div>
 
       {% else %}
@@ -329,6 +361,15 @@
 {% endif %}
 
 <script>
+function toggleNoteForm() {
+  const form = document.getElementById('note-form');
+  if (!form) return;
+  form.classList.toggle('hidden');
+  if (!form.classList.contains('hidden')) {
+    form.querySelector('textarea').focus();
+  }
+}
+
 function toggleSidebar() {
   const sb = document.getElementById('sidebar');
   const ov = document.getElementById('sidebar-overlay');
