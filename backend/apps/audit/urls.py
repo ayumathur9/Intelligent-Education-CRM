@@ -1,6 +1,7 @@
-from django.urls import path
+from rest_framework.routers import DefaultRouter
+from .views import ActivityLogViewSet
 
-urlpatterns: list = [
-    # Activity log endpoints will be added here.
-]
+router = DefaultRouter()
+router.register("audit/activity-logs", ActivityLogViewSet, basename="activity-log")
 
+urlpatterns = router.urls

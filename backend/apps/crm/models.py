@@ -122,12 +122,24 @@ class Lead(models.Model):
     class Meta:
         indexes = [
             models.Index(fields=["status", "created_at"]),
+            models.Index(fields=["assigned_to", "status"]),  # INFRA-001: lead pipeline queries
             models.Index(fields=["phone"]),
             models.Index(fields=["email"]),
         ]
 
     def __str__(self) -> str:
         return self.full_name
+
+
+class ActiveStudentManager(models.Manager):
+    """
+    MED-010: Default manager that excludes soft-deleted students.
+    All querysets via Student.objects will exclude deleted records.
+    Use Student.all_objects to access the unfiltered queryset.
+    """
+
+    def get_queryset(self):
+        return super().get_queryset().filter(deleted_at__isnull=True)
 
 
 class Student(models.Model):
@@ -225,8 +237,39 @@ class Student(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    # MED-010: Soft delete — records are never hard-deleted.
+    deleted_at = models.DateTimeField(
+        null=True, blank=True, default=None, db_index=True,
+        help_text="When set, this student is considered deleted and hidden from all views."
+    )
+
+    # MED-010: Default manager excludes soft-deleted records.
+    objects = ActiveStudentManager()
+    # Unfiltered manager for admin / recovery use.
+    all_objects = models.Manager()
+
     class Meta:
-        indexes = [models.Index(fields=["is_active", "student_code"])]
+        indexes = [
+            models.Index(fields=["is_active", "student_code"]),
+            models.Index(fields=["counselor", "is_active"]),      # INFRA-001
+            models.Index(fields=["deleted_at"]),                  # MED-010
+        ]
+
+    def soft_delete(self) -> None:
+        """Mark this student as deleted without removing the database row."""
+        self.deleted_at = timezone.now()
+        self.is_active = False
+        self.save(update_fields=["deleted_at", "is_active", "updated_at"])
+
+    def restore(self) -> None:
+        """Undo a soft delete."""
+        self.deleted_at = None
+        self.is_active = True
+        self.save(update_fields=["deleted_at", "is_active", "updated_at"])
+
+    @property
+    def is_deleted(self) -> bool:
+        return self.deleted_at is not None
 
     @classmethod
     def generate_student_code(cls) -> str:
@@ -281,7 +324,10 @@ class StudentAssignedSchool(models.Model):
 
     class Meta:
         unique_together = [("student", "school")]
-        indexes = [models.Index(fields=["student"])]
+        indexes = [
+            models.Index(fields=["student"]),
+            models.Index(fields=["school"]),           # INFRA-001: school → students count
+        ]
 
     def __str__(self) -> str:
         return f"{self.student} → {self.school}"
@@ -468,7 +514,10 @@ class FollowUp(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        indexes = [models.Index(fields=["status", "scheduled_at"])]
+        indexes = [
+            models.Index(fields=["status", "scheduled_at"]),
+            models.Index(fields=["assigned_to", "status"]),   # INFRA-001: upcoming follow-ups
+        ]
 
     def clean(self):
         linked = [bool(self.lead_id), bool(self.enquiry_id), bool(self.student_id)]
