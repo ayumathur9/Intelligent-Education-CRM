@@ -76,6 +76,14 @@ class LeadViewSet(viewsets.ModelViewSet):
 
 
 class StudentViewSet(viewsets.ModelViewSet):
+    """
+    Student CRUD viewset.
+
+    LOW-002: Supports cursor-based pagination via ``?cursor=<token>`` for stable
+    traversal of large student lists.  Page-number pagination remains available
+    via the standard ``?page=`` parameter (default when no cursor is provided).
+    """
+
     serializer_class = StudentSerializer
     search_fields = ("student_code", "full_name", "phone", "email")
     ordering_fields = ("created_at", "updated_at", "student_code", "full_name")
@@ -88,6 +96,19 @@ class StudentViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return Student.objects.select_related("course", "user", "counselor", "poc").order_by("-created_at")
+
+    def get_pagination_class(self):
+        # LOW-002: activate cursor pagination when ?cursor param is present.
+        if "cursor" in self.request.query_params:
+            from apps.common.pagination import CursorResultsSetPagination
+            return CursorResultsSetPagination
+        return None  # use DRF default (StandardResultsSetPagination from settings)
+
+    def paginate_queryset(self, queryset):
+        paginator_class = self.get_pagination_class()
+        if paginator_class is not None:
+            self.pagination_class = paginator_class
+        return super().paginate_queryset(queryset)
 
     @action(detail=False, methods=["get", "patch"], url_path="me", permission_classes=(permissions.IsAuthenticated,))
     def me(self, request):

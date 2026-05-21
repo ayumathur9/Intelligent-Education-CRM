@@ -23,18 +23,36 @@ _LOGIN_URL = "/login/"
 _logger = logging.getLogger(__name__)
 
 
-def _save_to_local(file_obj, folder: str, filename: str) -> str:
-    """Save file_obj to local MEDIA_ROOT and return the /media/... URL."""
-    from django.core.files.base import ContentFile
-    from django.core.files.storage import default_storage
-    path = f"{folder}/{filename}"
-    if default_storage.exists(path):
-        default_storage.delete(path)
-    default_storage.save(path, ContentFile(file_obj.read()))
-    return f"{django_settings.MEDIA_URL}{path}"
+def _upload_to_supabase(file_obj, folder: str, filename: str) -> str:
+    """
+    CRIT-003: Upload *file_obj* to Supabase Storage in production.
+    Falls back to local filesystem in development (no SUPABASE_URL set).
 
+    Returns the public URL of the stored file.
+    """
+    import mimetypes as _mimetypes
+    content_type = getattr(file_obj, "content_type", None) or _mimetypes.guess_type(filename)[0] or "application/octet-stream"
+    file_bytes = file_obj.read()
 
-_upload_to_supabase = _save_to_local  # alias kept for existing call sites
+    if django_settings.SUPABASE_URL and django_settings.SUPABASE_SERVICE_ROLE_KEY:
+        from apps.common.storage.supabase_storage import upload_file
+        _, public_url = upload_file(
+            folder=folder,
+            filename=filename,
+            file_bytes=file_bytes,
+            content_type=content_type,
+            make_unique=False,  # caller already provides a unique filename
+        )
+        return public_url
+    else:
+        # Development: persist to local media directory.
+        from django.core.files.base import ContentFile
+        from django.core.files.storage import default_storage
+        path = f"{folder}/{filename}"
+        if default_storage.exists(path):
+            default_storage.delete(path)
+        default_storage.save(path, ContentFile(file_bytes))
+        return f"{django_settings.MEDIA_URL}{path}"
 
 _STUDENT_SIDEBAR_ITEMS = [
     ("dashboard", "/", "Dashboard"),
@@ -295,9 +313,14 @@ def dashboard(request):
     if role == "admin":
         from apps.chat.models import ChatMessage
         from apps.notifications.models import Notification as _Notif
-        total_students = Student.objects.count()
-        active_students = Student.objects.filter(is_active=True).count()
         from apps.users.models import User as _User
+        # INFRA-003: use cached aggregate helpers to reduce DB round-trips.
+        from apps.crm.services.cache_service import (
+            get_student_counts, get_lead_counts,
+            get_active_course_count, get_active_schools,
+        )
+        student_counts = get_student_counts()
+        lead_counts = get_lead_counts()
         my_students = Student.objects.filter(
             Q(counselor=request.user) | Q(poc=request.user), is_active=True
         ).select_related("course", "counselor", "poc", "user").order_by("full_name")
@@ -306,15 +329,15 @@ def dashboard(request):
         all_student_ids = list(all_students.values_list("pk", flat=True))
         context = {
             "student": _student_names(),
-            "total_students": total_students,
-            "active_students": active_students,
+            "total_students": student_counts["total"],
+            "active_students": student_counts["active"],
             "active_employees": counselor_users.count(),
-            "total_leads": Lead.objects.count(),
-            "total_courses": Course.objects.filter(is_active=True).count(),
-            "pending_leads": Lead.objects.filter(status="new").count(),
+            "total_leads": lead_counts["total"],
+            "total_courses": get_active_course_count(),
+            "pending_leads": lead_counts["pending"],
             "unread_messages_count": ChatMessage.objects.filter(is_read=False).exclude(sender=request.user).count(),
             "notif_unread_count": _Notif.objects.filter(user=request.user, read_at__isnull=True).count(),
-            "all_schools": School.objects.prefetch_related("courses").order_by("country", "name"),
+            "all_schools": get_active_schools(),
             "my_students": my_students,
             "all_students": all_students,
             "counselor_users": counselor_users,
@@ -366,7 +389,9 @@ def employee_dashboard(request):
         student_id__in=assigned_pks, is_read=False
     ).exclude(sender=request.user).count()
 
-    all_schools = School.objects.filter(is_active=True).prefetch_related("courses").order_by("country", "name")
+    # INFRA-003: use cached school list to avoid N+1 on every dashboard load.
+    from apps.crm.services.cache_service import get_active_schools
+    all_schools = get_active_schools()
     all_students = Student.objects.filter(is_active=True).select_related("course", "counselor", "poc", "user").order_by("full_name")
 
     pinned_notes = list(

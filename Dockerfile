@@ -46,4 +46,10 @@ RUN chmod +x /app/start.sh
 
 EXPOSE 8000
 
+# LOW-005: Container health probe — Railway and Docker Compose use this to
+# determine when the container is ready and to detect runtime failures.
+# Polls /api/health/ every 30s; 3 consecutive failures mark the container unhealthy.
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:8000/api/health/ || exit 1
+
 CMD ["/app/start.sh"]

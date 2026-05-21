@@ -6,8 +6,16 @@ from datetime import timedelta
 from django.conf import settings
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
+from django.core.validators import RegexValidator
 from django.db import models
 from django.utils import timezone
+
+# LOW-004: E.164-compatible phone validator.
+# Accepts optional leading +, then 6–15 digits (ITU-T E.164 max = 15 digits).
+_phone_validator = RegexValidator(
+    regex=r"^\+?[0-9]{6,15}$",
+    message="Enter a valid phone number (6–15 digits, optional leading +).",
+)
 
 
 class Role(models.TextChoices):
@@ -49,7 +57,8 @@ class UserManager(BaseUserManager):
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True, db_index=True)
     full_name = models.CharField(max_length=200, blank=True)
-    phone = models.CharField(max_length=32, blank=True)
+    # LOW-004: E.164 phone validation — blank is allowed (optional field).
+    phone = models.CharField(max_length=32, blank=True, validators=[_phone_validator])
     role = models.CharField(max_length=20, choices=Role.choices, default=Role.STUDENT, db_index=True)
     avatar = models.CharField(max_length=500, blank=True)
 

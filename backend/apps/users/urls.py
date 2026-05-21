@@ -9,6 +9,7 @@ from .views import (
     RefreshView,
     RegisterView,
 )
+from .mfa_views import MFADisableView, MFASetupView, MFAStatusView, MFAVerifyView
 
 urlpatterns = [
     path("auth/register/", RegisterView.as_view(), name="auth-register"),
@@ -18,4 +19,9 @@ urlpatterns = [
     path("auth/me/", MeView.as_view(), name="auth-me"),
     path("auth/password-reset/request/", PasswordResetRequestView.as_view(), name="password-reset-request"),
     path("auth/password-reset/confirm/", PasswordResetConfirmView.as_view(), name="password-reset-confirm"),
+    # LOW-009: TOTP/MFA endpoints for admin and counselor accounts.
+    path("auth/mfa/setup/", MFASetupView.as_view(), name="mfa-setup"),
+    path("auth/mfa/verify/", MFAVerifyView.as_view(), name="mfa-verify"),
+    path("auth/mfa/disable/", MFADisableView.as_view(), name="mfa-disable"),
+    path("auth/mfa/status/", MFAStatusView.as_view(), name="mfa-status"),
 ]

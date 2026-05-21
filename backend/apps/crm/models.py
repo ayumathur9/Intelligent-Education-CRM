@@ -2,8 +2,27 @@ from __future__ import annotations
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
 from django.db import models
 from django.utils import timezone
+
+# LOW-004: E.164-compatible phone validator (shared with users app).
+_phone_validator = RegexValidator(
+    regex=r"^\+?[0-9]{6,15}$",
+    message="Enter a valid phone number (6–15 digits, optional leading +).",
+)
+
+# HIGH-005: field-level PII encryption.
+# EncryptedCharField is transparent to application code — reads/writes plain text.
+# The database stores AES-128 CBC ciphertext.  Requires FIELD_ENCRYPTION_KEY in settings.
+try:
+    from encrypted_model_fields.fields import EncryptedCharField, EncryptedEmailField
+    _ENCRYPTION_AVAILABLE = True
+except ImportError:
+    # Fallback for environments where the package is not yet installed.
+    EncryptedCharField = models.CharField  # type: ignore[misc,assignment]
+    EncryptedEmailField = models.EmailField  # type: ignore[misc,assignment]
+    _ENCRYPTION_AVAILABLE = False
 
 
 class LeadStatus(models.TextChoices):
@@ -146,7 +165,8 @@ class Student(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="student_profile")
     student_code = models.CharField(max_length=40, unique=True, db_index=True)
     full_name = models.CharField(max_length=200)
-    phone = models.CharField(max_length=32, blank=True)
+    # LOW-004: phone validated on API boundary; blank allowed (profile optional).
+    phone = models.CharField(max_length=32, blank=True, validators=[_phone_validator])
     email = models.EmailField(blank=True)
     course = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True, blank=True, related_name="students")
     joined_on = models.DateField(default=timezone.now)
@@ -181,7 +201,8 @@ class Student(models.Model):
 
     # Passport
     passport_name = models.CharField(max_length=200, blank=True)
-    passport_number = models.CharField(max_length=50, blank=True)
+    # HIGH-005: passport_number encrypted at rest (AES-128 CBC via Fernet key).
+    passport_number = EncryptedCharField(max_length=50, blank=True)
     passport_issue_location = models.CharField(max_length=100, blank=True)
     passport_issue_date = models.DateField(null=True, blank=True)
     passport_expiry_date = models.DateField(null=True, blank=True)
@@ -205,31 +226,34 @@ class Student(models.Model):
 
     # Father details
     father_name = models.CharField(max_length=200, blank=True)
-    father_phone = models.CharField(max_length=32, blank=True)
+    father_phone = models.CharField(max_length=32, blank=True, validators=[_phone_validator])
     father_email = models.EmailField(blank=True)
     father_dob = models.DateField(null=True, blank=True)
     father_education = models.CharField(max_length=200, blank=True)
     father_profession = models.CharField(max_length=200, blank=True)
     father_company = models.CharField(max_length=200, blank=True)
     father_position = models.CharField(max_length=200, blank=True)
-    father_annual_income = models.CharField(max_length=100, blank=True)
+    # HIGH-005: income figures encrypted at rest.
+    father_annual_income = EncryptedCharField(max_length=100, blank=True)
 
     # Mother details
     mother_name = models.CharField(max_length=200, blank=True)
-    mother_phone = models.CharField(max_length=32, blank=True)
+    mother_phone = models.CharField(max_length=32, blank=True, validators=[_phone_validator])
     mother_email = models.EmailField(blank=True)
     mother_dob = models.DateField(null=True, blank=True)
     mother_education = models.CharField(max_length=200, blank=True)
     mother_profession = models.CharField(max_length=200, blank=True)
     mother_company = models.CharField(max_length=200, blank=True)
     mother_position = models.CharField(max_length=200, blank=True)
-    mother_annual_income = models.CharField(max_length=100, blank=True)
+    # HIGH-005: income figures encrypted at rest.
+    mother_annual_income = EncryptedCharField(max_length=100, blank=True)
 
-    # Emergency contact
+    # Emergency contact — encrypted because it links PII to a third-party individual.
     emergency_name = models.CharField(max_length=200, blank=True)
     emergency_relationship = models.CharField(max_length=100, blank=True)
-    emergency_mobile = models.CharField(max_length=32, blank=True)
-    emergency_email = models.EmailField(blank=True)
+    # HIGH-005: emergency contact details encrypted at rest.
+    emergency_mobile = EncryptedCharField(max_length=32, blank=True)
+    emergency_email = EncryptedEmailField(blank=True)
 
     # Destination countries (comma-separated)
     destination_countries = models.TextField(blank=True)

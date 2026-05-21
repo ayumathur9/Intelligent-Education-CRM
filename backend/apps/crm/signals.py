@@ -6,7 +6,7 @@ from django.dispatch import receiver
 
 from apps.audit.services import log_activity
 
-from .models import Course, Enquiry, FollowUp, Lead, Student
+from .models import Course, Enquiry, FollowUp, Lead, School, Student
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
@@ -59,6 +59,9 @@ def student_saved(sender, instance: Student, created: bool, **kwargs):
         instance=instance,
     )
     _send_assignment_emails(instance)
+    # INFRA-003: invalidate cached dashboard aggregates on any student change.
+    from apps.crm.services.cache_service import invalidate_dashboard_cache
+    invalidate_dashboard_cache()
 
 
 def _send_assignment_emails(instance: Student) -> None:
@@ -79,16 +82,35 @@ def _send_assignment_emails(instance: Student) -> None:
 @receiver(post_save, sender=Lead)
 def lead_saved(sender, instance: Lead, created: bool, **kwargs):
     log_activity(actor=_actor_from_instance(instance), action="lead.created" if created else "lead.updated", instance=instance)
+    from apps.crm.services.cache_service import invalidate_dashboard_cache
+    invalidate_dashboard_cache()
 
 
 @receiver(post_delete, sender=Lead)
 def lead_deleted(sender, instance: Lead, **kwargs):
     log_activity(actor=_actor_from_instance(instance), action="lead.deleted", instance=instance)
+    from apps.crm.services.cache_service import invalidate_dashboard_cache
+    invalidate_dashboard_cache()
 
 
 @receiver(post_save, sender=Course)
 def course_saved(sender, instance: Course, created: bool, **kwargs):
     log_activity(actor=None, action="course.created" if created else "course.updated", instance=instance)
+    from apps.crm.services.cache_service import invalidate_dashboard_cache
+    invalidate_dashboard_cache()
+
+
+@receiver(post_save, sender=School)
+def school_saved(sender, instance: School, created: bool, **kwargs):
+    # INFRA-003: invalidate school list cache on any change.
+    from apps.crm.services.cache_service import invalidate_school_cache
+    invalidate_school_cache()
+
+
+@receiver(post_delete, sender=School)
+def school_deleted(sender, instance: School, **kwargs):
+    from apps.crm.services.cache_service import invalidate_school_cache
+    invalidate_school_cache()
 
 
 @receiver(post_save, sender=Enquiry)

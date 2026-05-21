@@ -65,6 +65,11 @@ INSTALLED_APPS = [
     "django_filters",
     "corsheaders",
     "drf_spectacular",
+    # HIGH-005: field-level PII encryption
+    "encrypted_model_fields",
+    # LOW-009: TOTP / MFA
+    "django_otp",
+    "django_otp.plugins.otp_totp",
     # Local apps
     "apps.common",
     "apps.users",
@@ -458,6 +463,66 @@ if _SENTRY_DSN:
         traces_sample_rate=float(os.getenv("SENTRY_TRACES_SAMPLE_RATE", "0.1")),
         environment=DJANGO_ENV,
     )
+
+# ---------------------------------------------------------------------------
+# PII FIELD ENCRYPTION — HIGH-005
+# AES-128 CBC via django-encrypted-model-fields.
+# Key must be a valid Fernet key (32 url-safe base64 bytes).
+# Generate: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+# ---------------------------------------------------------------------------
+FIELD_ENCRYPTION_KEY = os.getenv("FIELD_ENCRYPTION_KEY", "")
+if not FIELD_ENCRYPTION_KEY:
+    if IS_PRODUCTION:
+        import logging as _logging
+        _logging.warning(
+            "[HIGH-005] FIELD_ENCRYPTION_KEY is not set. "
+            "PII fields (passport number, income, emergency contact) are stored unencrypted. "
+            "Generate a Fernet key and set FIELD_ENCRYPTION_KEY in Railway env vars."
+        )
+    # Dev-only fallback; valid Fernet key generated for local development ONLY.
+    # Production MUST set FIELD_ENCRYPTION_KEY to a unique generated key.
+    FIELD_ENCRYPTION_KEY = "NpY4Ttx1ztyDl--COHI7o5b2X3aj3SFX_40AGe2KjlU="
+
+# ---------------------------------------------------------------------------
+# REDIS CACHE BACKEND — INFRA-003
+# Shared cache used for: dashboard summaries, student lists, unread notifications.
+# Falls back to LocMemCache when REDIS_URL is not set (dev/test).
+# ---------------------------------------------------------------------------
+if _REDIS_URL:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.redis.RedisCache",
+            "LOCATION": _REDIS_URL,
+            "OPTIONS": {
+                "socket_connect_timeout": 3,
+                "socket_timeout": 3,
+            },
+            "KEY_PREFIX": "crm",
+            "TIMEOUT": 300,  # 5-minute default TTL
+        }
+    }
+else:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "crm-local",
+        }
+    }
+
+# Cache TTL constants (seconds) — import from settings where needed.
+CACHE_TTL_DASHBOARD = int(os.getenv("CACHE_TTL_DASHBOARD", "120"))   # 2 min
+CACHE_TTL_STUDENT_LIST = int(os.getenv("CACHE_TTL_STUDENT_LIST", "60"))  # 1 min
+CACHE_TTL_SCHOOL_LIST = int(os.getenv("CACHE_TTL_SCHOOL_LIST", "300"))  # 5 min
+
+# ---------------------------------------------------------------------------
+# VIRUSTOTAL (optional) — HIGH-008
+# ---------------------------------------------------------------------------
+VIRUSTOTAL_API_KEY = os.getenv("VIRUSTOTAL_API_KEY", "")
+
+# ---------------------------------------------------------------------------
+# MFA — LOW-009
+# ---------------------------------------------------------------------------
+MFA_ISSUER = os.getenv("MFA_ISSUER", "Intelligent Education CRM")
 
 # ---------------------------------------------------------------------------
 # PRODUCTION STARTUP VALIDATION — CRIT-001 / HIGH-007 / MED-009

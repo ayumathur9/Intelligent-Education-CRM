@@ -58,6 +58,25 @@ def _check_redis() -> tuple[bool, str]:
         return False, "unreachable"
 
 
+def _check_storage() -> tuple[bool, str]:
+    """
+    Probe Supabase Storage when configured.
+    Returns (True, "not_configured") in local dev without Supabase credentials.
+    """
+    if not getattr(settings, "SUPABASE_URL", "") or not getattr(
+        settings, "SUPABASE_SERVICE_ROLE_KEY", ""
+    ):
+        return True, "not_configured"
+
+    try:
+        from apps.common.storage.supabase_storage import supabase_healthy
+        ok = supabase_healthy()
+        return ok, "ok" if ok else "unreachable"
+    except Exception as exc:  # noqa: BLE001
+        logger.error("Health check: Supabase Storage unreachable — %s", exc)
+        return False, "unreachable"
+
+
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def health_check(request):
@@ -67,14 +86,16 @@ def health_check(request):
     Checks:
     - Database connectivity
     - Redis connectivity (when configured)
+    - Supabase Storage (when configured)
 
     Returns HTTP 200 if all configured dependencies are healthy,
     HTTP 503 if any dependency is down.
     """
     db_ok, db_status = _check_database()
     redis_ok, redis_status = _check_redis()
+    storage_ok, storage_status = _check_storage()
 
-    all_ok = db_ok and redis_ok
+    all_ok = db_ok and redis_ok and storage_ok
 
     payload = {
         "status": "ok" if all_ok else "degraded",
@@ -82,6 +103,7 @@ def health_check(request):
         "checks": {
             "database": db_status,
             "redis": redis_status,
+            "storage": storage_status,
         },
     }
 

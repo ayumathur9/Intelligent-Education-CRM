@@ -20,4 +20,8 @@ RUN chmod +x /app/start.sh
 
 EXPOSE 8000
 
+# LOW-005: Container health probe.
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:8000/api/health/ || exit 1
+
 CMD ["/app/start.sh"]
