@@ -122,8 +122,14 @@ def media_proxy(request, path: str) -> HttpResponse:
 
     # Fallback: Django streams the file directly.
     content_type, _ = mimetypes.guess_type(str(full_path))
+    try:
+        f = open(full_path, "rb")
+    except OSError:
+        raise Http404
+    # FileResponse takes ownership of `f` and calls f.close() via response.close().
+    # The try/except above ensures we don't leak a handle if open() itself fails.
     return FileResponse(
-        open(full_path, "rb"),  # noqa: WPS515 — FileResponse closes on send
+        f,
         content_type=content_type or "application/octet-stream",
         as_attachment=False,
     )
