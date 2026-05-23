@@ -41,17 +41,41 @@ class LoginSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True)
 
     def validate(self, attrs):
+        request = self.context.get("request")
+        ip = self._get_ip(request)
+
         user = authenticate(email=attrs["email"], password=attrs["password"])
         if not user:
+            # SEC-002: record failed login for brute-force detection.
+            try:
+                from apps.common.security.anomaly_detection import record_failed_login
+                record_failed_login(ip)
+            except Exception:
+                pass
             raise serializers.ValidationError(_("Invalid credentials."))
         if not user.is_active:
             raise serializers.ValidationError(_("User is inactive."))
+
+        # SEC-002: impossible-velocity detection (non-blocking).
+        try:
+            from apps.common.security.anomaly_detection import check_impossible_velocity
+            check_impossible_velocity(user.pk, ip)
+        except Exception:
+            pass
+
         refresh = RefreshToken.for_user(user)
         return {
             "access": str(refresh.access_token),
             "refresh": str(refresh),
             "user": UserPublicSerializer(user).data,
         }
+
+    @staticmethod
+    def _get_ip(request) -> str:
+        if request is None:
+            return "unknown"
+        xff = request.META.get("HTTP_X_FORWARDED_FOR", "")
+        return xff.split(",")[0].strip() if xff else request.META.get("REMOTE_ADDR", "unknown")
 
 
 class ProfileUpdateSerializer(serializers.ModelSerializer):

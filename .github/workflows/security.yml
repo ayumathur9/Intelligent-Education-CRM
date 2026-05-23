@@ -1,0 +1,119 @@
+name: Security Scanning
+
+on:
+  push:
+    branches: ["responsive-design-test", "main"]
+  pull_request:
+    branches: ["main"]
+  schedule:
+    # Run daily at 02:00 UTC even without a push.
+    - cron: "0 2 * * *"
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # CICD-002: Dependency CVE scanning
+  # ---------------------------------------------------------------------------
+  pip-audit:
+    name: Dependency CVE Scan (pip-audit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install pip-audit
+        run: pip install pip-audit
+
+      - name: Run pip-audit
+        working-directory: backend
+        run: |
+          pip-audit \
+            -r requirements.txt \
+            --format json \
+            --output pip-audit-report.json \
+            --ignore-vuln GHSA-jfh8-c2jp-5kg3 || true   # ignore known false positives
+          pip-audit -r requirements.txt --severity high
+
+      - name: Upload pip-audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pip-audit-report
+          path: backend/pip-audit-report.json
+
+  # ---------------------------------------------------------------------------
+  # CICD-002: Secret detection
+  # ---------------------------------------------------------------------------
+  detect-secrets:
+    name: Secret Detection
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # full history for secret scanning
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install detect-secrets
+        run: pip install detect-secrets
+
+      - name: Scan for secrets
+        run: |
+          detect-secrets scan \
+            --exclude-files '\.env\.example$' \
+            --exclude-files '.*\.pyc$' \
+            --exclude-files '.*migrations/.*' \
+            --baseline .secrets.baseline 2>/dev/null || \
+          detect-secrets scan \
+            --exclude-files '\.env\.example$' \
+            --exclude-files '.*\.pyc$' \
+            --exclude-files '.*migrations/.*' \
+            > .secrets.baseline
+          detect-secrets audit .secrets.baseline --report || true
+
+  # ---------------------------------------------------------------------------
+  # CICD-002: Bandit deep scan (runs on schedule too)
+  # ---------------------------------------------------------------------------
+  bandit-deep:
+    name: Bandit Deep Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install bandit
+        run: pip install bandit[toml]
+
+      - name: Run bandit (all severities)
+        working-directory: backend
+        run: |
+          bandit -r apps/ config/ \
+            -x apps/*/migrations/ \
+            -f json -o bandit-deep-report.json || true
+          cat bandit-deep-report.json
+
+      - name: Upload bandit deep report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bandit-deep-report
+          path: backend/bandit-deep-report.json
+
+      - name: Fail on high-severity findings
+        working-directory: backend
+        run: |
+          bandit -r apps/ config/ \
+            -x apps/*/migrations/ \
+            --severity-level high \
+            --confidence-level high

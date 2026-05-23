@@ -2,11 +2,12 @@ import json
 
 from asgiref.sync import sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
-from django.db.models import Q
 from django.utils import timezone
 
+from apps.common.ws_security import WebSocketSecurityMixin
 
-class ChatConsumer(AsyncWebsocketConsumer):
+
+class ChatConsumer(WebSocketSecurityMixin, AsyncWebsocketConsumer):
     async def connect(self):
         self.student_id = self.scope["url_route"]["kwargs"]["student_id"]
         self.room_group_name = f"chat_{self.student_id}"
@@ -16,24 +17,44 @@ class ChatConsumer(AsyncWebsocketConsumer):
             await self.close()
             return
 
-        # Only allow: the student themselves, their counselor, or their poc
         if not await self._is_authorized(user):
             await self.close()
             return
 
+        self.ws_user_id = user.pk  # required by WebSocketSecurityMixin
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
+        await self._increment_connection_count(user.pk)
 
-        # Mark messages as read when the student connects
         if user.role == "student":
             await self._mark_messages_read()
 
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+        if self.ws_user_id is not None:
+            await self._decrement_connection_count(self.ws_user_id)
 
-    async def receive(self, text_data):
-        data = json.loads(text_data)
-        content = data.get("message", "").strip()
+    async def receive(self, text_data=None, bytes_data=None):
+        # Security check (rate limit + ping/pong) — drop if rate exceeded.
+        if self.ws_user_id and not await self._check_message_rate(self.ws_user_id):
+            await self.send(text_data=json.dumps({
+                "type": "error", "code": "rate_limited",
+                "message": "Too many messages. Please slow down.",
+            }))
+            return
+
+        if not text_data:
+            return
+
+        # Handle heartbeat pong silently.
+        try:
+            parsed = json.loads(text_data)
+            if parsed.get("type") == "pong":
+                return
+        except (json.JSONDecodeError, TypeError):
+            return
+
+        content = parsed.get("message", "").strip()
         if not content:
             return
 
@@ -53,7 +74,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
             },
         )
 
-        # Push notification to participants who are not in the chat room right now
         notifs = await self._create_chat_notifications(user, content)
         for n in notifs:
             await self.channel_layer.group_send(
@@ -77,7 +97,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
             return False
         if user.role == "student":
             return hasattr(student, "user") and student.user_id == user.pk
-        # counselor: must be the assigned counselor or poc
         return user.pk in (
             student.counselor_id if student.counselor_id else None,
             student.poc_id if student.poc_id else None,
@@ -113,12 +132,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
         sender_name = sender.full_name or sender.email
 
         if sender.role == "student":
-            # Notify counselor and POC
             for counselor in [student.counselor, student.poc]:
                 if counselor and counselor.pk != sender.pk:
                     recipients.append((counselor, f"/counselor-interaction-log/?t=student&id={self.student_id}"))
         else:
-            # Notify the student
             if student.user_id and student.user_id != sender.pk:
                 recipients.append((student.user, "/interaction-log/"))
 
@@ -140,7 +157,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         return results
 
 
-class DMConsumer(AsyncWebsocketConsumer):
+class DMConsumer(WebSocketSecurityMixin, AsyncWebsocketConsumer):
     """Direct messages between counselors."""
 
     async def connect(self):
@@ -152,19 +169,39 @@ class DMConsumer(AsyncWebsocketConsumer):
             await self.close()
             return
 
+        self.ws_user_id = user.pk
         self.other_user_id = int(self.scope["url_route"]["kwargs"]["other_user_id"])
         from apps.chat.models import DirectMessage
         self.room_group_name = DirectMessage.room_name(user.pk, self.other_user_id)
 
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
+        await self._increment_connection_count(user.pk)
         await self._mark_read()
 
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+        if self.ws_user_id is not None:
+            await self._decrement_connection_count(self.ws_user_id)
 
-    async def receive(self, text_data):
-        data = json.loads(text_data)
+    async def receive(self, text_data=None, bytes_data=None):
+        if self.ws_user_id and not await self._check_message_rate(self.ws_user_id):
+            await self.send(text_data=json.dumps({
+                "type": "error", "code": "rate_limited",
+                "message": "Too many messages. Please slow down.",
+            }))
+            return
+
+        if not text_data:
+            return
+
+        try:
+            data = json.loads(text_data)
+            if data.get("type") == "pong":
+                return
+        except (json.JSONDecodeError, TypeError):
+            return
+
         content = data.get("message", "").strip()
         if not content:
             return
@@ -183,7 +220,6 @@ class DMConsumer(AsyncWebsocketConsumer):
             },
         )
 
-        # Notify the recipient
         notif = await self._create_dm_notification(user, content)
         if notif:
             await self.channel_layer.group_send(

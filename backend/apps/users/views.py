@@ -31,8 +31,13 @@ class RegisterView(generics.CreateAPIView):
 
     def perform_create(self, serializer):
         user = serializer.save()
-        from apps.common.email_service import send_welcome_email
-        send_welcome_email(user)
+        try:
+            from apps.users.tasks import send_welcome_email_task
+            send_welcome_email_task.delay(user.pk)
+        except Exception:
+            # Celery not available (dev without Redis) — send synchronously.
+            from apps.common.email_service import send_welcome_email
+            send_welcome_email(user)
 
 
 class LoginView(APIView):
@@ -40,7 +45,8 @@ class LoginView(APIView):
     throttle_classes = (LoginRateThrottle,)
 
     def post(self, request):
-        ser = LoginSerializer(data=request.data)
+        # Pass request so the serializer can perform SEC-002 anomaly checks.
+        ser = LoginSerializer(data=request.data, context={"request": request})
         ser.is_valid(raise_exception=True)
         return Response(ser.validated_data)
 
@@ -134,19 +140,22 @@ class PasswordResetRequestView(APIView):
                 return Response(self._NEUTRAL_RESPONSE)
 
             token_obj = PasswordResetToken.mint(user=user, ttl_minutes=30)
+            reset_link = (
+                f"{settings.FRONTEND_BASE_URL.rstrip('/')}"
+                f"/reset-password.html?token={token_obj.token}"
+            )
             try:
-                from apps.common.email_service import send_password_reset_email
-                reset_link = (
-                    f"{settings.FRONTEND_BASE_URL.rstrip('/')}"
-                    f"/reset-password.html?token={token_obj.token}"
-                )
-                send_password_reset_email(user, reset_link)
+                from apps.users.tasks import send_password_reset_email_task
+                send_password_reset_email_task.delay(user.pk, reset_link)
             except Exception:  # noqa: BLE001
-                # Email delivery failure must not block token creation.
-                # The token is already persisted; the user can try again.
-                logger.warning(
-                    "Password reset email could not be sent for user %s", user.pk
-                )
+                # Celery unavailable — fall back to synchronous email.
+                try:
+                    from apps.common.email_service import send_password_reset_email
+                    send_password_reset_email(user, reset_link)
+                except Exception:
+                    logger.warning(
+                        "Password reset email could not be sent for user %s", user.pk
+                    )
 
         return Response(self._NEUTRAL_RESPONSE)
 

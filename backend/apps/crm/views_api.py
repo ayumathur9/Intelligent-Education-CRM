@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import csv
+import io
 from datetime import timedelta
 
-from django.db.models import Count
+from django.db.models import Count, Prefetch
+from django.http import StreamingHttpResponse
 from django.utils import timezone
 from rest_framework import permissions, viewsets
 from rest_framework.decorators import action
@@ -90,7 +93,8 @@ class StudentViewSet(viewsets.ModelViewSet):
     filterset_fields = ("is_active", "course")
 
     def get_permissions(self):
-        if self.action in ("list", "retrieve", "update", "partial_update", "destroy", "create"):
+        # export_csv is also a counselor/admin-only action.
+        if self.action in ("list", "retrieve", "update", "partial_update", "destroy", "create", "export_csv"):
             return [IsCounselorOrAdmin()]
         return [permissions.IsAuthenticated()]
 
@@ -109,6 +113,68 @@ class StudentViewSet(viewsets.ModelViewSet):
         if paginator_class is not None:
             self.pagination_class = paginator_class
         return super().paginate_queryset(queryset)
+
+    @action(detail=False, methods=["get"], url_path="export", permission_classes=(IsCounselorOrAdmin,))
+    def export_csv(self, request):
+        """
+        PERF-003: Stream a CSV export of all students without loading the
+        entire queryset into memory. Uses a generator so memory stays O(batch).
+        GET /api/students/export/?is_active=true
+        """
+        _COLUMNS = [
+            "student_code", "full_name", "email", "phone",
+            "course__name", "counselor__full_name", "is_active", "created_at",
+        ]
+        _HEADERS = [
+            "Student Code", "Full Name", "Email", "Phone",
+            "Course", "Counselor", "Active", "Created At",
+        ]
+
+        qs = (
+            Student.objects
+            .select_related("course", "counselor")
+            .values(*_COLUMNS)
+            .order_by("-created_at")
+            .iterator(chunk_size=200)
+        )
+
+        is_active_param = request.query_params.get("is_active", "")
+        if is_active_param.lower() in ("true", "1"):
+            qs = (
+                Student.objects
+                .filter(is_active=True)
+                .select_related("course", "counselor")
+                .values(*_COLUMNS)
+                .order_by("-created_at")
+                .iterator(chunk_size=200)
+            )
+
+        def _generate():
+            buf = io.StringIO()
+            writer = csv.writer(buf)
+            writer.writerow(_HEADERS)
+            yield buf.getvalue()
+            buf.seek(0)
+            buf.truncate()
+
+            for row in qs:
+                writer.writerow([
+                    row.get("student_code", ""),
+                    row.get("full_name", ""),
+                    row.get("email", ""),
+                    row.get("phone", ""),
+                    row.get("course__name", ""),
+                    row.get("counselor__full_name", ""),
+                    row.get("is_active", ""),
+                    row.get("created_at", ""),
+                ])
+                yield buf.getvalue()
+                buf.seek(0)
+                buf.truncate()
+
+        resp = StreamingHttpResponse(_generate(), content_type="text/csv")
+        resp["Content-Disposition"] = 'attachment; filename="students_export.csv"'
+        return resp
 
     @action(detail=False, methods=["get", "patch"], url_path="me", permission_classes=(permissions.IsAuthenticated,))
     def me(self, request):
@@ -212,12 +278,21 @@ class DashboardViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["get"], url_path="summary")
     def summary(self, request):
+        from apps.crm.services.cache_service import (
+            get_student_counts, get_lead_counts, get_active_course_count,
+            get_followups_due_today,
+        )
         today = timezone.localdate()
         last_30 = timezone.now() - timedelta(days=30)
 
+        # Use cached aggregates for the most expensive counts.
+        student_counts = get_student_counts()
+        lead_counts = get_lead_counts()
+        active_courses = get_active_course_count()
+        followups_due = get_followups_due_today()
+
         lead_by_status = dict(Lead.objects.values("status").annotate(c=Count("id")).values_list("status", "c"))
         enquiry_by_status = dict(Enquiry.objects.values("status").annotate(c=Count("id")).values_list("status", "c"))
-        followups_due = FollowUp.objects.filter(status="pending", scheduled_at__date__lte=today).count()
         followups_next_7 = FollowUp.objects.filter(
             status="pending",
             scheduled_at__date__gt=today,
@@ -227,12 +302,12 @@ class DashboardViewSet(viewsets.ViewSet):
         return Response(
             {
                 "leads": {
-                    "total": Lead.objects.count(),
+                    "total": lead_counts["total"],
                     "created_last_30_days": Lead.objects.filter(created_at__gte=last_30).count(),
                     "by_status": lead_by_status,
                 },
-                "students": {"total": Student.objects.count(), "active": Student.objects.filter(is_active=True).count()},
-                "courses": {"total": Course.objects.count(), "active": Course.objects.filter(is_active=True).count()},
+                "students": student_counts,
+                "courses": {"total": Course.objects.count(), "active": active_courses},
                 "schools": {"total": School.objects.count(), "active": School.objects.filter(is_active=True).count()},
                 "enquiries": {"total": Enquiry.objects.count(), "by_status": enquiry_by_status},
                 "followups": {"due_or_overdue": followups_due, "next_7_days": followups_next_7},

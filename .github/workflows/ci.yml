@@ -1,0 +1,201 @@
+name: CI
+
+on:
+  push:
+    branches: ["responsive-design-test", "main"]
+  pull_request:
+    branches: ["main"]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Lint & Static Analysis
+  # ---------------------------------------------------------------------------
+  lint:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        working-directory: backend
+        run: pip install -r requirements.txt
+
+      - name: Run bandit (security static analysis)
+        working-directory: backend
+        run: |
+          bandit -r apps/ config/ \
+            -x apps/*/migrations/,apps/*/tests/ \
+            --severity-level medium \
+            --confidence-level medium \
+            -f json -o bandit-report.json || true
+          bandit -r apps/ config/ \
+            -x apps/*/migrations/,apps/*/tests/ \
+            --severity-level high \
+            --confidence-level high
+
+      - name: Upload bandit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bandit-report
+          path: backend/bandit-report.json
+
+  # ---------------------------------------------------------------------------
+  # Tests
+  # ---------------------------------------------------------------------------
+  test:
+    name: Tests (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11"]
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: test_crm
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DJANGO_ENV: development
+      DJANGO_DEBUG: "1"
+      DJANGO_SECRET_KEY: ci-test-secret-key-not-used-in-production
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_crm
+      REDIS_URL: redis://localhost:6379/0
+      FIELD_ENCRYPTION_KEY: NpY4Ttx1ztyDl--COHI7o5b2X3aj3SFX_40AGe2KjlU=
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install dependencies
+        working-directory: backend
+        run: pip install -r requirements.txt
+
+      - name: Validate Django configuration
+        working-directory: backend
+        run: python manage.py check --deploy 2>&1 || true
+
+      - name: Check for pending migrations
+        working-directory: backend
+        run: python manage.py migrate --check --dry-run || echo "::warning::Pending migrations detected"
+
+      - name: Run migrations
+        working-directory: backend
+        run: python manage.py migrate --noinput
+
+      - name: Run tests with coverage
+        working-directory: backend
+        run: |
+          coverage run -m pytest tests/ -v \
+            --tb=short \
+            --junitxml=test-results.xml \
+            -q
+          coverage report --fail-under=70
+          coverage xml -o coverage.xml
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            backend/test-results.xml
+            backend/coverage.xml
+
+  # ---------------------------------------------------------------------------
+  # Migration safety check
+  # ---------------------------------------------------------------------------
+  migrations:
+    name: Migration Safety
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: test_crm
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DJANGO_ENV: development
+      DJANGO_DEBUG: "1"
+      DJANGO_SECRET_KEY: ci-migration-check-key
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_crm
+      FIELD_ENCRYPTION_KEY: NpY4Ttx1ztyDl--COHI7o5b2X3aj3SFX_40AGe2KjlU=
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        working-directory: backend
+        run: pip install -r requirements.txt
+
+      - name: Check migrations are consistent
+        working-directory: backend
+        run: python manage.py migrate --check
+
+      - name: Ensure no model changes without migrations
+        working-directory: backend
+        run: python manage.py makemigrations --check --dry-run
+
+  # ---------------------------------------------------------------------------
+  # Docker build validation
+  # ---------------------------------------------------------------------------
+  docker:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build production Docker image
+        run: |
+          docker build \
+            --build-arg DJANGO_ENV=production \
+            -t crm-backend:ci \
+            ./backend

@@ -116,6 +116,8 @@ else:
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
+    # OBS-002: assign X-Request-ID trace header as early as possible.
+    "apps.common.middleware.RequestCorrelationMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -124,6 +126,8 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "apps.common.middleware.SecurityHeadersMiddleware",
+    # OBS-003: log 401/403/429 security events after authentication is resolved.
+    "apps.common.middleware.SecurityEventLoggingMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -269,6 +273,9 @@ REST_FRAMEWORK = {
         "user": os.getenv("DRF_USER_RATE", "600/min"),
         "login": os.getenv("DRF_LOGIN_RATE", "5/min"),
         "password_reset": os.getenv("DRF_PASSWORD_RESET_RATE", "3/min"),
+        # RL-001: additional scopes
+        "upload": os.getenv("DRF_UPLOAD_RATE", "30/min"),
+        "burst": os.getenv("DRF_BURST_RATE", "100/min"),
     },
     # Never expose Python stack traces in API error responses.
     "EXCEPTION_HANDLER": "rest_framework.views.exception_handler",
@@ -445,14 +452,19 @@ LOGGING = {
 _SENTRY_DSN = os.getenv("SENTRY_DSN", "")
 if _SENTRY_DSN:
     import sentry_sdk  # type: ignore[import]
+    from sentry_sdk.integrations.celery import CeleryIntegration
     from sentry_sdk.integrations.django import DjangoIntegration
     from sentry_sdk.integrations.logging import LoggingIntegration
+    from sentry_sdk.integrations.redis import RedisIntegration
     import logging as _logging_module
 
+    # OBS-001: full Sentry integration with Celery, Redis, and release tracking.
     sentry_sdk.init(
         dsn=_SENTRY_DSN,
         integrations=[
             DjangoIntegration(transaction_style="url"),
+            CeleryIntegration(monitor_beat_tasks=True),
+            RedisIntegration(),
             LoggingIntegration(
                 level=_logging_module.INFO,
                 event_level=_logging_module.ERROR,
@@ -461,8 +473,24 @@ if _SENTRY_DSN:
         # Never send PII to Sentry.
         send_default_pii=False,
         traces_sample_rate=float(os.getenv("SENTRY_TRACES_SAMPLE_RATE", "0.1")),
+        profiles_sample_rate=float(os.getenv("SENTRY_PROFILES_SAMPLE_RATE", "0.0")),
         environment=DJANGO_ENV,
+        release=os.getenv("RAILWAY_DEPLOYMENT_ID") or os.getenv("GIT_SHA", "local"),
+        before_send=lambda event, hint: _sentry_scrub_pii(event, hint),
     )
+
+    def _sentry_scrub_pii(event, hint):
+        """Strip PII fields from Sentry events before transmission."""
+        _REDACT = {"password", "token", "secret", "passport_number",
+                   "father_annual_income", "mother_annual_income",
+                   "emergency_mobile", "emergency_email"}
+        request = event.get("request", {})
+        data = request.get("data", {})
+        if isinstance(data, dict):
+            for key in list(data):
+                if any(p in key.lower() for p in _REDACT):
+                    data[key] = "[Filtered]"
+        return event
 
 # ---------------------------------------------------------------------------
 # PII FIELD ENCRYPTION — HIGH-005
@@ -513,6 +541,67 @@ else:
 CACHE_TTL_DASHBOARD = int(os.getenv("CACHE_TTL_DASHBOARD", "120"))   # 2 min
 CACHE_TTL_STUDENT_LIST = int(os.getenv("CACHE_TTL_STUDENT_LIST", "60"))  # 1 min
 CACHE_TTL_SCHOOL_LIST = int(os.getenv("CACHE_TTL_SCHOOL_LIST", "300"))  # 5 min
+
+# ---------------------------------------------------------------------------
+# CELERY — ASYNC-001
+# Broker and result backend both use Redis when available.
+# Falls back gracefully to memory in development (no broker = sync execution).
+# ---------------------------------------------------------------------------
+CELERY_BROKER_URL = _REDIS_URL or "memory://"
+CELERY_RESULT_BACKEND = _REDIS_URL or "cache+memory://"
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = TIME_ZONE  # matches Django TIME_ZONE
+CELERY_ENABLE_UTC = True
+
+# Task reliability settings.
+CELERY_TASK_ACKS_LATE = True              # re-queue on worker crash
+CELERY_TASK_REJECT_ON_WORKER_LOST = True  # don't silently drop tasks
+CELERY_TASK_DEFAULT_RETRY_DELAY = 60      # seconds between automatic retries
+CELERY_TASK_MAX_RETRIES = 3               # give up after 3 attempts
+
+# Timeouts — prevents runaway tasks from blocking workers.
+CELERY_TASK_SOFT_TIME_LIMIT = int(os.getenv("CELERY_SOFT_TIMEOUT", "300"))   # 5 min
+CELERY_TASK_TIME_LIMIT      = int(os.getenv("CELERY_HARD_TIMEOUT", "600"))   # 10 min
+
+# Worker concurrency (Railway: set CELERY_WORKER_CONCURRENCY env var).
+CELERY_WORKER_CONCURRENCY = int(os.getenv("CELERY_WORKER_CONCURRENCY", "2"))
+CELERY_WORKER_PREFETCH_MULTIPLIER = 1     # fair scheduling
+
+# Task routing — define separate queues for different task classes.
+CELERY_TASK_DEFAULT_QUEUE = "default"
+CELERY_TASK_QUEUES_DEFAULT_EXCHANGE = "default"
+
+# Beat schedule for periodic maintenance tasks.
+from celery.schedules import crontab as _crontab  # noqa: E402
+CELERY_BEAT_SCHEDULE = {
+    # Daily at 03:00 IST: purge expired JWT tokens from the blacklist table.
+    "purge-expired-tokens": {
+        "task": "apps.users.tasks.purge_expired_tokens",
+        "schedule": _crontab(hour=3, minute=0),
+    },
+    # Every 4 hours: clean up orphaned media files in Supabase storage.
+    "cleanup-orphaned-files": {
+        "task": "apps.files.tasks.cleanup_orphaned_files",
+        "schedule": _crontab(minute=0, hour="*/4"),
+    },
+    # Every midnight: rotate and archive old audit log entries.
+    "archive-old-audit-logs": {
+        "task": "apps.audit.tasks.archive_old_audit_logs",
+        "schedule": _crontab(hour=0, minute=30),
+    },
+    # RECOVERY-001: Nightly database backup at 02:00 UTC.
+    "nightly-db-backup": {
+        "task": "apps.common.tasks.backup_database",
+        "schedule": _crontab(hour=2, minute=0),
+    },
+    # RECOVERY-001: Weekly backup pruning — delete files older than 30 days.
+    "weekly-prune-backups": {
+        "task": "apps.common.tasks.prune_old_backups",
+        "schedule": _crontab(hour=3, minute=30, day_of_week=0),  # Sunday 03:30
+    },
+}
 
 # ---------------------------------------------------------------------------
 # VIRUSTOTAL (optional) — HIGH-008
