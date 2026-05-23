@@ -30,14 +30,54 @@ class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
 
     def perform_create(self, serializer):
+        from django.conf import settings as _s
         user = serializer.save()
+
+        # HIGH-2: Send email verification link when EMAIL_VERIFICATION_REQUIRED is on.
+        if getattr(_s, "EMAIL_VERIFICATION_REQUIRED", False):
+            self._send_verification_email(user)
+        else:
+            # Internal deployment — send welcome email and mark as verified.
+            user.is_email_verified = True
+            user.save(update_fields=["is_email_verified"])
+            try:
+                from apps.users.tasks import send_welcome_email_task
+                send_welcome_email_task.delay(user.pk)
+            except Exception:
+                from apps.common.email_service import send_welcome_email
+                send_welcome_email(user)
+
+    @staticmethod
+    def _send_verification_email(user) -> None:
+        import hashlib
+        import hmac
+        from django.conf import settings as _s
+        token = hmac.new(
+            _s.SECRET_KEY.encode(),
+            f"{user.pk}:{user.email}".encode(),
+            hashlib.sha256,
+        ).hexdigest()
+        verify_url = (
+            f"{_s.FRONTEND_BASE_URL.rstrip('/')}"
+            f"/api/auth/verify-email/?uid={user.pk}&token={token}"
+        )
         try:
-            from apps.users.tasks import send_welcome_email_task
-            send_welcome_email_task.delay(user.pk)
+            from apps.common.email_service import _send
+            _send(
+                subject="Verify your Intelligent Education email",
+                text_body=(
+                    f"Hi {user.full_name or user.email},\n\n"
+                    f"Click to verify your email:\n{verify_url}\n\n"
+                    "If you did not register, ignore this email."
+                ),
+                html_body=(
+                    f"<p>Hi {user.full_name or user.email},</p>"
+                    f'<p><a href="{verify_url}">Verify your email</a></p>'
+                ),
+                to=[user.email],
+            )
         except Exception:
-            # Celery not available (dev without Redis) — send synchronously.
-            from apps.common.email_service import send_welcome_email
-            send_welcome_email(user)
+            logger.warning("Could not send verification email to %s", user.email)
 
 
 class LoginView(APIView):
@@ -55,6 +95,9 @@ class LogoutView(APIView):
     """
     HIGH-001: Blacklist the provided refresh token on logout.
 
+    LOW: Restricted to POST only — GET requests cannot trigger logout
+    (prevents CSRF-style logout via image tags or link prefetch).
+
     The client must send the refresh token in the request body.
     The corresponding access token will expire naturally (15 min).
     Both session and JWT logout are handled independently.
@@ -65,6 +108,7 @@ class LogoutView(APIView):
     """
 
     permission_classes = (permissions.IsAuthenticated,)
+    http_method_names = ["post", "options"]
 
     def post(self, request):
         refresh_token = request.data.get("refresh", "")
@@ -168,3 +212,46 @@ class PasswordResetConfirmView(APIView):
         ser.is_valid(raise_exception=True)
         ser.save()
         return Response({"detail": "Password reset successful."}, status=status.HTTP_200_OK)
+
+
+class EmailVerifyView(APIView):
+    """
+    HIGH-2: Verify a user's email address via signed token.
+
+    GET /api/auth/verify-email/?uid=<pk>&token=<hmac>
+    Returns 200 on success, 400 if the token is invalid or already verified.
+    """
+
+    permission_classes = (permissions.AllowAny,)
+
+    def get(self, request):
+        import hashlib
+        import hmac
+        from django.conf import settings as _s
+        from .models import User
+
+        uid = request.query_params.get("uid", "")
+        token = request.query_params.get("token", "")
+
+        try:
+            user = User.objects.get(pk=int(uid))
+        except (User.DoesNotExist, ValueError, TypeError):
+            return Response({"detail": "Invalid verification link."}, status=status.HTTP_400_BAD_REQUEST)
+
+        expected = hmac.new(
+            _s.SECRET_KEY.encode(),
+            f"{user.pk}:{user.email}".encode(),
+            hashlib.sha256,
+        ).hexdigest()
+
+        if not hmac.compare_digest(token, expected):
+            logger.warning("EmailVerifyView: invalid token for user %s", uid)
+            return Response({"detail": "Invalid or expired verification link."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if user.is_email_verified:
+            return Response({"detail": "Email already verified."})
+
+        user.is_email_verified = True
+        user.save(update_fields=["is_email_verified"])
+        logger.info("EmailVerifyView: email verified for user %s", user.pk)
+        return Response({"detail": "Email verified successfully."})

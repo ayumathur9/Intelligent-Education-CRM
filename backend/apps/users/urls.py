@@ -1,6 +1,7 @@
 from django.urls import path
 
 from .views import (
+    EmailVerifyView,
     LoginView,
     LogoutView,
     MeView,
@@ -19,6 +20,8 @@ urlpatterns = [
     path("auth/me/", MeView.as_view(), name="auth-me"),
     path("auth/password-reset/request/", PasswordResetRequestView.as_view(), name="password-reset-request"),
     path("auth/password-reset/confirm/", PasswordResetConfirmView.as_view(), name="password-reset-confirm"),
+    # HIGH-2: Email verification link handler.
+    path("auth/verify-email/", EmailVerifyView.as_view(), name="email-verify"),
     # LOW-009: TOTP/MFA endpoints for admin and counselor accounts.
     path("auth/mfa/setup/", MFASetupView.as_view(), name="mfa-setup"),
     path("auth/mfa/verify/", MFAVerifyView.as_view(), name="mfa-verify"),

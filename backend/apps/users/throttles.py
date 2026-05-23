@@ -50,6 +50,18 @@ def _record_failure(scope: str, key: str) -> None:
             pass
 
 
+def _get_client_ip(request) -> str:
+    """HIGH-5: Extract trusted client IP using django-ipware when available."""
+    try:
+        from ipware import get_client_ip
+        ip, _ = get_client_ip(request)
+        return ip or "unknown"
+    except ImportError:
+        pass
+    xff = request.META.get("HTTP_X_FORWARDED_FOR", "")
+    return xff.split(",")[0].strip() if xff else request.META.get("REMOTE_ADDR", "unknown")
+
+
 class LoginRateThrottle(AnonRateThrottle):
     """
     5 login attempts per minute per IP.
@@ -58,7 +70,7 @@ class LoginRateThrottle(AnonRateThrottle):
     scope = "login"
 
     def allow_request(self, request, view):
-        ip = self._get_client_ip(request)
+        ip = _get_client_ip(request)
         if _is_locked_out("login", ip):
             self.history = []  # Required by DRF's wait() method.
             return False
@@ -68,27 +80,17 @@ class LoginRateThrottle(AnonRateThrottle):
             _record_failure("login", ip)
         return allowed
 
-    @staticmethod
-    def _get_client_ip(request) -> str:
-        xff = request.META.get("HTTP_X_FORWARDED_FOR", "")
-        return xff.split(",")[0].strip() if xff else request.META.get("REMOTE_ADDR", "unknown")
-
 
 class PasswordResetRateThrottle(AnonRateThrottle):
     """3 password-reset requests per minute per IP."""
     scope = "password_reset"
 
     def allow_request(self, request, view):
-        ip = self._get_client_ip(request)
+        ip = _get_client_ip(request)
         if _is_locked_out("password_reset", ip):
             self.history = []  # Required by DRF's wait() method.
             return False
         return super().allow_request(request, view)
-
-    @staticmethod
-    def _get_client_ip(request) -> str:
-        xff = request.META.get("HTTP_X_FORWARDED_FOR", "")
-        return xff.split(",")[0].strip() if xff else request.META.get("REMOTE_ADDR", "unknown")
 
 
 class UploadRateThrottle(UserRateThrottle):

@@ -1,12 +1,26 @@
 from __future__ import annotations
 
 import logging
+import smtplib
+import socket
 
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 
 logger = logging.getLogger(__name__)
+
+# MED-5: Only retry on transient SMTP errors (network issues, temp unavailability).
+# Don't retry on permanent errors (auth failure, bad recipient, etc.).
+_TRANSIENT_SMTP_ERRORS = (
+    smtplib.SMTPServerDisconnected,
+    smtplib.SMTPConnectError,
+    ConnectionRefusedError,
+    ConnectionResetError,
+    TimeoutError,
+    socket.timeout,
+    OSError,
+)
 
 
 def _smtp_configured() -> bool:
@@ -29,8 +43,13 @@ def _send(subject: str, text_body: str, html_body: str, to: list[str]) -> bool:
         msg.attach_alternative(html_body, "text/html")
         msg.send(fail_silently=False)
         return True
+    except _TRANSIENT_SMTP_ERRORS:
+        # Transient failure — Celery will retry via the task wrapper.
+        logger.warning("Transient SMTP error sending to %s — will retry", to)
+        raise
     except Exception:
-        logger.exception("Failed to send email to %s (subject: %s)", to, subject)
+        # Permanent failure (bad credentials, invalid recipient, etc.) — don't retry.
+        logger.exception("Permanent email failure to %s (subject: %s) — not retrying", to, subject)
         return False
 
 

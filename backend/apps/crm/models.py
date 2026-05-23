@@ -167,7 +167,8 @@ class Student(models.Model):
     full_name = models.CharField(max_length=200)
     # LOW-004: phone validated on API boundary; blank allowed (profile optional).
     phone = models.CharField(max_length=32, blank=True, validators=[_phone_validator])
-    email = models.EmailField(blank=True)
+    # MED-3: Index on email for fast lookup in auto-link and dedup queries.
+    email = models.EmailField(blank=True, db_index=True)
     course = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True, blank=True, related_name="students")
     joined_on = models.DateField(default=timezone.now)
     is_active = models.BooleanField(default=True)

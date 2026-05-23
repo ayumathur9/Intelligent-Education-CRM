@@ -50,26 +50,47 @@ def backup_database(self) -> dict:
     out_path = backup_dir / filename
 
     try:
-        env = {**os.environ, "PGPASSWORD": _extract_pg_password(db_url)}
-        dump = subprocess.Popen(
-            ["pg_dump", "--no-owner", "--no-acl", db_url],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            env=env,
-        )
-        gzip = subprocess.Popen(
-            ["gzip", "-c"],
-            stdin=dump.stdout,
-            stdout=open(out_path, "wb"),
-            stderr=subprocess.PIPE,
-        )
-        dump.stdout.close()
-        gzip.wait()
-        dump.wait()
+        from urllib.parse import urlparse
+        parsed = urlparse(db_url)
+        # CRIT-4: Pass credentials via environment, not on the command line.
+        # Build a clean DSN without the password for pg_dump --dbname argument.
+        pg_env = {
+            **os.environ,
+            "PGPASSWORD": parsed.password or "",
+            "PGSSLMODE": "require",
+        }
+        pg_args = [
+            "pg_dump",
+            "--no-owner",
+            "--no-acl",
+            "--format=plain",
+            f"--host={parsed.hostname}",
+            f"--port={parsed.port or 5432}",
+            f"--username={parsed.username or 'postgres'}",
+            parsed.path.lstrip("/"),  # database name
+        ]
+
+        # CRIT-4: Use context manager so the output file is always closed.
+        with open(out_path, "wb") as f_out:
+            dump = subprocess.Popen(
+                pg_args,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                env=pg_env,
+            )
+            gzip_proc = subprocess.Popen(
+                ["gzip", "-c"],
+                stdin=dump.stdout,
+                stdout=f_out,
+                stderr=subprocess.PIPE,
+            )
+            dump.stdout.close()  # Allow dump to receive SIGPIPE if gzip exits.
+            gzip_proc.wait()
+            dump.wait()
 
         if dump.returncode != 0:
-            stderr = dump.stderr.read().decode()
-            raise RuntimeError(f"pg_dump failed (exit {dump.returncode}): {stderr[:500]}")
+            stderr_out = dump.stderr.read().decode(errors="replace")
+            raise RuntimeError(f"pg_dump failed (exit {dump.returncode}): {stderr_out[:500]}")
 
         file_size = out_path.stat().st_size
         logger.info("backup_database: saved %s (%d bytes)", out_path, file_size)

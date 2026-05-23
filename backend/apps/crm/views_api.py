@@ -220,6 +220,20 @@ class StudentPreferenceViewSet(viewsets.ModelViewSet):
             return StudentPreference.objects.select_related("school", "course").filter(student=student)
         return StudentPreference.objects.select_related("school", "course", "student").all()
 
+    def get_object(self):
+        obj = super().get_object()
+        # HIGH-7: Object-level ownership check for students.
+        self._check_preference_ownership(obj)
+        return obj
+
+    def _check_preference_ownership(self, obj):
+        user = self.request.user
+        if user.role == Role.STUDENT:
+            student = Student.objects.filter(user=user).first()
+            if not student or obj.student_id != student.pk:
+                from rest_framework.exceptions import PermissionDenied
+                raise PermissionDenied("You do not have permission to access this preference.")
+
     def perform_create(self, serializer):
         user = self.request.user
         if user.role == Role.STUDENT:
@@ -251,6 +265,15 @@ class StudentActivityViewSet(viewsets.ReadOnlyModelViewSet):
             if not student:
                 return StudentActivity.objects.none()
             return StudentActivity.objects.filter(student=student).order_by("-created_at")
+        # HIGH-3: Editors see only activity for their assigned students.
+        if user.role == Role.EDITOR:
+            assigned_ids = Student.objects.filter(editor=user).values_list("pk", flat=True)
+            return (
+                StudentActivity.objects
+                .select_related("student")
+                .filter(student_id__in=assigned_ids)
+                .order_by("-created_at")
+            )
         return StudentActivity.objects.select_related("student").order_by("-created_at")
 
 

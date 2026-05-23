@@ -80,6 +80,12 @@ celery[redis]>=5.3,<6.0
 kombu>=5.3,<6.0
 
 # ---------------------------------------------------------------------------
+# IP extraction — HIGH-5
+# django-ipware: trusted proxy-aware client IP extraction.
+# ---------------------------------------------------------------------------
+django-ipware>=7.0,<8.0
+
+# ---------------------------------------------------------------------------
 # Security scanning — CICD-002
 # bandit: static analysis; pip-audit: CVE scanning; detect-secrets: secret scan
 # ---------------------------------------------------------------------------
@@ -91,6 +97,7 @@ pip-audit>=2.7,<3.0
 # ---------------------------------------------------------------------------
 pytest>=8.0,<9.0
 pytest-django>=4.8,<5.0
+pytest-asyncio>=0.23,<1.0
 factory-boy>=3.3,<4.0
 coverage[toml]>=7.0,<8.0
 pytest-mock>=3.12,<4.0

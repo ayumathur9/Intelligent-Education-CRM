@@ -62,6 +62,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     role = models.CharField(max_length=20, choices=Role.choices, default=Role.STUDENT, db_index=True)
     avatar = models.CharField(max_length=500, blank=True)
 
+    # HIGH-2: Email verification flag. Set to True after the user clicks the
+    # verification link. Controlled by EMAIL_VERIFICATION_REQUIRED in settings.
+    is_email_verified = models.BooleanField(default=False)
+
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
 

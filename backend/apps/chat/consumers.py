@@ -101,14 +101,16 @@ class ChatConsumer(WebSocketSecurityMixin, AsyncWebsocketConsumer):
         if user.role == "admin":
             return True
         try:
-            student = Student.objects.select_related("counselor", "poc").get(pk=self.student_id)
+            student = Student.objects.select_related("counselor", "poc", "editor").get(pk=self.student_id)
         except Student.DoesNotExist:
             return False
         if user.role == "student":
             return hasattr(student, "user") and student.user_id == user.pk
+        # LOW: Include editor in authorized roles for their assigned students.
         return user.pk in (
             student.counselor_id if student.counselor_id else None,
             student.poc_id if student.poc_id else None,
+            student.editor_id if student.editor_id else None,
         )
 
     @sync_to_async

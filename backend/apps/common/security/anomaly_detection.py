@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import hashlib
 import logging
+import os
 import time
 
 from django.conf import settings
@@ -42,8 +43,6 @@ def _redis():
     except Exception:
         return None
 
-
-import os  # noqa: E402 (imported here to avoid circular at module level)
 
 # ---------------------------------------------------------------------------
 # Per-email account lockout (complements per-IP lockout in throttles.py)

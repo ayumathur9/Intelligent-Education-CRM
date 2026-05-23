@@ -7,6 +7,7 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
+    postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt /app/requirements.txt
@@ -17,6 +18,11 @@ COPY . /app
 RUN DJANGO_SECRET_KEY=build-placeholder DJANGO_DEBUG=0 python manage.py collectstatic --noinput
 
 RUN chmod +x /app/start.sh
+
+# LOW: Run as non-root user for container hardening.
+RUN useradd --create-home --shell /bin/bash appuser \
+    && chown -R appuser:appuser /app
+USER appuser
 
 EXPOSE 8000
 

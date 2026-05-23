@@ -123,8 +123,12 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    # HIGH-1: Verify OTP device state after session auth (enables MFA on Django admin).
+    "django_otp.middleware.OTPMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # HIGH-4: Inject per-request CSP nonce before SecurityHeadersMiddleware writes the header.
+    "apps.common.middleware.CspNonceMiddleware",
     "apps.common.middleware.SecurityHeadersMiddleware",
     # OBS-003: log 401/403/429 security events after authentication is resolved.
     "apps.common.middleware.SecurityEventLoggingMiddleware",
@@ -270,7 +274,8 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_THROTTLE_RATES": {
         "anon": os.getenv("DRF_ANON_RATE", "60/min"),
-        "user": os.getenv("DRF_USER_RATE", "600/min"),
+        # MED-2: 600/min was too permissive for an internal tool; lowered to 200/min.
+        "user": os.getenv("DRF_USER_RATE", "200/min"),
         "login": os.getenv("DRF_LOGIN_RATE", "5/min"),
         "password_reset": os.getenv("DRF_PASSWORD_RESET_RATE", "3/min"),
         # RL-001: additional scopes
@@ -334,6 +339,11 @@ FRONTEND_BASE_URL = os.getenv("FRONTEND_BASE_URL", "http://localhost:5500")
 # ---------------------------------------------------------------------------
 BACKUP_ROOT = Path(os.getenv("BACKUP_ROOT", str(BASE_DIR.parent / "backups")))
 BACKUP_RETENTION_DAYS = int(os.getenv("BACKUP_RETENTION_DAYS", "30"))
+
+# CRIT-1: Set NGINX_MEDIA_ACCEL=1 in production when Nginx proxies to Django.
+# Nginx must have an internal location block:
+#   location /protected-media/ { internal; alias /path/to/MEDIA_ROOT/; }
+NGINX_MEDIA_ACCEL = os.getenv("NGINX_MEDIA_ACCEL", "0") == "1"
 
 # ---------------------------------------------------------------------------
 # SECURITY SETTINGS — CRIT-005 / HIGH-003
@@ -602,6 +612,11 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.common.tasks.prune_old_backups",
         "schedule": _crontab(hour=3, minute=30, day_of_week=0),  # Sunday 03:30
     },
+    # LOW: Weekly orphaned file cleanup — remove files without a FileObject record.
+    "weekly-cleanup-orphaned-files": {
+        "task": "apps.files.tasks.cleanup_orphaned_files",
+        "schedule": _crontab(hour=4, minute=0, day_of_week=0),  # Sunday 04:00
+    },
 }
 
 # ---------------------------------------------------------------------------
@@ -625,9 +640,22 @@ ACCOUNT_LOCKOUT_THRESHOLD = int(os.getenv("ACCOUNT_LOCKOUT_THRESHOLD", "10"))
 ACCOUNT_LOCKOUT_SECONDS = int(os.getenv("ACCOUNT_LOCKOUT_SECONDS", "900"))  # 15 min
 
 # ---------------------------------------------------------------------------
-# MFA — LOW-009
+# MFA — LOW-009 / HIGH-1
 # ---------------------------------------------------------------------------
 MFA_ISSUER = os.getenv("MFA_ISSUER", "Intelligent Education CRM")
+
+# ---------------------------------------------------------------------------
+# EMAIL VERIFICATION — HIGH-2
+# When True, users must verify their email before they can log in.
+# For internal deployments with <50 known users, set to False to allow
+# admin-created accounts to skip verification.
+# ---------------------------------------------------------------------------
+EMAIL_VERIFICATION_REQUIRED = os.getenv("EMAIL_VERIFICATION_REQUIRED", "0") == "1"
+
+# ---------------------------------------------------------------------------
+# ORPHANED FILE CLEANUP — LOW
+# ---------------------------------------------------------------------------
+ORPHAN_FILE_RETENTION_DAYS = int(os.getenv("ORPHAN_FILE_RETENTION_DAYS", "7"))
 
 # ---------------------------------------------------------------------------
 # PRODUCTION STARTUP VALIDATION — CRIT-001 / HIGH-007 / MED-009

@@ -34,11 +34,14 @@ def disable_throttling(settings):
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
     ]
+    # MED-9: Include all custom scopes so throttle classes don't raise ImproperlyConfigured.
     settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"] = {
         "anon": high_rate,
         "user": high_rate,
         "login": high_rate,
         "password_reset": high_rate,
+        "upload": high_rate,
+        "burst": high_rate,
     }
 
 

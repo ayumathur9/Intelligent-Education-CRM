@@ -4,8 +4,8 @@ from django.db import models
 
 class FileObject(models.Model):
     """
-    Metadata for files stored in Supabase Storage.
-    deleted_at is set on soft-delete; the Supabase file and URL are preserved.
+    Metadata for files stored on the local filesystem (MEDIA_ROOT).
+    deleted_at is set on soft-delete; the physical file is preserved for audit history.
     """
 
     bucket = models.CharField(max_length=120)

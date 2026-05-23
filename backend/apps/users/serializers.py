@@ -93,6 +93,13 @@ class LoginSerializer(serializers.Serializer):
     def _get_ip(request) -> str:
         if request is None:
             return "unknown"
+        # HIGH-5: Use django-ipware for trusted proxy-aware extraction.
+        try:
+            from ipware import get_client_ip
+            ip, _ = get_client_ip(request)
+            return ip or "unknown"
+        except ImportError:
+            pass
         xff = request.META.get("HTTP_X_FORWARDED_FOR", "")
         return xff.split(",")[0].strip() if xff else request.META.get("REMOTE_ADDR", "unknown")
 

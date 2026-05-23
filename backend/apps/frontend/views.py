@@ -25,14 +25,19 @@ _logger = logging.getLogger(__name__)
 
 def _upload_to_local_storage(file_obj, folder: str, filename: str) -> str:
     """
-    Save *file_obj* to the local filesystem under MEDIA_ROOT/{folder}/{filename}.
+    Save *file_obj* to the local filesystem under MEDIA_ROOT/{folder}/{uuid}.{ext}.
+    HIGH-6: Uses UUID-based filename on disk; the caller-supplied filename is used
+    only to derive the extension (original name is not persisted to the filesystem).
     Returns the public media URL of the stored file.
     In production, ensure MEDIA_ROOT is on a persistent volume.
     """
+    import uuid as _uuid
     from django.core.files.base import ContentFile
     from django.core.files.storage import default_storage
     file_bytes = file_obj.read()
-    path = f"{folder}/{filename}"
+    ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
+    uuid_name = f"{_uuid.uuid4()}.{ext}" if ext else str(_uuid.uuid4())
+    path = f"{folder}/{uuid_name}"
     if default_storage.exists(path):
         default_storage.delete(path)
     default_storage.save(path, ContentFile(file_bytes))
@@ -279,7 +284,17 @@ def login_view(request):
         user = authenticate(request, username=email, password=password)
         if user is not None:
             login(request, user)
-            return redirect(request.POST.get("next") or request.GET.get("next") or "/")
+            # CRIT-3: Validate redirect target to prevent open redirect.
+            from django.utils.http import url_has_allowed_host_and_scheme
+            from django.conf import settings as _s
+            next_url = request.POST.get("next") or request.GET.get("next") or ""
+            if next_url and url_has_allowed_host_and_scheme(
+                url=next_url,
+                allowed_hosts={request.get_host()},
+                require_https=_s.IS_PRODUCTION,
+            ):
+                return redirect(next_url)
+            return redirect("/")
         error = "Invalid email or password."
     return render(request, "login.html", {"error": error, "next": request.GET.get("next", "")})
 

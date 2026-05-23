@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import re
 import threading
 import uuid
 
@@ -43,13 +44,13 @@ class RequestCorrelationMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        request_id = (
+        raw_id = (
             request.headers.get(self.HEADER_NAME)
             or request.META.get("HTTP_X_REQUEST_ID")
-            or str(uuid.uuid4())
+            or ""
         )
-        # Sanitise: only allow safe characters.
-        request_id = request_id[:64].replace("\n", "").replace("\r", "")
+        # MED-6: Strip any character outside [a-zA-Z0-9\-_] to prevent log injection.
+        request_id = re.sub(r"[^a-zA-Z0-9\-_]", "", raw_id)[:64] or str(uuid.uuid4())
 
         _request_id_local.request_id = request_id
         request.request_id = request_id
@@ -59,8 +60,26 @@ class RequestCorrelationMiddleware:
         return response
 
 
+class CspNonceMiddleware:
+    """
+    HIGH-4: Generate a per-request CSP nonce and expose it on the request object.
+
+    Usage in templates: <script nonce="{{ request.csp_nonce }}">...</script>
+    The nonce is a URL-safe base64 random value regenerated for every request.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        import base64
+        import os as _os
+        request.csp_nonce = base64.urlsafe_b64encode(_os.urandom(16)).decode("ascii")
+        return self.get_response(request)
+
+
 class SecurityHeadersMiddleware:
-    """Adds CSP and Permissions-Policy headers to every response."""
+    """Adds CSP (with nonce) and Permissions-Policy headers to every response."""
 
     def __init__(self, get_response):
         self.get_response = get_response
@@ -68,10 +87,20 @@ class SecurityHeadersMiddleware:
     def __call__(self, request):
         response = self.get_response(request)
 
+        nonce = getattr(request, "csp_nonce", "")
+        nonce_src = f"'nonce-{nonce}'" if nonce else ""
+
         if "Content-Security-Policy" not in response:
+            # HIGH-4: nonce replaces 'unsafe-inline' for scripts; inline styles still
+            # need 'unsafe-inline' because Tailwind CDN injects style attributes at runtime.
+            script_src = (
+                f"'self' {nonce_src} https://cdn.tailwindcss.com https://cdn.jsdelivr.net"
+                if nonce_src
+                else "'self' https://cdn.tailwindcss.com https://cdn.jsdelivr.net 'unsafe-inline'"
+            )
             response["Content-Security-Policy"] = (
-                "default-src 'self'; "
-                "script-src 'self' https://cdn.tailwindcss.com https://cdn.jsdelivr.net 'unsafe-inline'; "
+                f"default-src 'self'; "
+                f"script-src {script_src}; "
                 "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
                 "img-src 'self' data: blob:; "
                 "font-src 'self' https://fonts.gstatic.com; "
@@ -168,5 +197,12 @@ class SecurityEventLoggingMiddleware:
 
     @staticmethod
     def _get_ip(request) -> str:
+        # HIGH-5: Use django-ipware when available for trusted proxy IP extraction.
+        try:
+            from ipware import get_client_ip
+            ip, _ = get_client_ip(request)
+            return ip or ""
+        except ImportError:
+            pass
         xff = request.META.get("HTTP_X_FORWARDED_FOR", "")
         return xff.split(",")[0].strip() if xff else request.META.get("REMOTE_ADDR", "")
