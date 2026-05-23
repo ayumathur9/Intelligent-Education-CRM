@@ -71,7 +71,7 @@ class SecurityHeadersMiddleware:
 
             response["Content-Security-Policy"] = (
                 "default-src 'self'; "
-                "script-src 'self' https://cdn.tailwindcss.com 'unsafe-inline'; "
+                "script-src 'self' https://cdn.tailwindcss.com https://cdn.jsdelivr.net 'unsafe-inline'; "
                 "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
                 f"img-src 'self' data: blob: {supabase_origin}; "
                 "font-src 'self' https://fonts.gstatic.com; "
@@ -83,10 +83,13 @@ class SecurityHeadersMiddleware:
 
         response["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
 
-        # SEC-001: additional hardening headers
+        # SEC-001: COOP prevents cross-origin window references (popups, iframes).
+        # CORP limits which origins can embed our resources in no-cors requests.
+        # COEP is intentionally omitted: require-corp would block Tailwind CDN, Google Fonts,
+        # and supabase-js (none of which ship a Cross-Origin-Resource-Policy header), breaking
+        # the entire UI. COEP is only safe when ALL resources are same-origin or cooperating CDNs.
         response.setdefault("Cross-Origin-Opener-Policy", "same-origin")
         response.setdefault("Cross-Origin-Resource-Policy", "same-origin")
-        response.setdefault("Cross-Origin-Embedder-Policy", "require-corp")
 
         return response
 
