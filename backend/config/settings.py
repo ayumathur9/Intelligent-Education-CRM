@@ -127,8 +127,6 @@ MIDDLEWARE = [
     "django_otp.middleware.OTPMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    # HIGH-4: Inject per-request CSP nonce before SecurityHeadersMiddleware writes the header.
-    "apps.common.middleware.CspNonceMiddleware",
     "apps.common.middleware.SecurityHeadersMiddleware",
     # OBS-003: log 401/403/429 security events after authentication is resolved.
     "apps.common.middleware.SecurityEventLoggingMiddleware",
