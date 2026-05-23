@@ -195,7 +195,7 @@
 <div class="flex items-center space-x-4">
 <div class="relative" id="notif-wrap">
   <button id="notif-btn" onclick="toggleNotif()" class="relative p-2 text-on-surface-variant hover:text-primary transition-colors rounded-lg">
-    <span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
     <span id="notif-badge" class="{% if notif_unread_count %}absolute top-1 right-1 min-w-[18px] h-[18px] bg-error text-on-error text-[10px] font-bold rounded-full flex items-center justify-center{% else %}hidden{% endif %}">{{ notif_unread_count|default:"" }}</span>
   </button>
   <div id="notif-panel" class="hidden absolute right-0 top-full mt-2 w-80 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-xl z-50 overflow-hidden">
