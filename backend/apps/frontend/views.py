@@ -23,36 +23,20 @@ _LOGIN_URL = "/login/"
 _logger = logging.getLogger(__name__)
 
 
-def _upload_to_supabase(file_obj, folder: str, filename: str) -> str:
+def _upload_to_local_storage(file_obj, folder: str, filename: str) -> str:
     """
-    CRIT-003: Upload *file_obj* to Supabase Storage in production.
-    Falls back to local filesystem in development (no SUPABASE_URL set).
-
-    Returns the public URL of the stored file.
+    Save *file_obj* to the local filesystem under MEDIA_ROOT/{folder}/{filename}.
+    Returns the public media URL of the stored file.
+    In production, ensure MEDIA_ROOT is on a persistent volume.
     """
-    import mimetypes as _mimetypes
-    content_type = getattr(file_obj, "content_type", None) or _mimetypes.guess_type(filename)[0] or "application/octet-stream"
+    from django.core.files.base import ContentFile
+    from django.core.files.storage import default_storage
     file_bytes = file_obj.read()
-
-    if django_settings.SUPABASE_URL and django_settings.SUPABASE_SERVICE_ROLE_KEY:
-        from apps.common.storage.supabase_storage import upload_file
-        _, public_url = upload_file(
-            folder=folder,
-            filename=filename,
-            file_bytes=file_bytes,
-            content_type=content_type,
-            make_unique=False,  # caller already provides a unique filename
-        )
-        return public_url
-    else:
-        # Development: persist to local media directory.
-        from django.core.files.base import ContentFile
-        from django.core.files.storage import default_storage
-        path = f"{folder}/{filename}"
-        if default_storage.exists(path):
-            default_storage.delete(path)
-        default_storage.save(path, ContentFile(file_bytes))
-        return f"{django_settings.MEDIA_URL}{path}"
+    path = f"{folder}/{filename}"
+    if default_storage.exists(path):
+        default_storage.delete(path)
+    default_storage.save(path, ContentFile(file_bytes))
+    return f"{django_settings.MEDIA_URL}{path}"
 
 _STUDENT_SIDEBAR_ITEMS = [
     ("dashboard", "/", "Dashboard"),
@@ -404,7 +388,7 @@ def employee_dashboard(request):
     context = {
         "my_students_count": my_students.count(),
         "all_students_count": Student.objects.filter(is_active=True).count(),
-        "total_schools_count": all_schools.count(),
+        "total_schools_count": len(all_schools),
         "my_students": my_students,
         "all_students": all_students,
         "all_schools": all_schools,
@@ -739,7 +723,7 @@ def counselor_profile_update(request):
         if avatar_file:
             try:
                 ext = Path(avatar_file.name).suffix
-                url = _upload_to_supabase(avatar_file, "avatars", f"user_{user.pk}{ext}")
+                url = _upload_to_local_storage(avatar_file, "avatars", f"user_{user.pk}{ext}")
                 user.avatar = url
             except Exception as exc:
                 _logger.exception("Counselor avatar upload failed for user pk=%s", user.pk)
@@ -815,7 +799,7 @@ def my_profile_view(request):
         if avatar_file:
             try:
                 ext = Path(avatar_file.name).suffix
-                url = _upload_to_supabase(avatar_file, "avatars", f"user_{request.user.pk}{ext}")
+                url = _upload_to_local_storage(avatar_file, "avatars", f"user_{request.user.pk}{ext}")
                 request.user.avatar = url
                 request.user.save(update_fields=["avatar"])
                 files_saved.append("profile photo")
@@ -880,7 +864,7 @@ def my_profile_view(request):
             if doc_file:
                 try:
                     ext = Path(doc_file.name).suffix
-                    url = _upload_to_supabase(doc_file, f"profile_docs/{student.pk}", f"{cat}{ext}")
+                    url = _upload_to_local_storage(doc_file, f"profile_docs/{student.pk}", f"{cat}{ext}")
                     # Soft-delete previous version so its URL is preserved.
                     StudentProfileDocument.objects.filter(
                         student=student, category=cat, deleted_at__isnull=True
@@ -1003,7 +987,7 @@ def upload_profile_file(request):
     if category == "avatar":
         try:
             ext = Path(file_obj.name).suffix
-            url = _upload_to_supabase(file_obj, "avatars", f"user_{request.user.pk}{ext}")
+            url = _upload_to_local_storage(file_obj, "avatars", f"user_{request.user.pk}{ext}")
             request.user.avatar = url
             request.user.save(update_fields=["avatar"])
             return JsonResponse({"url": "/my-avatar/", "file_name": file_obj.name})
@@ -1032,7 +1016,7 @@ def upload_profile_file(request):
         existing_profile_doc = StudentProfileDocument.objects.filter(student=student, category=category, deleted_at__isnull=True).first()
 
         ext = Path(file_obj.name).suffix
-        url = _upload_to_supabase(file_obj, f"profile_docs/{student.pk}", f"{category}{ext}")
+        url = _upload_to_local_storage(file_obj, f"profile_docs/{student.pk}", f"{category}{ext}")
 
         # Email the replaced document before deletion
         if existing_profile_doc and existing_profile_doc.file_path:
@@ -1660,7 +1644,7 @@ def _handle_document_upload(request, student, school):
     storage_folder = f"school_docs/{student.pk}/{school.pk}"
 
     try:
-        public_url = _upload_to_supabase(uploaded_file, storage_folder, unique_name)
+        public_url = _upload_to_local_storage(uploaded_file, storage_folder, unique_name)
     except Exception as exc:
         _logger.exception("School doc upload failed: student=%s school=%s", student.pk, school.pk)
         return f"Upload failed: {exc}"
@@ -1938,15 +1922,3 @@ def dismiss_priority_item(request):
     return JsonResponse({"ok": True})
 
 
-def supabase_config_js(request):
-    """Serve /supabase-config.js dynamically from settings so credentials stay in env vars."""
-    url = django_settings.SUPABASE_URL or ""
-    anon_key = django_settings.SUPABASE_ANON_KEY or ""
-    js = (
-        f"const SUPABASE_URL = {repr(url)};\n"
-        f"const SUPABASE_ANON_KEY = {repr(anon_key)};\n"
-        "if (typeof supabase !== 'undefined') {\n"
-        "  window._supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);\n"
-        "}\n"
-    )
-    return HttpResponse(js, content_type="application/javascript")

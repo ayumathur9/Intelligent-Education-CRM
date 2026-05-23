@@ -45,6 +45,70 @@ def _redis():
 
 import os  # noqa: E402 (imported here to avoid circular at module level)
 
+# ---------------------------------------------------------------------------
+# Per-email account lockout (complements per-IP lockout in throttles.py)
+# ---------------------------------------------------------------------------
+_EMAIL_LOCKOUT_THRESHOLD = int(getattr(settings, "ACCOUNT_LOCKOUT_THRESHOLD", 10))
+_EMAIL_LOCKOUT_SECONDS   = int(getattr(settings, "ACCOUNT_LOCKOUT_SECONDS", 900))
+
+
+def is_account_locked(email: str) -> bool:
+    """Return True if this email address is locked out due to too many failures."""
+    r = _redis()
+    if r is None:
+        return False
+    key = f"crm:account:lockout:{email.lower()}"
+    try:
+        return bool(r.get(key))
+    except Exception:
+        return False
+
+
+def record_failed_login_for_email(email: str) -> bool:
+    """
+    Increment per-email failure counter.
+    Returns True and locks the account when threshold is reached.
+    """
+    r = _redis()
+    if r is None:
+        return False
+
+    fail_key = f"crm:account:failures:{email.lower()}"
+    lock_key = f"crm:account:lockout:{email.lower()}"
+    try:
+        count = r.incr(fail_key)
+        if count == 1:
+            r.expire(fail_key, _EMAIL_LOCKOUT_SECONDS)
+
+        if count >= _EMAIL_LOCKOUT_THRESHOLD:
+            r.setex(lock_key, _EMAIL_LOCKOUT_SECONDS, "1")
+            logger.warning(
+                "SEC-002 account lockout: %s failed %d times — locked for %ds",
+                email, count, _EMAIL_LOCKOUT_SECONDS,
+            )
+            _emit_security_event(
+                "account_lockout", "n/a", None,
+                f"Account {email} locked after {count} failures",
+            )
+            return True
+    except Exception as exc:
+        logger.debug("record_failed_login_for_email redis error: %s", exc)
+    return False
+
+
+def clear_failed_login_attempts(email: str) -> None:
+    """Reset failure counter and lockout flag on successful login."""
+    r = _redis()
+    if r is None:
+        return
+    try:
+        r.delete(
+            f"crm:account:failures:{email.lower()}",
+            f"crm:account:lockout:{email.lower()}",
+        )
+    except Exception as exc:
+        logger.debug("clear_failed_login_attempts redis error: %s", exc)
+
 
 def record_failed_login(ip: str, user_id: int | None = None) -> bool:
     """

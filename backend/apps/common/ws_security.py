@@ -25,15 +25,43 @@ _MAX_MESSAGES_PER_MINUTE = int(getattr(settings, "WS_MAX_MESSAGES_PER_MINUTE", 6
 # Seconds without traffic before the server sends a ping.
 _HEARTBEAT_INTERVAL = int(getattr(settings, "WS_HEARTBEAT_INTERVAL", 30))
 
+# Maximum inbound message size in bytes (64 KB default).
+_MAX_WS_MESSAGE_BYTES = int(getattr(settings, "WS_MAX_MESSAGE_BYTES", 64 * 1024))
+
+# Module-level connection pool — created once per process.
+_redis_pool = None
+
+
+def _get_redis_pool():
+    """Return a shared Redis connection pool, creating it on first call."""
+    global _redis_pool
+    if _redis_pool is not None:
+        return _redis_pool
+    url = getattr(settings, "REDIS_URL", None) or ""
+    if not url:
+        return None
+    try:
+        import redis
+        _redis_pool = redis.ConnectionPool.from_url(
+            url,
+            decode_responses=True,
+            socket_connect_timeout=2,
+            socket_timeout=2,
+            max_connections=20,
+        )
+        return _redis_pool
+    except Exception:
+        return None
+
 
 def _redis_client():
-    """Return a synchronous Redis client if REDIS_URL is configured."""
+    """Return a Redis client using the shared connection pool."""
+    pool = _get_redis_pool()
+    if pool is None:
+        return None
     try:
-        import redis  # available via channels-redis
-        url = getattr(settings, "REDIS_URL", None) or ""
-        if not url:
-            return None
-        return redis.from_url(url, decode_responses=True, socket_connect_timeout=2)
+        import redis
+        return redis.Redis(connection_pool=pool)
     except Exception:
         return None
 
@@ -43,6 +71,7 @@ class WebSocketSecurityMixin:
     Mixin that adds:
     - Per-user connection limits (Redis-backed, falls back to in-process).
     - Per-user message rate limiting (token-bucket in Redis).
+    - Maximum message size enforcement.
     - Heartbeat / ping-pong to detect stale connections.
     - Connection count telemetry for WS-002 health monitoring.
     """
@@ -77,6 +106,21 @@ class WebSocketSecurityMixin:
         await super().websocket_disconnect(message)
 
     async def receive(self, text_data=None, bytes_data=None):
+        # Enforce maximum message size.
+        payload = text_data or bytes_data or b""
+        if len(payload) > _MAX_WS_MESSAGE_BYTES:
+            logger.warning(
+                "WS-001: message too large (%d bytes) from user %s — dropped",
+                len(payload),
+                self.ws_user_id,
+            )
+            await self.send(text_data=json.dumps({
+                "type": "error",
+                "code": "message_too_large",
+                "message": "Message exceeds maximum allowed size.",
+            }))
+            return
+
         user_id = self.ws_user_id
         if user_id and not await self._check_message_rate(user_id):
             logger.warning("WS-001: message rate exceeded for user %s", user_id)

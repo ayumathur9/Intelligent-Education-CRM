@@ -328,13 +328,12 @@ DEFAULT_FROM_EMAIL = os.getenv(
 FRONTEND_BASE_URL = os.getenv("FRONTEND_BASE_URL", "http://localhost:5500")
 
 # ---------------------------------------------------------------------------
-# SUPABASE
+# LOCAL FILE STORAGE
+# Files are stored in MEDIA_ROOT on the local filesystem.
+# In production, ensure MEDIA_ROOT is on a persistent volume.
 # ---------------------------------------------------------------------------
-SUPABASE_URL = os.getenv("SUPABASE_URL", "")
-SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY", "")
-SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
-SUPABASE_STORAGE_BUCKET = os.getenv("SUPABASE_STORAGE_BUCKET", "crm-uploads")
-SUPABASE_PUBLIC_URL_BASE = os.getenv("SUPABASE_PUBLIC_URL_BASE", "")
+BACKUP_ROOT = Path(os.getenv("BACKUP_ROOT", str(BASE_DIR.parent / "backups")))
+BACKUP_RETENTION_DAYS = int(os.getenv("BACKUP_RETENTION_DAYS", "30"))
 
 # ---------------------------------------------------------------------------
 # SECURITY SETTINGS — CRIT-005 / HIGH-003
@@ -348,8 +347,7 @@ SECURE_REFERRER_POLICY = "same-origin"
 
 if not DEBUG:
     SECURE_SSL_REDIRECT = os.getenv("DJANGO_SECURE_SSL_REDIRECT", "1") == "1"
-    # Start with 1 hour; promote to 1 year once stable.
-    SECURE_HSTS_SECONDS = int(os.getenv("DJANGO_SECURE_HSTS_SECONDS", "3600"))
+    SECURE_HSTS_SECONDS = int(os.getenv("DJANGO_SECURE_HSTS_SECONDS", "31536000"))  # 1 year
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
 
@@ -396,14 +394,17 @@ LOGGING = {
         "require_debug_true": {
             "()": "django.utils.log.RequireDebugTrue",
         },
+        "request_id": {
+            "()": "apps.common.middleware.RequestIdFilter",
+        },
     },
     "formatters": {
         "json": {
             "()": "pythonjsonlogger.jsonlogger.JsonFormatter",
-            "format": "%(asctime)s %(name)s %(levelname)s %(message)s %(pathname)s %(lineno)d",
+            "format": "%(asctime)s %(name)s %(levelname)s %(message)s %(pathname)s %(lineno)d %(request_id)s",
         },
         "verbose": {
-            "format": "[%(asctime)s] %(levelname)s %(name)s %(message)s",
+            "format": "[%(asctime)s] %(levelname)s %(name)s [%(request_id)s] %(message)s",
             "datefmt": "%Y-%m-%d %H:%M:%S",
         },
     },
@@ -412,6 +413,7 @@ LOGGING = {
             "class": "logging.StreamHandler",
             # JSON in production for structured aggregation; verbose in dev.
             "formatter": "json" if IS_PRODUCTION else "verbose",
+            "filters": ["request_id"],
         },
         "mail_admins": {
             "level": "ERROR",
@@ -501,14 +503,13 @@ if _SENTRY_DSN:
 FIELD_ENCRYPTION_KEY = os.getenv("FIELD_ENCRYPTION_KEY", "")
 if not FIELD_ENCRYPTION_KEY:
     if IS_PRODUCTION:
-        import logging as _logging
-        _logging.warning(
+        raise RuntimeError(
             "[HIGH-005] FIELD_ENCRYPTION_KEY is not set. "
-            "PII fields (passport number, income, emergency contact) are stored unencrypted. "
-            "Generate a Fernet key and set FIELD_ENCRYPTION_KEY in Railway env vars."
+            "PII fields (passport number, income, emergency contact) would be stored unencrypted. "
+            "Generate a key: python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\" "
+            "and set FIELD_ENCRYPTION_KEY in your environment variables."
         )
-    # Dev-only fallback; valid Fernet key generated for local development ONLY.
-    # Production MUST set FIELD_ENCRYPTION_KEY to a unique generated key.
+    # Dev-only fallback; valid Fernet key for local development ONLY.
     FIELD_ENCRYPTION_KEY = "NpY4Ttx1ztyDl--COHI7o5b2X3aj3SFX_40AGe2KjlU="
 
 # ---------------------------------------------------------------------------
@@ -581,10 +582,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.users.tasks.purge_expired_tokens",
         "schedule": _crontab(hour=3, minute=0),
     },
-    # Every 4 hours: clean up orphaned media files in Supabase storage.
-    "cleanup-orphaned-files": {
-        "task": "apps.files.tasks.cleanup_orphaned_files",
-        "schedule": _crontab(minute=0, hour="*/4"),
+    # Daily: clean up expired password reset tokens.
+    "cleanup-expired-reset-tokens": {
+        "task": "apps.users.tasks.cleanup_expired_reset_tokens",
+        "schedule": _crontab(hour=3, minute=15),
     },
     # Every midnight: rotate and archive old audit log entries.
     "archive-old-audit-logs": {
@@ -596,7 +597,7 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.common.tasks.backup_database",
         "schedule": _crontab(hour=2, minute=0),
     },
-    # RECOVERY-001: Weekly backup pruning — delete files older than 30 days.
+    # RECOVERY-001: Weekly backup pruning — delete local files older than BACKUP_RETENTION_DAYS.
     "weekly-prune-backups": {
         "task": "apps.common.tasks.prune_old_backups",
         "schedule": _crontab(hour=3, minute=30, day_of_week=0),  # Sunday 03:30
@@ -607,6 +608,21 @@ CELERY_BEAT_SCHEDULE = {
 # VIRUSTOTAL (optional) — HIGH-008
 # ---------------------------------------------------------------------------
 VIRUSTOTAL_API_KEY = os.getenv("VIRUSTOTAL_API_KEY", "")
+
+# ---------------------------------------------------------------------------
+# WEBSOCKET SECURITY — WS-001
+# ---------------------------------------------------------------------------
+WS_MAX_CONNECTIONS_PER_USER = int(os.getenv("WS_MAX_CONNECTIONS_PER_USER", "5"))
+WS_MAX_MESSAGES_PER_MINUTE = int(os.getenv("WS_MAX_MESSAGES_PER_MINUTE", "60"))
+WS_HEARTBEAT_INTERVAL = int(os.getenv("WS_HEARTBEAT_INTERVAL", "30"))
+WS_MAX_MESSAGE_BYTES = int(os.getenv("WS_MAX_MESSAGE_BYTES", str(64 * 1024)))  # 64 KB
+
+# ---------------------------------------------------------------------------
+# ACCOUNT LOCKOUT — SEC-002
+# Per-email lockout (complement to per-IP lockout in throttles.py).
+# ---------------------------------------------------------------------------
+ACCOUNT_LOCKOUT_THRESHOLD = int(os.getenv("ACCOUNT_LOCKOUT_THRESHOLD", "10"))
+ACCOUNT_LOCKOUT_SECONDS = int(os.getenv("ACCOUNT_LOCKOUT_SECONDS", "900"))  # 15 min
 
 # ---------------------------------------------------------------------------
 # MFA — LOW-009

@@ -22,11 +22,10 @@ class TestUploadSecurityLayer:
     """File upload blocked by scanner before reaching storage."""
 
     def test_clean_jpeg_allowed(self, admin_client):
-        with patch("apps.files.views._supabase_configured", return_value=False):
-            with patch("django.core.files.storage.default_storage.save", return_value="uploads/test.jpg"):
-                with patch("django.core.files.storage.default_storage.url", return_value="/media/uploads/test.jpg"):
-                    f = SimpleUploadedFile("photo.jpg", _JPEG_BYTES, content_type="image/jpeg")
-                    resp = admin_client.post(UPLOAD_URL, {"file": f}, format="multipart")
+        with patch("django.core.files.storage.default_storage.save", return_value="uploads/test.jpg"):
+            with patch("django.core.files.storage.default_storage.url", return_value="/media/uploads/test.jpg"):
+                f = SimpleUploadedFile("photo.jpg", _JPEG_BYTES, content_type="image/jpeg")
+                resp = admin_client.post(UPLOAD_URL, {"file": f}, format="multipart")
         # Either 201 (uploaded) or 502 (local storage unavailable) — not 400.
         assert resp.status_code != 400, f"Should not be rejected: {resp.data}"
 

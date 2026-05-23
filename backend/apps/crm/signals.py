@@ -129,3 +129,6 @@ def followup_saved(sender, instance: FollowUp, created: bool, **kwargs):
         action="followup.created" if created else "followup.updated",
         instance=instance,
     )
+    # INFRA-003: invalidate followup_due count so the dashboard reflects changes immediately.
+    from apps.crm.services.cache_service import invalidate_dashboard_cache
+    invalidate_dashboard_cache()

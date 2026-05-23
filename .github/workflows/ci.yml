@@ -37,7 +37,7 @@ jobs:
             -x apps/*/migrations/,apps/*/tests/ \
             --severity-level medium \
             --confidence-level medium \
-            -f json -o bandit-report.json || true
+            -f json -o bandit-report.json
           bandit -r apps/ config/ \
             -x apps/*/migrations/,apps/*/tests/ \
             --severity-level high \
@@ -108,7 +108,7 @@ jobs:
 
       - name: Validate Django configuration
         working-directory: backend
-        run: python manage.py check --deploy 2>&1 || true
+        run: python manage.py check --deploy
 
       - name: Check for pending migrations
         working-directory: backend

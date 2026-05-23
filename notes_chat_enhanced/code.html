@@ -82,8 +82,6 @@
   #hamburger-btn { display:none; }
   @media (max-width:1023px) { #hamburger-btn { display:inline-flex; } }
 </style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="../supabase-config.js"></script>
 </head>
 <body class="bg-background font-body-md text-on-background antialiased overflow-hidden h-screen">
 <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
@@ -134,7 +132,6 @@
   </div>
   {% endif %}
 </aside>
-
 <!-- Top Nav -->
 <header id="main-header" class="fixed top-0 right-0 h-[72px] left-[260px] bg-surface-container-lowest flex items-center justify-between px-gutter shadow-[0px_4px_12px_rgba(0,0,0,0.05)] border-b border-outline-variant z-40">
   <div>
@@ -162,13 +159,10 @@
     </div>
   </div>
 </header>
-
 <!-- Main layout: messages + right panel -->
 <main id="main-content" class="main-content chat-layout ml-[260px] pt-[72px] h-screen flex">
-
   <!-- Chat Column -->
   <section class="flex-1 flex flex-col min-w-0">
-
     <!-- Chat header: who you're talking to -->
     <div class="px-6 py-3 border-b border-outline-variant bg-surface-container-lowest flex items-center gap-4 shrink-0">
       <span class="material-symbols-outlined text-primary">groups</span>
@@ -183,10 +177,8 @@
         <p class="font-label-sm text-label-sm text-on-surface-variant">Messages here are visible to you and your support team.</p>
       </div>
     </div>
-
     <!-- Messages area -->
     <div id="chat-messages" class="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar bg-[#fcf9f9]">
-
       {% if not student_id %}
       <!-- No student profile yet -->
       <div class="flex flex-col items-center justify-center h-full text-center py-20">
@@ -194,7 +186,6 @@
         <p class="font-h3 text-h3 text-on-surface mb-2">Chat not available</p>
         <p class="font-body-md text-body-md text-on-surface-variant max-w-sm">Your student profile is not set up yet. Please contact your counselor.</p>
       </div>
-
       {% elif not counselor and not poc %}
       <!-- No support team assigned -->
       <div class="flex flex-col items-center justify-center h-full text-center py-20">
@@ -202,9 +193,7 @@
         <p class="font-h3 text-h3 text-on-surface mb-2">No support team assigned yet</p>
         <p class="font-body-md text-body-md text-on-surface-variant max-w-sm">Once a counselor or point of contact is assigned to you, you can chat with them here.</p>
       </div>
-
       {% else %}
-
       {% if not chat_messages %}
       <div id="empty-state" class="flex flex-col items-center justify-center py-16 text-center">
         <span class="material-symbols-outlined text-[48px] text-on-surface-variant mb-4">chat_bubble_outline</span>
@@ -212,7 +201,6 @@
         <p class="font-body-md text-body-md text-on-surface-variant">Send a message below to start the conversation.</p>
       </div>
       {% endif %}
-
       <!-- Existing messages from DB -->
       {% for msg in chat_messages %}
       {% if msg.sender.pk == user.pk %}
@@ -243,10 +231,8 @@
       </div>
       {% endif %}
       {% endfor %}
-
       {% endif %}
     </div>
-
     <!-- Input box -->
     {% if student_id and counselor or student_id and poc %}
     <div class="px-6 py-4 border-t border-outline-variant bg-surface-container-lowest shrink-0">
@@ -267,13 +253,10 @@
       <p class="text-[10px] text-on-surface-variant text-center mt-2 uppercase tracking-widest font-label-bold opacity-60">Enter to send · Shift+Enter for new line</p>
     </div>
     {% endif %}
-
   </section>
-
   <!-- Right panel: support team info -->
   <aside class="w-64 bg-surface-container-low border-l border-outline-variant p-5 hidden lg:flex flex-col gap-5 overflow-y-auto custom-scrollbar shrink-0">
     <h3 class="font-label-bold text-label-bold text-on-surface uppercase tracking-wider">Your Support Team</h3>
-
     {% if counselor %}
     <div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-4">
       <div class="flex items-center gap-3 mb-3">
@@ -295,7 +278,6 @@
       </a>
     </div>
     {% endif %}
-
     {% if poc %}
     <div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-4">
       <div class="flex items-center gap-3 mb-3">
@@ -317,7 +299,6 @@
       </a>
     </div>
     {% endif %}
-
     {% if not counselor and not poc %}
     <div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-4 text-center">
       <span class="material-symbols-outlined text-on-surface-variant text-[32px] mb-2 block">person_off</span>
@@ -325,9 +306,7 @@
     </div>
     {% endif %}
   </aside>
-
 </main>
-
 <script>
 function toggleSidebar() {
   const sb = document.getElementById('sidebar');
@@ -344,9 +323,7 @@ document.addEventListener('keydown', function(e) {
   const currentUserId = {{ user.pk }};
   const currentUserName = "{{ user.full_name|default:user.email|escapejs }}";
   const currentUserInitial = "{{ user.full_name|default:user.email|first|upper }}";
-
   let socket = null;
-
   function setStatus(connected) {
     const dot = document.getElementById("ws-dot");
     const text = document.getElementById("ws-text");
@@ -364,17 +341,14 @@ document.addEventListener('keydown', function(e) {
       if (inp) inp.disabled = true;
     }
   }
-
   function connect() {
     if (!studentId) return;
     if (socket && socket.readyState < WebSocket.CLOSING) socket.close();
     const proto = window.location.protocol === "https:" ? "wss" : "ws";
     socket = new WebSocket(`${proto}://${window.location.host}/ws/chat/${studentId}/`);
-
     socket.onopen = () => setStatus(true);
     socket.onclose = () => { setStatus(false); setTimeout(connect, 3000); };
     socket.onerror = () => setStatus(false);
-
     socket.onmessage = (e) => {
       const data = JSON.parse(e.data);
       // Avoid duplicating the optimistic message we already appended
@@ -385,20 +359,16 @@ document.addEventListener('keydown', function(e) {
       appendMessage(data.content, data.sender_id, data.sender_name, data.sender_role, data.created_at, false);
     };
   }
-
   function appendMessage(content, senderId, senderName, senderRole, time, optimistic) {
     const container = document.getElementById("chat-messages");
     const empty = document.getElementById("empty-state");
     if (empty) empty.remove();
-
     const isSelf = senderId === currentUserId;
     const initial = (senderName || "?")[0].toUpperCase();
     const timeStr = time || new Date().toLocaleTimeString([], {hour: "2-digit", minute: "2-digit"});
-
     const el = document.createElement("div");
     el.className = isSelf ? "flex justify-end gap-3" : "flex gap-3";
     if (optimistic) el.setAttribute("data-optimistic", "1");
-
     if (isSelf) {
       el.innerHTML = `
         <div class="max-w-[70%]">
@@ -420,34 +390,28 @@ document.addEventListener('keydown', function(e) {
         </div>
       `;
     }
-
     container.appendChild(el);
     container.scrollTop = container.scrollHeight;
   }
-
   function escHtml(s) {
     return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
   }
-
   function sendMessage() {
     const input = document.getElementById("msg-input");
     const content = input.value.trim();
     if (!content || !socket || socket.readyState !== WebSocket.OPEN) return;
-
     // Optimistic append
     appendMessage(content, currentUserId, currentUserName, "student", null, true);
     socket.send(JSON.stringify({ message: content }));
     input.value = "";
     input.style.height = "auto";
   }
-
   function handleKey(e) {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
     }
   }
-
   // Auto-grow textarea
   const input = document.getElementById("msg-input");
   if (input) {
@@ -456,14 +420,11 @@ document.addEventListener('keydown', function(e) {
       input.style.height = Math.min(input.scrollHeight, 144) + "px";
     });
   }
-
   // Scroll to bottom on load
   const msgs = document.getElementById("chat-messages");
   if (msgs) msgs.scrollTop = msgs.scrollHeight;
-
   connect();
 </script>
-
 <!-- ===== FOOTER ===== -->
 <footer id="main-footer" style="margin-left:260px;" class="border-t border-[#e4beba] bg-[#fff0ef] py-4 px-6 text-center text-xs text-[#5b403d]">
   <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-1">
@@ -472,7 +433,6 @@ document.addEventListener('keydown', function(e) {
     <button onclick="document.getElementById('pp-modal').classList.remove('hidden')" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">Privacy Policy</button>
   </div>
 </footer>
-
 <!-- T&amp;C Modal -->
 <div id="tc-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-black/40 p-4" onclick="if(event.target===this)this.classList.add('hidden')">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col">
@@ -485,13 +445,11 @@ document.addEventListener('keydown', function(e) {
     <div class="overflow-y-auto px-6 py-5 text-sm text-[#271816] leading-relaxed">
       <h3 class="text-base font-semibold text-[#a20513] mb-1" style="font-family:'Lexend',sans-serif;">Intelligent Education CRM Platform</h3>
       <p class="text-[#5b403d] text-xs mb-4">Effective Date: May 13, 2026</p>
-
       <h4 class="font-semibold text-[#271816] mb-1">1. Introduction</h4>
       <p class="mb-2">Welcome to the Intelligent Education CRM Platform (&ldquo;Platform&rdquo;), operated by Intelligent Education (&ldquo;Intelligent Education,&rdquo; &ldquo;Company,&rdquo; &ldquo;we,&rdquo; &ldquo;our,&rdquo; or &ldquo;us&rdquo;).</p>
       <p class="mb-2">These Terms and Conditions (&ldquo;Terms&rdquo;) govern access to and use of the Platform, including all associated services, software, AI-assisted features, communications, databases, dashboards, document management tools, and integrations.</p>
       <p class="mb-2">By accessing or using the Platform, you agree to comply with and be legally bound by these Terms.</p>
       <p class="mb-4 font-medium text-[#a20513]">If you do not agree with these Terms, you must not use the Platform.</p>
-
       <h4 class="font-semibold text-[#271816] mb-1">2. Purpose of the Platform</h4>
       <p class="mb-2">The Platform is designed to assist Intelligent Education in managing:</p>
       <ul class="list-disc pl-5 mb-2 space-y-1">
@@ -507,7 +465,6 @@ document.addEventListener('keydown', function(e) {
         <li>Authorized employees, counselors, and representatives of Intelligent Education</li>
         <li>Registered clients and students associated with Intelligent Education</li>
       </ul>
-
       <h4 class="font-semibold text-[#271816] mb-1">3. Eligibility</h4>
       <p class="mb-2">By using the Platform, you represent and warrant that:</p>
       <ul class="list-disc pl-5 mb-2 space-y-1">
@@ -516,7 +473,6 @@ document.addEventListener('keydown', function(e) {
         <li>You will use the Platform only for lawful purposes.</li>
       </ul>
       <p class="mb-4">If you are accessing the Platform on behalf of an organization or institution, you confirm that you are authorized to do so.</p>
-
       <h4 class="font-semibold text-[#271816] mb-1">4. User Accounts and Access</h4>
       <p class="mb-2">Users may be required to create an account to access certain features. You agree to:</p>
       <ul class="list-disc pl-5 mb-2 space-y-1">
@@ -530,51 +486,37 @@ document.addEventListener('keydown', function(e) {
         <li>Engage in fraudulent, abusive, or unlawful conduct;</li>
         <li>Attempt unauthorized access to systems or data.</li>
       </ul>
-
       <h4 class="font-semibold text-[#271816] mb-1">5. Data Collection and Storage</h4>
       <p class="mb-2">The Platform may collect, process, and store personal and sensitive information, including but not limited to: names and contact details, academic records, identification documents, passport information, financial information, visa-related documentation, and application-related materials.</p>
       <p class="mb-2">Data may be securely stored and processed using third-party infrastructure including Supabase, Railway, Google, and OpenAI.</p>
       <p class="mb-4">While reasonable security measures are implemented, Intelligent Education does not guarantee absolute security of data transmission or storage systems.</p>
-
       <h4 class="font-semibold text-[#271816] mb-1">6. AI-Assisted Features Disclaimer</h4>
       <p class="mb-2">The Platform may use artificial intelligence to assist with recommendations, workflow automation, draft generation, data processing, and communication support.</p>
       <p class="mb-2">AI-generated outputs may contain inaccuracies, should not be treated as professional legal, immigration, financial, or admission advice, and require independent human review.</p>
       <p class="mb-4">Intelligent Education makes no guarantees regarding the accuracy, reliability, or suitability of AI-generated outputs.</p>
-
       <h4 class="font-semibold text-[#271816] mb-1">7. No Guarantee of Admission or Visa Approval</h4>
       <p class="mb-4">Use of the Platform does not guarantee admission to any educational institution, scholarship awards, visa approval, immigration outcomes, employment opportunities, or academic/professional success. All such decisions are made solely by the relevant authorities and institutions.</p>
-
       <h4 class="font-semibold text-[#271816] mb-1">8. Acceptable Use</h4>
       <p class="mb-4">Users agree not to upload unlawful or fraudulent content, attempt unauthorized system access, interfere with Platform security, reverse engineer or exploit the Platform, or use it for illegal purposes. Intelligent Education reserves the right to investigate and take legal action for misuse.</p>
-
       <h4 class="font-semibold text-[#271816] mb-1">9. Intellectual Property</h4>
       <p class="mb-4">All Platform content, branding, software, workflows, designs, and features are owned by or licensed to Intelligent Education. Users may not copy, reproduce, redistribute, modify, or commercially exploit any part of the Platform without prior written consent.</p>
-
       <h4 class="font-semibold text-[#271816] mb-1">10. Third-Party Services and Integrations</h4>
       <p class="mb-4">The Platform integrates with third-party services including Google, Gmail, OpenAI, Supabase, and Railway. Intelligent Education is not responsible for third-party outages, data losses, policy changes, or service interruptions outside its reasonable control. Use of third-party services may be subject to their respective terms.</p>
-
       <h4 class="font-semibold text-[#271816] mb-1">11. Service Availability</h4>
       <p class="mb-4">The Platform is provided on an &ldquo;as is&rdquo; and &ldquo;as available&rdquo; basis. Intelligent Education does not guarantee continuous uptime, error-free operation, or uninterrupted access. Maintenance, updates, or third-party failures may temporarily affect availability.</p>
-
       <h4 class="font-semibold text-[#271816] mb-1">12. Limitation of Liability</h4>
       <p class="mb-2">To the maximum extent permitted by law, Intelligent Education shall not be liable for indirect, incidental, consequential, special, or punitive damages arising from use of the Platform, AI inaccuracies, data loss, admission or visa outcomes, service interruptions, unauthorized access, or third-party failures.</p>
       <p class="mb-4">In no event shall Intelligent Education&rsquo;s total liability exceed the amount paid, if any, by the user for access during the preceding three (3) months.</p>
-
       <h4 class="font-semibold text-[#271816] mb-1">13. Indemnification</h4>
       <p class="mb-4">Users agree to indemnify and hold harmless Intelligent Education, its employees, affiliates, contractors, and representatives from any claims, liabilities, or expenses arising from violation of these Terms, misuse of the Platform, or violation of applicable laws or third-party rights.</p>
-
       <h4 class="font-semibold text-[#271816] mb-1">14. Suspension and Termination</h4>
       <p class="mb-4">Intelligent Education reserves the right to suspend or terminate access at any time, without prior notice, for security concerns, policy violations, fraudulent activity, misuse, or legal compliance requirements.</p>
-
       <h4 class="font-semibold text-[#271816] mb-1">15. Privacy</h4>
       <p class="mb-4">Use of the Platform is also subject to the Intelligent Education Privacy Policy. Users acknowledge and consent to the collection, storage, and processing of data necessary for Platform operation.</p>
-
       <h4 class="font-semibold text-[#271816] mb-1">16. Governing Law and Jurisdiction</h4>
       <p class="mb-4">These Terms shall be governed by the laws of India. Any disputes shall be subject to the exclusive jurisdiction of the courts located in India.</p>
-
       <h4 class="font-semibold text-[#271816] mb-1">17. Modifications to Terms</h4>
       <p class="mb-4">Intelligent Education reserves the right to modify these Terms at any time. Updated versions may be published within the Platform or via official communications. Continued use of the Platform after modifications constitutes acceptance of the revised Terms.</p>
-
       <h4 class="font-semibold text-[#271816] mb-1">18. Contact Information</h4>
       <p>For questions regarding these Terms, contact:<br/><strong>Intelligent Education</strong></p>
     </div>
@@ -592,57 +534,41 @@ document.addEventListener('keydown', function(e) {
     <div class="overflow-y-auto px-6 py-5 text-sm text-[#271816] leading-relaxed space-y-3">
       <h3 class="text-base font-semibold text-[#a20513]" style="font-family:'Lexend',sans-serif;">Intelligent Education CRM Platform</h3>
       <p class="text-[#5b403d] text-xs">Effective Date: May 13, 2026</p>
-
       <h4 class="font-semibold text-[#271816]">1. Introduction</h4>
       <p>This Privacy Policy explains how Intelligent Education (&ldquo;Intelligent Education,&rdquo; &ldquo;Company,&rdquo; &ldquo;we,&rdquo; &ldquo;our,&rdquo; or &ldquo;us&rdquo;) collects, uses, stores, processes, and protects personal information through the Intelligent Education CRM Platform (&ldquo;Platform&rdquo;).</p>
       <p>By accessing or using the Platform, you consent to the practices described in this Privacy Policy.</p>
-
       <h4 class="font-semibold text-[#271816]">2. Scope of This Policy</h4>
       <p>This Privacy Policy applies to students and clients, counselors and employees, authorized representatives, and all users interacting with the Platform and related services — including information collected through the CRM Platform, forms and applications, email communications, AI-assisted features, and integrated third-party services.</p>
-
       <h4 class="font-semibold text-[#271816]">3. Information We Collect</h4>
       <p><strong>Personal Information:</strong> Full name, date of birth, gender, nationality, contact details, address, email address, phone number.</p>
       <p><strong>Academic &amp; Professional:</strong> Academic transcripts, test scores, resume/CV, educational history, employment details.</p>
       <p><strong>Identity &amp; Verification Documents:</strong> Passport copies, government-issued identification, visa-related documents, financial statements, supporting application documents.</p>
       <p><strong>Technical &amp; Usage Information:</strong> IP address, device information, browser type, login activity, usage analytics, system logs.</p>
       <p><strong>Communication Data:</strong> Emails, messages, counseling notes, application discussions, AI-assisted communication records.</p>
-
       <h4 class="font-semibold text-[#271816]">4. How We Use Information</h4>
       <p>We use collected information to manage student applications and workflows, provide counseling and support services, process admissions-related activities, manage communications, generate AI-assisted recommendations and drafts, improve Platform functionality and security, maintain internal operational records, and fulfill legal and compliance obligations.</p>
-
       <h4 class="font-semibold text-[#271816]">5. AI-Assisted Processing</h4>
       <p>The Platform may use artificial intelligence technologies including OpenAI to generate drafts, provide workflow assistance, support administrative tasks, and improve productivity. AI-generated content may not always be accurate, should be independently reviewed, and does not constitute legal, immigration, or professional advice.</p>
-
       <h4 class="font-semibold text-[#271816]">6. Third-Party Service Providers</h4>
       <p>We may use trusted third-party platforms including Supabase, Railway, Google services and APIs, Gmail integrations, and OpenAI. These providers may process or store data under their own policies. We are not responsible for the independent privacy practices of third-party services.</p>
-
       <h4 class="font-semibold text-[#271816]">7. Data Storage and Security</h4>
       <p>We implement commercially reasonable technical and organizational safeguards to protect personal information from unauthorized access, disclosure, alteration, loss, and misuse. However, no internet-based platform can guarantee absolute security. Users acknowledge and accept inherent cybersecurity and transmission risks.</p>
-
       <h4 class="font-semibold text-[#271816]">8. Data Sharing and Disclosure</h4>
       <p>We do not sell personal information. We may disclose information to authorized employees and counselors, to educational institutions for applications, to government or visa authorities when necessary, to service providers supporting Platform operations, or when required by law, legal process, or regulatory obligations.</p>
-
       <h4 class="font-semibold text-[#271816]">9. Data Retention</h4>
       <p>We retain personal information only as long as reasonably necessary for business operations, application management, legal compliance, dispute resolution, and recordkeeping purposes. We reserve the right to retain certain records where legally required or operationally necessary.</p>
-
       <h4 class="font-semibold text-[#271816]">10. User Rights</h4>
       <p>Subject to applicable law, users may request access to their personal information, correction of inaccurate data, deletion of certain data, restriction of processing, or withdrawal of consent where applicable. Requests may be subject to identity verification, legal obligations, and operational requirements.</p>
-
       <h4 class="font-semibold text-[#271816]">11. Cookies and Analytics</h4>
       <p>The Platform may use cookies, session technologies, analytics tools, and tracking technologies to improve user experience, security, and performance. Users may disable certain cookies through browser settings, though some features may not function properly.</p>
-
       <h4 class="font-semibold text-[#271816]">12. Children&rsquo;s Privacy</h4>
       <p>The Platform is not intentionally directed toward children under the age required by applicable law without appropriate authorization or supervision. Where required, users represent that appropriate consent has been obtained from parents or legal guardians.</p>
-
       <h4 class="font-semibold text-[#271816]">13. International Data Processing</h4>
       <p>Data may be processed or stored on servers in different jurisdictions depending on the infrastructure and service providers used. By using the Platform, users consent to such transfers and processing where legally permitted.</p>
-
       <h4 class="font-semibold text-[#271816]">14. Limitation of Liability</h4>
       <p>To the fullest extent permitted by law, Intelligent Education shall not be liable for unauthorized access, cyberattacks, third-party breaches, data transmission failures, service interruptions, or losses arising from external systems or providers. Users use the Platform at their own risk.</p>
-
       <h4 class="font-semibold text-[#271816]">15. Changes to This Privacy Policy</h4>
       <p>We may update this Privacy Policy periodically. Updated versions may be posted on the Platform with a revised effective date. Continued use of the Platform after updates constitutes acceptance of the revised Privacy Policy.</p>
-
       <h4 class="font-semibold text-[#271816]">16. Contact Information</h4>
       <p>For questions or privacy-related requests, contact:<br/><strong>Intelligent Education</strong></p>
     </div>

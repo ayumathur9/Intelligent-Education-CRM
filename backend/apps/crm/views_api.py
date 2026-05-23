@@ -12,7 +12,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from apps.users.models import Role
-from apps.users.permissions import IsCounselorOrAdmin
+from apps.users.permissions import IsCounselorOrAdmin, IsCounselorEditorOrAdmin
 
 from .models import Course, Enquiry, FollowUp, Lead, School, Student, StudentActivity, StudentPreference
 from .serializers import (
@@ -93,8 +93,11 @@ class StudentViewSet(viewsets.ModelViewSet):
     filterset_fields = ("is_active", "course")
 
     def get_permissions(self):
-        # export_csv is also a counselor/admin-only action.
-        if self.action in ("list", "retrieve", "update", "partial_update", "destroy", "create", "export_csv"):
+        # Editors can list/retrieve students they work with.
+        if self.action in ("list", "retrieve"):
+            return [IsCounselorEditorOrAdmin()]
+        # Mutations and export are counselor/admin only.
+        if self.action in ("update", "partial_update", "destroy", "create", "export_csv"):
             return [IsCounselorOrAdmin()]
         return [permissions.IsAuthenticated()]
 
@@ -174,6 +177,17 @@ class StudentViewSet(viewsets.ModelViewSet):
 
         resp = StreamingHttpResponse(_generate(), content_type="text/csv")
         resp["Content-Disposition"] = 'attachment; filename="students_export.csv"'
+
+        try:
+            from apps.audit.services import log_activity
+            log_activity(
+                actor=request.user,
+                action="student.export_csv",
+                metadata={"filter": is_active_param or "all"},
+            )
+        except Exception:
+            pass
+
         return resp
 
     @action(detail=False, methods=["get", "patch"], url_path="me", permission_classes=(permissions.IsAuthenticated,))

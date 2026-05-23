@@ -296,9 +296,13 @@ class Student(models.Model):
         return self.deleted_at is not None
 
     @classmethod
-    def generate_student_code(cls) -> str:
+    def _generate_code_locked(cls) -> str:
+        """Generate the next student code inside a select_for_update lock."""
         from django.db.models import Max
-        last = cls.objects.aggregate(Max("student_code"))["student_code__max"]
+        last = (
+            cls.all_objects.select_for_update()
+            .aggregate(Max("student_code"))["student_code__max"]
+        )
         if last and last.startswith("STU-") and last[4:].isdigit():
             next_num = int(last[4:]) + 1
         else:
@@ -307,7 +311,16 @@ class Student(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.student_code:
-            self.student_code = self.__class__.generate_student_code()
+            from django.db import IntegrityError, transaction
+            for _ in range(5):
+                try:
+                    with transaction.atomic():
+                        self.student_code = self.__class__._generate_code_locked()
+                        super().save(*args, **kwargs)
+                        return
+                except IntegrityError:
+                    self.student_code = ""
+            raise RuntimeError("Unable to generate a unique student code after 5 retries")
         super().save(*args, **kwargs)
 
     def __str__(self) -> str:

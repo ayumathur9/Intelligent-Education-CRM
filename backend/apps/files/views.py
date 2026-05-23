@@ -1,14 +1,13 @@
 """
 File upload and delete API views.
 
-CRIT-003: All production uploads go to Supabase Storage via the
-apps.common.storage.supabase_storage service layer.  Local filesystem
-storage is retained only for development (when SUPABASE_URL is absent).
+All uploads are stored on the local filesystem via Django's default_storage
+(configured to FileSystemStorage → MEDIA_ROOT). In production, ensure
+MEDIA_ROOT is on a persistent volume.
 """
 from __future__ import annotations
 
 import logging
-import mimetypes
 import uuid
 
 from django.conf import settings
@@ -29,7 +28,6 @@ from .serializers import FileObjectSerializer
 
 logger = logging.getLogger(__name__)
 
-_ALLOWED_TYPES: frozenset[str] = frozenset(getattr(settings, "ALLOWED_UPLOAD_MIME_TYPES", set()))
 _ALLOWED_EXTS: frozenset[str] = frozenset(getattr(settings, "ALLOWED_UPLOAD_EXTENSIONS", set()))
 _MAX_BYTES: int = getattr(settings, "MAX_UPLOAD_SIZE_BYTES", 10 * 1024 * 1024)
 
@@ -44,22 +42,7 @@ def _validate_upload(file) -> str | None:
     if not ext or ext not in _ALLOWED_EXTS:
         return f"File extension '.{ext}' is not allowed."
 
-    # Prefer the sniffed MIME type over the client-supplied header (spoofable).
-    sniffed = mimetypes.guess_type(file.name)[0] or ""
-    client_ct = (file.content_type or "").split(";")[0].strip().lower()
-    resolved_ct = sniffed.lower() if sniffed else client_ct
-
-    if resolved_ct not in _ALLOWED_TYPES:
-        return f"Content type '{resolved_ct}' is not allowed."
-
     return None
-
-
-def _supabase_configured() -> bool:
-    return bool(
-        getattr(settings, "SUPABASE_URL", "")
-        and getattr(settings, "SUPABASE_SERVICE_ROLE_KEY", "")
-    )
 
 
 class FileUploadView(APIView):
@@ -75,9 +58,10 @@ class FileUploadView(APIView):
         if error:
             return Response({"detail": error}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Run malware scan before persisting the file.
-        from apps.common.security.file_scanner import scan_file
         file_bytes = file.read()
+
+        # Content-level security scan before persisting.
+        from apps.common.security.file_scanner import scan_file
         scan_result = scan_file(file_bytes=file_bytes, filename=file.name)
         if not scan_result.safe:
             logger.warning(
@@ -90,47 +74,30 @@ class FileUploadView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        sniffed = mimetypes.guess_type(file.name)[0]
-        content_type = sniffed or (file.content_type or "application/octet-stream")
+        import mimetypes
+        content_type = mimetypes.guess_type(file.name)[0] or (file.content_type or "application/octet-stream")
+        ext = file.name.rsplit(".", 1)[-1].lower()
 
         try:
-            if _supabase_configured():
-                from apps.common.storage.supabase_storage import upload_file
-                path, public_url = upload_file(
-                    folder="uploads",
-                    filename=file.name,
-                    file_bytes=file_bytes,
-                    content_type=content_type,
-                )
-                bucket = settings.SUPABASE_STORAGE_BUCKET
-            else:
-                # Development fallback: local filesystem.
-                ext = file.name.rsplit(".", 1)[-1].lower()
-                path = f"uploads/{uuid.uuid4()}.{ext}"
-                default_storage.save(path, ContentFile(file_bytes))
-                public_url = f"{settings.MEDIA_URL}{path}"
-                bucket = "local"
+            path = f"uploads/{uuid.uuid4()}.{ext}"
+            default_storage.save(path, ContentFile(file_bytes))
+            public_url = f"{settings.MEDIA_URL}{path}"
         except Exception as exc:
             logger.error("Upload storage failure for user %s: %s", request.user.pk, exc)
             return Response(
-                {"detail": f"Storage upload failed: {exc}"},
+                {"detail": "Storage upload failed."},
                 status=status.HTTP_502_BAD_GATEWAY,
             )
 
         obj = FileObject.objects.create(
-            bucket=bucket,
+            bucket="local",
             path=path,
             public_url=public_url,
             content_type=content_type,
             size_bytes=file.size,
             uploaded_by=request.user,
         )
-        logger.info(
-            "File uploaded: pk=%s path=%s user=%s",
-            obj.pk,
-            path,
-            request.user.pk,
-        )
+        logger.info("File uploaded: pk=%s path=%s user=%s", obj.pk, path, request.user.pk)
         return Response(FileObjectSerializer(obj).data, status=status.HTTP_201_CREATED)
 
 
@@ -149,7 +116,7 @@ class FileDeleteView(APIView):
         if not is_owner and not is_privileged:
             return Response(status=status.HTTP_403_FORBIDDEN)
 
-        # Soft-delete: preserve DB record and Supabase file for audit history.
+        # Soft-delete: preserve DB record for audit history.
         obj.deleted_at = timezone.now()
         obj.save(update_fields=["deleted_at"])
         logger.info("File soft-deleted: pk=%s by user=%s", pk, user.pk)

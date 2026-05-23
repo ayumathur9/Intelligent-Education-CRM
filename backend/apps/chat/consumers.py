@@ -2,9 +2,12 @@ import json
 
 from asgiref.sync import sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
+from django.conf import settings
 from django.utils import timezone
 
 from apps.common.ws_security import WebSocketSecurityMixin
+
+_MAX_CONTENT_BYTES = int(getattr(settings, "WS_MAX_MESSAGE_BYTES", 64 * 1024))
 
 
 class ChatConsumer(WebSocketSecurityMixin, AsyncWebsocketConsumer):
@@ -56,6 +59,12 @@ class ChatConsumer(WebSocketSecurityMixin, AsyncWebsocketConsumer):
 
         content = parsed.get("message", "").strip()
         if not content:
+            return
+        if len(content.encode()) > _MAX_CONTENT_BYTES:
+            await self.send(text_data=json.dumps({
+                "type": "error", "code": "message_too_large",
+                "message": "Message content too large.",
+            }))
             return
 
         user = self.scope["user"]
@@ -170,7 +179,17 @@ class DMConsumer(WebSocketSecurityMixin, AsyncWebsocketConsumer):
             return
 
         self.ws_user_id = user.pk
-        self.other_user_id = int(self.scope["url_route"]["kwargs"]["other_user_id"])
+        try:
+            self.other_user_id = int(self.scope["url_route"]["kwargs"]["other_user_id"])
+        except (KeyError, ValueError, TypeError):
+            await self.close(code=4400)
+            return
+
+        # Prevent connecting to a non-existent or self-referential user.
+        if self.other_user_id == user.pk or not await self._other_user_exists():
+            await self.close(code=4404)
+            return
+
         from apps.chat.models import DirectMessage
         self.room_group_name = DirectMessage.room_name(user.pk, self.other_user_id)
 
@@ -205,6 +224,12 @@ class DMConsumer(WebSocketSecurityMixin, AsyncWebsocketConsumer):
         content = data.get("message", "").strip()
         if not content:
             return
+        if len(content.encode()) > _MAX_CONTENT_BYTES:
+            await self.send(text_data=json.dumps({
+                "type": "error", "code": "message_too_large",
+                "message": "Message content too large.",
+            }))
+            return
 
         user = self.scope["user"]
         msg = await self._save_message(user, content)
@@ -230,6 +255,11 @@ class DMConsumer(WebSocketSecurityMixin, AsyncWebsocketConsumer):
 
     async def chat_message(self, event):
         await self.send(text_data=json.dumps(event))
+
+    @sync_to_async
+    def _other_user_exists(self) -> bool:
+        from apps.users.models import User
+        return User.objects.filter(pk=self.other_user_id, is_active=True).exists()
 
     @sync_to_async
     def _save_message(self, user, content):

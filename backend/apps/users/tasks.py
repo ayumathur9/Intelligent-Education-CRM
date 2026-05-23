@@ -82,6 +82,21 @@ def purge_expired_tokens(self) -> None:
 
 @shared_task(
     bind=True,
+    name="apps.users.tasks.cleanup_expired_reset_tokens",
+    ignore_result=True,
+)
+def cleanup_expired_reset_tokens(self) -> None:
+    """Daily maintenance: delete expired/used PasswordResetToken records."""
+    from django.utils import timezone
+    from apps.users.models import PasswordResetToken
+
+    cutoff = timezone.now()
+    deleted, _ = PasswordResetToken.objects.filter(expires_at__lt=cutoff).delete()
+    logger.info("cleanup_expired_reset_tokens: deleted %d expired tokens", deleted)
+
+
+@shared_task(
+    bind=True,
     name="apps.users.tasks.send_assignment_email",
     ignore_result=True,
     autoretry_for=(Exception,),

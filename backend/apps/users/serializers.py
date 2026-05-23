@@ -43,23 +43,42 @@ class LoginSerializer(serializers.Serializer):
     def validate(self, attrs):
         request = self.context.get("request")
         ip = self._get_ip(request)
+        email = attrs["email"]
 
-        user = authenticate(email=attrs["email"], password=attrs["password"])
+        # SEC-002: block locked-out accounts before hitting the DB authenticator.
+        try:
+            from apps.common.security.anomaly_detection import is_account_locked
+            if is_account_locked(email):
+                raise serializers.ValidationError(_("Account is temporarily locked. Try again later."))
+        except serializers.ValidationError:
+            raise
+        except Exception:
+            pass
+
+        user = authenticate(email=email, password=attrs["password"])
         if not user:
-            # SEC-002: record failed login for brute-force detection.
+            # SEC-002: record failed login for both IP and per-email counters.
             try:
-                from apps.common.security.anomaly_detection import record_failed_login
+                from apps.common.security.anomaly_detection import (
+                    record_failed_login,
+                    record_failed_login_for_email,
+                )
                 record_failed_login(ip)
+                record_failed_login_for_email(email)
             except Exception:
                 pass
             raise serializers.ValidationError(_("Invalid credentials."))
         if not user.is_active:
             raise serializers.ValidationError(_("User is inactive."))
 
-        # SEC-002: impossible-velocity detection (non-blocking).
+        # SEC-002: clear failure counters on successful authentication.
         try:
-            from apps.common.security.anomaly_detection import check_impossible_velocity
+            from apps.common.security.anomaly_detection import (
+                check_impossible_velocity,
+                clear_failed_login_attempts,
+            )
             check_impossible_velocity(user.pk, ip)
+            clear_failed_login_attempts(email)
         except Exception:
             pass
 

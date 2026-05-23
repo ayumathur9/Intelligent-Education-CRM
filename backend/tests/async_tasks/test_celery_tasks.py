@@ -136,10 +136,18 @@ class TestFilesTasks:
         result = async_malware_scan(999999)
         assert result["status"] == "not_found"
 
-    def test_cleanup_orphaned_files_skips_without_supabase(self, settings):
-        settings.SUPABASE_URL = ""
-        settings.SUPABASE_SERVICE_ROLE_KEY = ""
+    def test_async_malware_scan_no_path(self, settings):
+        """async_malware_scan returns no_path for a file with empty path."""
         settings.CELERY_TASK_ALWAYS_EAGER = True
-        from apps.files.tasks import cleanup_orphaned_files
-        # Should return without error when Supabase not configured.
-        cleanup_orphaned_files()
+        from apps.files.models import FileObject
+        from apps.users.models import User
+        admin = User.objects.filter(role="admin").first()
+        if admin:
+            obj = FileObject.objects.create(
+                bucket="local", path="", public_url="", content_type="image/jpeg",
+                size_bytes=0, uploaded_by=admin,
+            )
+            from apps.files.tasks import async_malware_scan
+            result = async_malware_scan(obj.pk)
+            assert result["status"] == "no_path"
+            obj.delete()

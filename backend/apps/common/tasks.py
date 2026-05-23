@@ -1,20 +1,28 @@
 """
 RECOVERY-001: Backup automation Celery tasks.
 
-Performs scheduled PostgreSQL dumps, uploads to Supabase Storage,
-enforces a 30-day retention policy, and logs the result.
+Performs scheduled PostgreSQL dumps to the local BACKUP_ROOT directory
+and enforces a configurable retention policy (default 30 days).
 """
 from __future__ import annotations
 
 import logging
 import os
 import subprocess
-import tempfile
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
 from celery import shared_task
 
 logger = logging.getLogger(__name__)
+
+
+def _backup_dir() -> Path:
+    """Return the backup directory path, creating it if necessary."""
+    from django.conf import settings
+    backup_root = Path(getattr(settings, "BACKUP_ROOT", Path(__file__).resolve().parent.parent.parent / "backups"))
+    backup_root.mkdir(parents=True, exist_ok=True)
+    return backup_root
 
 
 @shared_task(
@@ -26,13 +34,11 @@ logger = logging.getLogger(__name__)
 )
 def backup_database(self) -> dict:
     """
-    RECOVERY-001: Dump the PostgreSQL database and upload to Supabase Storage.
+    RECOVERY-001: Dump the PostgreSQL database to a local gzip file.
 
-    Triggered manually or via Celery beat (configure in CELERY_BEAT_SCHEDULE).
+    Output: BACKUP_ROOT/backup-<timestamp>.sql.gz
     Returns a status dict with the backup file path and size.
     """
-    from django.conf import settings
-
     db_url = os.getenv("DATABASE_URL", "")
     if not db_url:
         logger.error("backup_database: DATABASE_URL not set — cannot back up")
@@ -40,57 +46,40 @@ def backup_database(self) -> dict:
 
     timestamp = datetime.now(tz=timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     filename = f"backup-{timestamp}.sql.gz"
-
-    with tempfile.NamedTemporaryFile(suffix=".sql.gz", delete=False) as tmp:
-        tmp_path = tmp.name
+    backup_dir = _backup_dir()
+    out_path = backup_dir / filename
 
     try:
-        # Run pg_dump and pipe through gzip.
         env = {**os.environ, "PGPASSWORD": _extract_pg_password(db_url)}
-        cmd = ["pg_dump", "--no-owner", "--no-acl", db_url]
-        gzip_cmd = ["gzip", "-c"]
-
-        with open(tmp_path, "wb") as out_file:
-            dump = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
-            gzip = subprocess.Popen(gzip_cmd, stdin=dump.stdout, stdout=out_file, stderr=subprocess.PIPE)
-            dump.stdout.close()
-            gzip.wait()
-            dump.wait()
+        dump = subprocess.Popen(
+            ["pg_dump", "--no-owner", "--no-acl", db_url],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            env=env,
+        )
+        gzip = subprocess.Popen(
+            ["gzip", "-c"],
+            stdin=dump.stdout,
+            stdout=open(out_path, "wb"),
+            stderr=subprocess.PIPE,
+        )
+        dump.stdout.close()
+        gzip.wait()
+        dump.wait()
 
         if dump.returncode != 0:
             stderr = dump.stderr.read().decode()
             raise RuntimeError(f"pg_dump failed (exit {dump.returncode}): {stderr[:500]}")
 
-        file_size = os.path.getsize(tmp_path)
-
-        # Upload to Supabase Storage.
-        if settings.SUPABASE_URL and settings.SUPABASE_SERVICE_ROLE_KEY:
-            with open(tmp_path, "rb") as f:
-                file_bytes = f.read()
-            from apps.common.storage.supabase_storage import upload_file
-            path, url = upload_file(
-                folder="backups",
-                filename=filename,
-                file_bytes=file_bytes,
-                content_type="application/gzip",
-                make_unique=False,
-            )
-            logger.info("backup_database: uploaded %s (%d bytes) → %s", filename, file_size, url)
-            result = {"status": "ok", "path": path, "size_bytes": file_size, "timestamp": timestamp}
-        else:
-            logger.warning("backup_database: Supabase not configured — backup saved locally only at %s", tmp_path)
-            result = {"status": "local_only", "path": tmp_path, "size_bytes": file_size, "timestamp": timestamp}
+        file_size = out_path.stat().st_size
+        logger.info("backup_database: saved %s (%d bytes)", out_path, file_size)
+        return {"status": "ok", "path": str(out_path), "size_bytes": file_size, "timestamp": timestamp}
 
     except Exception as exc:
         logger.error("backup_database FAILED: %s", exc)
-        result = {"status": "error", "reason": str(exc)}
-    finally:
-        try:
-            os.unlink(tmp_path)
-        except OSError:
-            pass
-
-    return result
+        if out_path.exists():
+            out_path.unlink(missing_ok=True)
+        return {"status": "error", "reason": str(exc)}
 
 
 @shared_task(
@@ -102,41 +91,26 @@ def backup_database(self) -> dict:
 )
 def prune_old_backups(self) -> None:
     """
-    RECOVERY-001: Delete backup files older than 30 days from Supabase Storage.
-    Keeps storage costs bounded and enforces retention policy.
+    RECOVERY-001: Delete local backup files older than BACKUP_RETENTION_DAYS.
+    Prevents unbounded disk usage and enforces the retention policy.
     """
     from django.conf import settings
-    from datetime import timedelta
+    retention_days = int(getattr(settings, "BACKUP_RETENTION_DAYS", 30))
+    cutoff = datetime.now(tz=timezone.utc) - timedelta(days=retention_days)
+    backup_dir = _backup_dir()
 
-    if not (settings.SUPABASE_URL and settings.SUPABASE_SERVICE_ROLE_KEY):
-        logger.debug("prune_old_backups: Supabase not configured, skipping")
-        return
+    pruned = 0
+    for f in backup_dir.glob("backup-*.sql.gz"):
+        try:
+            mtime = datetime.fromtimestamp(f.stat().st_mtime, tz=timezone.utc)
+            if mtime < cutoff:
+                f.unlink()
+                pruned += 1
+                logger.info("prune_old_backups: deleted %s", f.name)
+        except Exception as exc:
+            logger.warning("prune_old_backups: could not process %s — %s", f, exc)
 
-    cutoff = datetime.now(tz=timezone.utc) - timedelta(days=30)
-
-    try:
-        from supabase import create_client
-        client = create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_ROLE_KEY)
-        bucket = settings.SUPABASE_STORAGE_BUCKET
-
-        objects = client.storage.from_(bucket).list("backups")
-        pruned = 0
-        for obj in objects:
-            name = obj.get("name", "")
-            created_at_str = obj.get("created_at") or obj.get("updated_at", "")
-            if created_at_str:
-                try:
-                    obj_dt = datetime.fromisoformat(created_at_str.replace("Z", "+00:00"))
-                    if obj_dt < cutoff:
-                        client.storage.from_(bucket).remove([f"backups/{name}"])
-                        pruned += 1
-                        logger.info("prune_old_backups: deleted backups/%s", name)
-                except (ValueError, TypeError):
-                    pass
-
-        logger.info("prune_old_backups: pruned %d old backup files", pruned)
-    except Exception as exc:
-        logger.error("prune_old_backups failed: %s", exc)
+    logger.info("prune_old_backups: pruned %d old backup files", pruned)
 
 
 def _extract_pg_password(db_url: str) -> str:

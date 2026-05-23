@@ -1,4 +1,2 @@
-const SUPABASE_URL = 'https://uojhnyewiobqdysnhbce.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVvamhueWV3aW9icWR5c25oYmNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc3MDQ4MzcsImV4cCI6MjA5MzI4MDgzN30.HzV4_SyDpkJkwcO0r0oX8Eh55fWdKzOv2Rr_HGI9Ncw';
-
-window._supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Supabase has been removed from this project.
+// This file is intentionally empty.

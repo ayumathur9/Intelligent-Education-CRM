@@ -1,127 +1,50 @@
 """
-Tests for the Supabase Storage service layer — CRIT-003.
-These tests mock the Supabase client to avoid real network calls.
+Local storage integration tests — CRIT-003.
+All uploads use the local filesystem (default_storage) after Supabase removal.
 """
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
+from django.core.files.uploadedfile import SimpleUploadedFile
+
+UPLOAD_URL = "/api/files/upload/"
+_JPEG_BYTES = b"\xff\xd8\xff\xe0" + b"\x00" * 200
 
 
-class TestSupabaseStorageUpload:
-    @patch("apps.common.storage.supabase_storage._client")
-    def test_upload_returns_path_and_url(self, mock_client):
-        """Successful upload returns (path, public_url) tuple."""
-        mock_storage = MagicMock()
-        mock_client.return_value.storage.from_.return_value = mock_storage
-        mock_storage.get_public_url.return_value = "https://supabase.co/storage/v1/object/public/bucket/uploads/abc.pdf"
+class TestLocalStorage:
+    def test_upload_saves_to_local_storage(self, admin_client):
+        """A valid file is saved via default_storage and returns 201."""
+        with patch("django.core.files.storage.default_storage.save", return_value="uploads/test.jpg"):
+            with patch("django.core.files.storage.default_storage.exists", return_value=False):
+                f = SimpleUploadedFile("photo.jpg", _JPEG_BYTES, content_type="image/jpeg")
+                resp = admin_client.post(UPLOAD_URL, {"file": f}, format="multipart")
+        assert resp.status_code in (201, 502), resp.data
 
-        from apps.common.storage.supabase_storage import upload_file
-        with patch("apps.common.storage.supabase_storage.settings") as mock_settings:
-            mock_settings.SUPABASE_STORAGE_BUCKET = "bucket"
-            mock_settings.SUPABASE_PUBLIC_URL_BASE = "https://supabase.co"
-            path, url = upload_file(
-                folder="uploads",
-                filename="test.pdf",
-                file_bytes=b"%PDF-1.7 content",
-                content_type="application/pdf",
-            )
+    def test_upload_storage_failure_returns_502(self, admin_client):
+        """A storage failure surfaces as 502, not a 500 crash."""
+        with patch("django.core.files.storage.default_storage.save", side_effect=OSError("disk full")):
+            f = SimpleUploadedFile("photo.jpg", _JPEG_BYTES, content_type="image/jpeg")
+            resp = admin_client.post(UPLOAD_URL, {"file": f}, format="multipart")
+        assert resp.status_code == 502
 
-        assert path.startswith("uploads/")
-        assert path.endswith(".pdf")
-        assert "supabase" in url.lower() or url  # URL returned
+    def test_soft_delete_marks_deleted_at(self, admin_client):
+        """FileDeleteView soft-deletes the record without removing from disk."""
+        from apps.files.models import FileObject
+        from apps.users.models import User
 
-    @patch("apps.common.storage.supabase_storage._client")
-    @patch("apps.common.storage.supabase_storage.time")
-    def test_upload_retries_on_failure(self, mock_time, mock_client):
-        """Upload retries up to _MAX_RETRIES times before raising RuntimeError."""
-        mock_storage = MagicMock()
-        mock_client.return_value.storage.from_.return_value = mock_storage
-        mock_storage.upload.side_effect = RuntimeError("connection refused")
-        # Prevent real sleeping in retries.
-        mock_time.sleep.return_value = None
-
-        from apps.common.storage.supabase_storage import upload_file
-        with patch("apps.common.storage.supabase_storage.settings") as mock_settings:
-            mock_settings.SUPABASE_STORAGE_BUCKET = "bucket"
-            with pytest.raises(RuntimeError, match="Supabase upload failed"):
-                upload_file(
-                    folder="uploads",
-                    filename="test.pdf",
-                    file_bytes=b"data",
-                    content_type="application/pdf",
-                )
-
-        # Should have called upload 3 times (MAX_RETRIES).
-        assert mock_storage.upload.call_count == 3
-
-    @patch("apps.common.storage.supabase_storage._client")
-    def test_delete_returns_true_on_success(self, mock_client):
-        mock_storage = MagicMock()
-        mock_client.return_value.storage.from_.return_value = mock_storage
-
-        from apps.common.storage.supabase_storage import delete_file
-        with patch("apps.common.storage.supabase_storage.settings") as mock_settings:
-            mock_settings.SUPABASE_STORAGE_BUCKET = "bucket"
-            result = delete_file(path="uploads/test.pdf")
-
-        assert result is True
-        mock_storage.remove.assert_called_once_with(["uploads/test.pdf"])
-
-    @patch("apps.common.storage.supabase_storage._client")
-    def test_delete_returns_false_on_exception(self, mock_client):
-        mock_storage = MagicMock()
-        mock_client.return_value.storage.from_.return_value = mock_storage
-        mock_storage.remove.side_effect = Exception("network error")
-
-        from apps.common.storage.supabase_storage import delete_file
-        with patch("apps.common.storage.supabase_storage.settings") as mock_settings:
-            mock_settings.SUPABASE_STORAGE_BUCKET = "bucket"
-            result = delete_file(path="uploads/test.pdf")
-
-        assert result is False  # Never raises
-
-    def test_supabase_not_configured(self):
-        """supabase_healthy() returns False when URL/key not set."""
-        from apps.common.storage.supabase_storage import supabase_healthy
-        with patch("apps.common.storage.supabase_storage.settings") as mock_settings:
-            mock_settings.SUPABASE_URL = ""
-            mock_settings.SUPABASE_SERVICE_ROLE_KEY = ""
-            assert supabase_healthy() is False
-
-    @patch("apps.common.storage.supabase_storage._client")
-    def test_supabase_healthy_on_success(self, mock_client):
-        mock_client.return_value.storage.list_buckets.return_value = []
-
-        from apps.common.storage.supabase_storage import supabase_healthy
-        with patch("apps.common.storage.supabase_storage.settings") as mock_settings:
-            mock_settings.SUPABASE_URL = "https://proj.supabase.co"
-            mock_settings.SUPABASE_SERVICE_ROLE_KEY = "service_key"
-            assert supabase_healthy() is True
-
-    @patch("apps.common.storage.supabase_storage._client")
-    def test_supabase_healthy_returns_false_on_error(self, mock_client):
-        mock_client.return_value.storage.list_buckets.side_effect = Exception("timeout")
-
-        from apps.common.storage.supabase_storage import supabase_healthy
-        with patch("apps.common.storage.supabase_storage.settings") as mock_settings:
-            mock_settings.SUPABASE_URL = "https://proj.supabase.co"
-            mock_settings.SUPABASE_SERVICE_ROLE_KEY = "service_key"
-            assert supabase_healthy() is False
-
-
-class TestHealthCheckStorageProbe:
-    """Test that the health endpoint includes the storage check."""
-
-    def test_health_includes_storage_key(self, api_client):
-        response = api_client.get("/api/health/")
-        assert "storage" in response.data.get("checks", {})
-
-    def test_health_storage_not_configured(self, api_client):
-        """When Supabase is not configured, storage reports not_configured (non-fatal)."""
-        with patch("apps.common.health.settings") as mock_settings:
-            mock_settings.SUPABASE_URL = ""
-            mock_settings.SUPABASE_SERVICE_ROLE_KEY = ""
-            response = api_client.get("/api/health/")
-        assert response.status_code in (200, 503)
+        admin = User.objects.filter(role="admin").first()
+        assert admin is not None, "admin fixture not present"
+        obj = FileObject.objects.create(
+            bucket="local",
+            path="uploads/test.jpg",
+            public_url="/media/uploads/test.jpg",
+            content_type="image/jpeg",
+            size_bytes=100,
+            uploaded_by=admin,
+        )
+        resp = admin_client.delete(f"/api/files/{obj.pk}/delete/")
+        assert resp.status_code == 204
+        obj.refresh_from_db()
+        assert obj.deleted_at is not None

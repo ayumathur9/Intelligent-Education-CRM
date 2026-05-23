@@ -85,15 +85,18 @@ def get_active_course_count() -> int:
     return result
 
 
-def get_active_schools() -> list:
-    """Return active School queryset as a cached list — TTL = CACHE_TTL_SCHOOL_LIST."""
+def get_active_schools() -> list[dict]:
+    """
+    Return active schools as a cached list of plain dicts — TTL = CACHE_TTL_SCHOOL_LIST.
+    Plain dicts are pickle-safe across deploys; ORM objects are not.
+    """
     result = cache.get(_KEY_SCHOOL_LIST)
     if result is None:
         from apps.crm.models import School
         result = list(
             School.objects.filter(is_active=True)
-            .prefetch_related("courses")
             .order_by("country", "name")
+            .values("id", "name", "country", "description", "website", "deadline", "is_active")
         )
         cache.set(_KEY_SCHOOL_LIST, result, timeout=getattr(settings, "CACHE_TTL_SCHOOL_LIST", 300))
         logger.debug("Cache miss — refreshed school list: %d schools", len(result))

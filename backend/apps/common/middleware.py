@@ -4,13 +4,19 @@ import logging
 import threading
 import uuid
 
-from django.conf import settings
-
 logger = logging.getLogger(__name__)
 
 # Thread-local storage for the current request's correlation ID.
 # Accessible from anywhere in the call stack (views, tasks, signals).
 _request_id_local = threading.local()
+
+
+class RequestIdFilter(logging.Filter):
+    """OBS-002: Inject the current request_id into every log record."""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        record.request_id = getattr(_request_id_local, "request_id", "-")
+        return True
 
 
 def get_request_id() -> str:
@@ -63,19 +69,13 @@ class SecurityHeadersMiddleware:
         response = self.get_response(request)
 
         if "Content-Security-Policy" not in response:
-            supabase_origin = ""
-            if settings.SUPABASE_URL:
-                from urllib.parse import urlparse
-                parsed = urlparse(settings.SUPABASE_URL)
-                supabase_origin = f"{parsed.scheme}://{parsed.netloc}"
-
             response["Content-Security-Policy"] = (
                 "default-src 'self'; "
                 "script-src 'self' https://cdn.tailwindcss.com https://cdn.jsdelivr.net 'unsafe-inline'; "
                 "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
-                f"img-src 'self' data: blob: {supabase_origin}; "
+                "img-src 'self' data: blob:; "
                 "font-src 'self' https://fonts.gstatic.com; "
-                f"connect-src 'self' ws: wss: {supabase_origin}; "
+                "connect-src 'self' ws: wss:; "
                 "frame-ancestors 'none'; "
                 "base-uri 'self'; "
                 "form-action 'self';"
@@ -85,9 +85,9 @@ class SecurityHeadersMiddleware:
 
         # SEC-001: COOP prevents cross-origin window references (popups, iframes).
         # CORP limits which origins can embed our resources in no-cors requests.
-        # COEP is intentionally omitted: require-corp would block Tailwind CDN, Google Fonts,
-        # and supabase-js (none of which ship a Cross-Origin-Resource-Policy header), breaking
-        # the entire UI. COEP is only safe when ALL resources are same-origin or cooperating CDNs.
+        # COEP is intentionally omitted: require-corp would block Tailwind CDN and Google Fonts
+        # (neither ship a Cross-Origin-Resource-Policy header). Safe to add once all CDN resources
+        # are replaced with self-hosted equivalents.
         response.setdefault("Cross-Origin-Opener-Policy", "same-origin")
         response.setdefault("Cross-Origin-Resource-Policy", "same-origin")
 
