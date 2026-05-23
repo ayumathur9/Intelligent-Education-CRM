@@ -37,4 +37,5 @@ urlpatterns = [
     path("toggle-pin-note/<int:pk>/", views.toggle_pin_note, name="toggle-pin-note"),
     path("search/", views.global_search, name="global-search"),
     path("dismiss-priority-item/", views.dismiss_priority_item, name="dismiss-priority-item"),
+    path("supabase-config.js", views.supabase_config_js, name="supabase-config-js"),
 ]

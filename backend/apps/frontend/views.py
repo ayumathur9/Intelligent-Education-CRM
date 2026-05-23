@@ -8,7 +8,7 @@ from django.contrib import messages as django_messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
@@ -1936,3 +1936,17 @@ def dismiss_priority_item(request):
         user=request.user, item_type=item_type, item_id=item_id
     )
     return JsonResponse({"ok": True})
+
+
+def supabase_config_js(request):
+    """Serve /supabase-config.js dynamically from settings so credentials stay in env vars."""
+    url = django_settings.SUPABASE_URL or ""
+    anon_key = django_settings.SUPABASE_ANON_KEY or ""
+    js = (
+        f"const SUPABASE_URL = {repr(url)};\n"
+        f"const SUPABASE_ANON_KEY = {repr(anon_key)};\n"
+        "if (typeof supabase !== 'undefined') {\n"
+        "  window._supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);\n"
+        "}\n"
+    )
+    return HttpResponse(js, content_type="application/javascript")
