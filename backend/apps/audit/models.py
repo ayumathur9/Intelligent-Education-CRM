@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
 
 
 class ActivityLog(models.Model):
@@ -82,13 +83,16 @@ class ActivityLog(models.Model):
         user_agent = ""
 
         if request is not None:
-            # Respect reverse-proxy headers (Railway / Nginx).
-            x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR", "")
-            if x_forwarded_for:
-                # Take the first (client) IP — others are proxy IPs.
-                ip_address = x_forwarded_for.split(",")[0].strip()
-            else:
-                ip_address = request.META.get("REMOTE_ADDR")
+            # MED-005: Use django-ipware for trusted proxy-aware IP extraction.
+            # This respects IPWARE_META_PRECEDENCE_ORDER and only trusts
+            # X-Forwarded-For when the immediate connection comes from a known proxy.
+            try:
+                from ipware import get_client_ip
+                ip_address, _ = get_client_ip(request)
+            except ImportError:
+                # Fallback if ipware is not installed (should not happen in prod).
+                xff = request.META.get("HTTP_X_FORWARDED_FOR", "")
+                ip_address = xff.split(",")[0].strip() if xff else request.META.get("REMOTE_ADDR")
 
             user_agent = request.META.get("HTTP_USER_AGENT", "")[:512]
 
@@ -102,3 +106,46 @@ class ActivityLog(models.Model):
             user_agent=user_agent,
             changes=changes or {},
         )
+
+
+class LoginFailure(models.Model):
+    """
+    SEC-FALLBACK: Database-backed login failure tracker.
+
+    Used as a fallback when Redis is unavailable so that brute-force /
+    account-lockout protection remains active even during a Redis outage.
+    Rows are cheap (email + timestamp only). Pruned by a nightly Celery task.
+    """
+
+    email = models.CharField(max_length=254, db_index=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    attempted_at = models.DateTimeField(default=timezone.now, db_index=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["email", "attempted_at"]),
+        ]
+
+    @classmethod
+    def record(cls, email: str, ip: str | None = None) -> int:
+        """Record a failure and return the total count in the lockout window."""
+        from django.conf import settings as _s
+        window_seconds = int(getattr(_s, "ACCOUNT_LOCKOUT_SECONDS", 900))
+        cls.objects.create(email=email.lower(), ip_address=ip or None)
+        cutoff = timezone.now() - timezone.timedelta(seconds=window_seconds)
+        return cls.objects.filter(email=email.lower(), attempted_at__gte=cutoff).count()
+
+    @classmethod
+    def is_locked(cls, email: str) -> bool:
+        """Return True if the email has exceeded the lockout threshold in the window."""
+        from django.conf import settings as _s
+        threshold = int(getattr(_s, "ACCOUNT_LOCKOUT_THRESHOLD", 10))
+        window_seconds = int(getattr(_s, "ACCOUNT_LOCKOUT_SECONDS", 900))
+        cutoff = timezone.now() - timezone.timedelta(seconds=window_seconds)
+        count = cls.objects.filter(email=email.lower(), attempted_at__gte=cutoff).count()
+        return count >= threshold
+
+    @classmethod
+    def clear(cls, email: str) -> None:
+        """Remove all failures for this email on successful login."""
+        cls.objects.filter(email=email.lower()).delete()

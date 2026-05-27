@@ -4,10 +4,10 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Counselor Dashboard — Intelligent Education</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries" nonce="{{ csp_nonce }}"></script>
 <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-<script id="tailwind-config">
+<script id="tailwind-config" nonce="{{ csp_nonce }}">
   tailwind.config={darkMode:"class",theme:{extend:{colors:{
     "primary-fixed":"#ffdad6","on-surface-variant":"#5b403d","tertiary-fixed-dim":"#88ceff",
     "surface-bright":"#fff8f7","on-primary":"#ffffff","surface-container-highest":"#f9dcd9",
@@ -32,7 +32,7 @@
     "body-md":["14px",{lineHeight:"1.5",fontWeight:"400"}],
   }}}}
 </script>
-<style>
+<style nonce="{{ csp_nonce }}">
   .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;}
   .slide-panel{transition:transform .3s ease;}
   .custom-scrollbar::-webkit-scrollbar{width:4px;}
@@ -601,10 +601,10 @@
   {% endif %}
 </main>
 <!-- ── Student data for JS panel ─────────────────────────────── -->
-<script id="students-json" type="application/json">
+<script id="students-json" type="application/json" nonce="{{ csp_nonce }}">
 [{% for s in my_students %}{"pk":{{ s.pk }},"name":"{{ s.full_name|escapejs }}","email":"{{ s.email|escapejs }}","phone":"{{ s.phone|escapejs }}","code":"{{ s.student_code|escapejs }}","course":"{{ s.course.name|default:'—'|escapejs }}","counselor":"{{ s.counselor.full_name|default:s.counselor.email|default:'—'|escapejs }}","poc":"{{ s.poc.full_name|default:s.poc.email|default:'—'|escapejs }}","nationality":"{{ s.nationality|escapejs }}","dob":"{{ s.dob|default:''|escapejs }}","gender":"{{ s.gender|escapejs }}","passport":"{{ s.passport_number|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}]
 </script>
-<script>
+<script nonce="{{ csp_nonce }}">
 function toggleSidebar() {
   const sb = document.getElementById('sidebar');
   const ov = document.getElementById('sidebar-overlay');

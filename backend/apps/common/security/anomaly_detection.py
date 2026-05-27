@@ -52,61 +52,95 @@ _EMAIL_LOCKOUT_SECONDS   = int(getattr(settings, "ACCOUNT_LOCKOUT_SECONDS", 900)
 
 
 def is_account_locked(email: str) -> bool:
-    """Return True if this email address is locked out due to too many failures."""
+    """
+    Return True if this email is locked out due to too many failures.
+    Redis-primary with automatic DB fallback when Redis is unavailable.
+    """
     r = _redis()
-    if r is None:
-        return False
-    key = f"crm:account:lockout:{email.lower()}"
+    if r is not None:
+        key = f"crm:account:lockout:{email.lower()}"
+        try:
+            return bool(r.get(key))
+        except Exception:
+            pass  # fall through to DB fallback
+
+    # SEC-FALLBACK: Redis unavailable — query the DB-backed tracker.
+    logger.debug("is_account_locked: Redis unavailable, using DB fallback for %s", email)
     try:
-        return bool(r.get(key))
-    except Exception:
-        return False
+        from apps.audit.models import LoginFailure
+        return LoginFailure.is_locked(email)
+    except Exception as exc:
+        logger.error("is_account_locked DB fallback error: %s", exc)
+    return False
 
 
-def record_failed_login_for_email(email: str) -> bool:
+def record_failed_login_for_email(email: str, ip: str | None = None) -> bool:
     """
     Increment per-email failure counter.
     Returns True and locks the account when threshold is reached.
+    Redis-primary with DB fallback.
     """
     r = _redis()
-    if r is None:
-        return False
+    if r is not None:
+        fail_key = f"crm:account:failures:{email.lower()}"
+        lock_key = f"crm:account:lockout:{email.lower()}"
+        try:
+            count = r.incr(fail_key)
+            if count == 1:
+                r.expire(fail_key, _EMAIL_LOCKOUT_SECONDS)
+            if count >= _EMAIL_LOCKOUT_THRESHOLD:
+                r.setex(lock_key, _EMAIL_LOCKOUT_SECONDS, "1")
+                logger.warning(
+                    "SEC-002 account lockout: %s failed %d times — locked for %ds",
+                    email, count, _EMAIL_LOCKOUT_SECONDS,
+                )
+                _emit_security_event(
+                    "account_lockout", ip or "n/a", None,
+                    f"Account {email} locked after {count} failures",
+                )
+                return True
+            return False
+        except Exception as exc:
+            logger.debug("record_failed_login_for_email redis error: %s — using DB fallback", exc)
 
-    fail_key = f"crm:account:failures:{email.lower()}"
-    lock_key = f"crm:account:lockout:{email.lower()}"
+    # SEC-FALLBACK: Redis unavailable — persist to database.
+    logger.warning("record_failed_login_for_email: Redis unavailable, using DB fallback for %s", email)
     try:
-        count = r.incr(fail_key)
-        if count == 1:
-            r.expire(fail_key, _EMAIL_LOCKOUT_SECONDS)
-
+        from apps.audit.models import LoginFailure
+        count = LoginFailure.record(email, ip=ip)
         if count >= _EMAIL_LOCKOUT_THRESHOLD:
-            r.setex(lock_key, _EMAIL_LOCKOUT_SECONDS, "1")
             logger.warning(
-                "SEC-002 account lockout: %s failed %d times — locked for %ds",
-                email, count, _EMAIL_LOCKOUT_SECONDS,
+                "SEC-002 (DB fallback) account lockout: %s failed %d times",
+                email, count,
             )
             _emit_security_event(
-                "account_lockout", "n/a", None,
-                f"Account {email} locked after {count} failures",
+                "account_lockout", ip or "n/a", None,
+                f"Account {email} locked (DB fallback) after {count} failures",
             )
             return True
     except Exception as exc:
-        logger.debug("record_failed_login_for_email redis error: %s", exc)
+        logger.error("record_failed_login_for_email DB fallback error: %s", exc)
     return False
 
 
 def clear_failed_login_attempts(email: str) -> None:
-    """Reset failure counter and lockout flag on successful login."""
+    """Reset failure counter and lockout flag on successful login. Clears both Redis and DB."""
     r = _redis()
-    if r is None:
-        return
+    if r is not None:
+        try:
+            r.delete(
+                f"crm:account:failures:{email.lower()}",
+                f"crm:account:lockout:{email.lower()}",
+            )
+        except Exception as exc:
+            logger.debug("clear_failed_login_attempts redis error: %s", exc)
+
+    # Always clear DB fallback records too, regardless of Redis state.
     try:
-        r.delete(
-            f"crm:account:failures:{email.lower()}",
-            f"crm:account:lockout:{email.lower()}",
-        )
+        from apps.audit.models import LoginFailure
+        LoginFailure.clear(email)
     except Exception as exc:
-        logger.debug("clear_failed_login_attempts redis error: %s", exc)
+        logger.debug("clear_failed_login_attempts DB fallback error: %s", exc)
 
 
 def record_failed_login(ip: str, user_id: int | None = None) -> bool:

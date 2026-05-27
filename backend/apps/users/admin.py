@@ -31,8 +31,16 @@ class UserAdmin(DjangoUserAdmin):
 
 @admin.register(PasswordResetToken)
 class PasswordResetTokenAdmin(admin.ModelAdmin):
-    list_display = ("user", "token", "expires_at", "used_at", "created_at")
-    search_fields = ("user__email", "token")
+    # Token intentionally excluded from list_display to prevent admin-level
+    # account takeover via token theft. Visible only in the detail view for
+    # support/debugging, where access is already audited by django-otp MFA.
+    list_display = ("user", "token_prefix", "expires_at", "used_at", "created_at")
+    search_fields = ("user__email",)
     list_filter = ("used_at",)
-    readonly_fields = ("token", "created_at")
+    readonly_fields = ("token_prefix", "created_at")
+
+    @admin.display(description="Token (prefix)")
+    def token_prefix(self, obj):
+        """Show only the first 8 characters so tokens cannot be reconstructed."""
+        return f"{obj.token[:8]}…" if obj.token else "—"
 

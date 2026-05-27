@@ -93,6 +93,15 @@ class PasswordResetRateThrottle(AnonRateThrottle):
         return super().allow_request(request, view)
 
 
+class RegisterRateThrottle(AnonRateThrottle):
+    """
+    RL-002: Limit new account creation to 10 per hour per IP.
+    Prevents automated account spam, email service abuse, and
+    email enumeration via repeated registration attempts.
+    """
+    scope = "register"
+
+
 class UploadRateThrottle(UserRateThrottle):
     """
     RL-001: Limit file uploads to prevent storage abuse.

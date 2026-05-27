@@ -71,6 +71,13 @@ class LoginSerializer(serializers.Serializer):
         if not user.is_active:
             raise serializers.ValidationError(_("User is inactive."))
 
+        # HIGH-2: Block login for unverified accounts when verification is required.
+        from django.conf import settings as _s
+        if getattr(_s, "EMAIL_VERIFICATION_REQUIRED", False) and not user.is_email_verified:
+            raise serializers.ValidationError(
+                _("Please verify your email address before logging in.")
+            )
+
         # SEC-002: clear failure counters on successful authentication.
         try:
             from apps.common.security.anomaly_detection import (

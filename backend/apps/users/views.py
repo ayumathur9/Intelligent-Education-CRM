@@ -12,7 +12,7 @@ from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenRefreshView
 
-from .throttles import LoginRateThrottle, PasswordResetRateThrottle
+from .throttles import LoginRateThrottle, PasswordResetRateThrottle, RegisterRateThrottle
 from .serializers import (
     LoginSerializer,
     PasswordResetConfirmSerializer,
@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 
 class RegisterView(generics.CreateAPIView):
     permission_classes = (permissions.AllowAny,)
+    throttle_classes = (RegisterRateThrottle,)
     serializer_class = RegisterSerializer
 
     def perform_create(self, serializer):
@@ -51,10 +52,15 @@ class RegisterView(generics.CreateAPIView):
     def _send_verification_email(user) -> None:
         import hashlib
         import hmac
+        import time
         from django.conf import settings as _s
+        # Include a 48-hour expiry window in the signed payload.
+        # The timestamp is the number of complete 48-hour periods since epoch,
+        # so the token is valid for up to 48 hours after generation.
+        window = int(time.time()) // (48 * 3600)
         token = hmac.new(
             _s.SECRET_KEY.encode(),
-            f"{user.pk}:{user.email}".encode(),
+            f"{user.pk}:{user.email}:{window}".encode(),
             hashlib.sha256,
         ).hexdigest()
         verify_url = (
@@ -227,6 +233,7 @@ class EmailVerifyView(APIView):
     def get(self, request):
         import hashlib
         import hmac
+        import time
         from django.conf import settings as _s
         from .models import User
 
@@ -238,14 +245,22 @@ class EmailVerifyView(APIView):
         except (User.DoesNotExist, ValueError, TypeError):
             return Response({"detail": "Invalid verification link."}, status=status.HTTP_400_BAD_REQUEST)
 
-        expected = hmac.new(
-            _s.SECRET_KEY.encode(),
-            f"{user.pk}:{user.email}".encode(),
-            hashlib.sha256,
-        ).hexdigest()
+        # Accept the current 48-hour window or the immediately preceding one
+        # to handle links generated just before a window boundary.
+        current_window = int(time.time()) // (48 * 3600)
+        valid = False
+        for window in (current_window, current_window - 1):
+            expected = hmac.new(
+                _s.SECRET_KEY.encode(),
+                f"{user.pk}:{user.email}:{window}".encode(),
+                hashlib.sha256,
+            ).hexdigest()
+            if hmac.compare_digest(token, expected):
+                valid = True
+                break
 
-        if not hmac.compare_digest(token, expected):
-            logger.warning("EmailVerifyView: invalid token for user %s", uid)
+        if not valid:
+            logger.warning("EmailVerifyView: invalid or expired token for user %s", uid)
             return Response({"detail": "Invalid or expired verification link."}, status=status.HTTP_400_BAD_REQUEST)
 
         if user.is_email_verified:

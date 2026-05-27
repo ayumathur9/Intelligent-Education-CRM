@@ -67,6 +67,9 @@ INSTALLED_APPS = [
     "drf_spectacular",
     # HIGH-005: field-level PII encryption
     "encrypted_model_fields",
+    # SEC-003: django-otp for admin MFA (TOTP)
+    "django_otp",
+    "django_otp.plugins.otp_totp",
     # Local apps
     "apps.common",
     "apps.users",
@@ -140,6 +143,8 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                # SEC-CSP: expose per-request nonce to all templates
+                "apps.common.context_processors.csp_nonce",
             ],
         },
     }
@@ -274,6 +279,8 @@ REST_FRAMEWORK = {
         # RL-001: additional scopes
         "upload": os.getenv("DRF_UPLOAD_RATE", "30/min"),
         "burst": os.getenv("DRF_BURST_RATE", "100/min"),
+        # RL-002: registration — 10 new accounts per hour per IP
+        "register": os.getenv("DRF_REGISTER_RATE", "10/hour"),
     },
     # Never expose Python stack traces in API error responses.
     "EXCEPTION_HANDLER": "rest_framework.views.exception_handler",
@@ -343,16 +350,20 @@ NGINX_MEDIA_ACCEL = os.getenv("NGINX_MEDIA_ACCEL", "0") == "1"
 # ---------------------------------------------------------------------------
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 CSRF_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_HTTPONLY = True       # CSRF token not accessible via JS (defence-in-depth)
+CSRF_COOKIE_SAMESITE = "Lax"
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = "DENY"
-SECURE_REFERRER_POLICY = "same-origin"
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 
 if not DEBUG:
     SECURE_SSL_REDIRECT = os.getenv("DJANGO_SECURE_SSL_REDIRECT", "1") == "1"
     SECURE_HSTS_SECONDS = int(os.getenv("DJANGO_SECURE_HSTS_SECONDS", "31536000"))  # 1 year
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
+    # Prevent browsers from sending cookies on cross-site top-level navigations.
+    SESSION_COOKIE_SAMESITE = "Strict"
 
 # ---------------------------------------------------------------------------
 # FILE UPLOAD SECURITY
@@ -609,6 +620,11 @@ CELERY_BEAT_SCHEDULE = {
     "weekly-cleanup-orphaned-files": {
         "task": "apps.files.tasks.cleanup_orphaned_files",
         "schedule": _crontab(hour=4, minute=0, day_of_week=0),  # Sunday 04:00
+    },
+    # SEC-FALLBACK: Daily prune of DB-backed login failure records.
+    "daily-prune-login-failures": {
+        "task": "apps.audit.tasks.prune_login_failures",
+        "schedule": _crontab(hour=3, minute=45),
     },
 }
 

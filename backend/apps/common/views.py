@@ -79,16 +79,16 @@ def media_proxy(request, path: str) -> HttpResponse:
 
     user = request.user
 
-    # Admin and counselors have full read access.
+    # Admin and counselors have full read access to all media.
     if user.role not in (Role.ADMIN, Role.COUNSELOR):
-        # Uploads tracked in FileObject → enforce uploaded_by ownership.
+
+        # --- uploads/ — tracked in FileObject, enforce uploaded_by ownership ---
         if clean_path.startswith("uploads/"):
             from apps.files.models import FileObject
             obj = FileObject.objects.filter(
                 path=clean_path, deleted_at__isnull=True
             ).first()
             if obj is not None and obj.uploaded_by_id != user.pk:
-                # Editors may access files for students assigned to them.
                 if user.role == Role.EDITOR:
                     from apps.crm.models import Student
                     allowed = Student.objects.filter(
@@ -97,20 +97,87 @@ def media_proxy(request, path: str) -> HttpResponse:
                     if not allowed:
                         logger.warning(
                             "media_proxy: editor %s denied access to %s",
-                            user.pk,
-                            clean_path,
+                            user.pk, clean_path,
                         )
                         return HttpResponse(status=403)
                 else:
                     logger.warning(
                         "media_proxy: user %s (role=%s) denied access to %s",
-                        user.pk,
-                        user.role,
-                        clean_path,
+                        user.pk, user.role, clean_path,
                     )
                     return HttpResponse(status=403)
-        # All other paths (profiles/, student_docs/, etc.) — allow any
-        # authenticated user. Tighten here if finer-grained control is needed.
+
+        # --- school_docs/{student_pk}/{school_pk}/... ---
+        # Path is set by frontend/views.py: f"school_docs/{student.pk}/{school.pk}"
+        # Ownership: the file's student must be linked to this user OR assigned to
+        # this editor.  uploaded_by on StudentSchoolDocument tracks who uploaded it.
+        elif clean_path.startswith("school_docs/"):
+            parts = clean_path.split("/")
+            # parts: ["school_docs", "<student_pk>", "<school_pk>", "<filename>"]
+            if len(parts) < 4:
+                return HttpResponse(status=403)
+            try:
+                doc_student_pk = int(parts[1])
+            except (ValueError, IndexError):
+                return HttpResponse(status=403)
+
+            from apps.crm.models import Student
+            student = Student.objects.filter(pk=doc_student_pk).select_related("user").first()
+            if student is None:
+                return HttpResponse(status=403)
+
+            is_owner = student.user_id == user.pk
+            is_assigned_editor = (
+                user.role == Role.EDITOR and student.editor_id == user.pk
+            )
+            if not is_owner and not is_assigned_editor:
+                logger.warning(
+                    "media_proxy: user %s (role=%s) denied access to school_doc %s",
+                    user.pk, user.role, clean_path,
+                )
+                return HttpResponse(status=403)
+
+        # --- profile_docs/{student_pk}/... ---
+        # Path set by frontend/views.py: f"profile_docs/{student.pk}"
+        # Only the student themselves (or their assigned editor) may read their
+        # own passport scans, marksheets, and English proficiency docs.
+        elif clean_path.startswith("profile_docs/"):
+            parts = clean_path.split("/")
+            # parts: ["profile_docs", "<student_pk>", "<filename>"]
+            if len(parts) < 3:
+                return HttpResponse(status=403)
+            try:
+                doc_student_pk = int(parts[1])
+            except (ValueError, IndexError):
+                return HttpResponse(status=403)
+
+            from apps.crm.models import Student
+            student = Student.objects.filter(pk=doc_student_pk).select_related("user").first()
+            if student is None:
+                return HttpResponse(status=403)
+
+            is_owner = student.user_id == user.pk
+            is_assigned_editor = (
+                user.role == Role.EDITOR and student.editor_id == user.pk
+            )
+            if not is_owner and not is_assigned_editor:
+                logger.warning(
+                    "media_proxy: user %s (role=%s) denied access to profile_doc %s",
+                    user.pk, user.role, clean_path,
+                )
+                return HttpResponse(status=403)
+
+        # --- avatars/ — semi-public within the internal tool ---
+        elif clean_path.startswith("avatars/"):
+            pass  # any authenticated user may view avatars
+
+        # --- fail closed: deny all other unrecognised paths ---
+        else:
+            logger.warning(
+                "media_proxy: user %s (role=%s) attempted unrecognised path %s — denied",
+                user.pk, user.role, clean_path,
+            )
+            return HttpResponse(status=403)
 
     # Nginx X-Accel-Redirect: zero-copy file serving.
     if getattr(settings, "NGINX_MEDIA_ACCEL", False):
