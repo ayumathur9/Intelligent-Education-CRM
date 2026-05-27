@@ -67,9 +67,6 @@ INSTALLED_APPS = [
     "drf_spectacular",
     # HIGH-005: field-level PII encryption
     "encrypted_model_fields",
-    # LOW-009: TOTP / MFA
-    "django_otp",
-    "django_otp.plugins.otp_totp",
     # Local apps
     "apps.common",
     "apps.users",
@@ -123,8 +120,6 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    # HIGH-1: Verify OTP device state after session auth (enables MFA on Django admin).
-    "django_otp.middleware.OTPMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "apps.common.middleware.SecurityHeadersMiddleware",
