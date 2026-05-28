@@ -87,13 +87,14 @@ class SecurityHeadersMiddleware:
         response = self.get_response(request)
 
         if "Content-Security-Policy" not in response:
-            # Tailwind CDN is still allowed by URL — move to self-hosted build to
-            # remove the CDN allowance entirely.  unsafe-inline is REMOVED; all
-            # inline scripts must carry the nonce attribute.
+            # script-src is nonce-protected (inline scripts must carry the nonce).
+            # style-src uses 'unsafe-inline' because Tailwind CDN injects <style>
+            # tags at runtime without a nonce — removing unsafe-inline breaks all
+            # Tailwind utility classes (confirmed by revert 9271d186).
             response["Content-Security-Policy"] = (
                 "default-src 'self'; "
                 f"script-src 'self' 'nonce-{nonce}' https://cdn.tailwindcss.com https://cdn.jsdelivr.net; "
-                f"style-src 'self' 'nonce-{nonce}' https://fonts.googleapis.com; "
+                "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
                 "img-src 'self' data: blob:; "
                 "font-src 'self' https://fonts.gstatic.com; "
                 "connect-src 'self' ws: wss:; "
