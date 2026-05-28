@@ -342,7 +342,7 @@ EMAIL_TIMEOUT = 10  # seconds — prevents infinite hang on SMTP failure
 DEFAULT_FROM_EMAIL = os.getenv(
     "DEFAULT_FROM_EMAIL", "Intelligent Education <no-reply@example.com>"
 )
-FRONTEND_BASE_URL = os.getenv("FRONTEND_BASE_URL", "http://localhost:5500")
+FRONTEND_BASE_URL = os.getenv("FRONTEND_BASE_URL", "https://crm.intelligenteducation.org")
 
 # ---------------------------------------------------------------------------
 # LOCAL FILE STORAGE
