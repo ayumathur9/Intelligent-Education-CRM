@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your Team Has Been Assigned</title>
+<style>
+  body { margin: 0; padding: 0; background: #f0f4f8; font-family: 'Segoe UI', Arial, sans-serif; color: #2d3748; }
+  .wrapper { max-width: 600px; margin: 32px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+  .header { background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%); padding: 40px 40px 32px; text-align: center; }
+  .header-logo { font-size: 13px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #a5f3fc; margin-bottom: 10px; }
+  .header h1 { margin: 0 0 6px; color: #ffffff; font-size: 24px; font-weight: 700; }
+  .header p { margin: 0; color: #cffafe; font-size: 14px; }
+  .body { padding: 40px 40px 32px; }
+  .greeting { font-size: 17px; font-weight: 600; color: #1a202c; margin: 0 0 12px; }
+  .intro { font-size: 14px; color: #4a5568; line-height: 1.8; margin: 0 0 28px; }
+  .role-badge { display: inline-block; background: #ecfeff; border: 1px solid #a5f3fc; color: #0891b2; font-size: 13px; font-weight: 700; padding: 6px 14px; border-radius: 20px; margin: 0 0 28px; }
+  .card { border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; margin: 0 0 28px; }
+  .card-header { background: #f8fafc; padding: 12px 20px; border-bottom: 1px solid #e2e8f0; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #94a3b8; }
+  .card-row { display: flex; padding: 14px 20px; border-bottom: 1px solid #f1f5f9; align-items: flex-start; }
+  .card-row:last-child { border-bottom: none; }
+  .card-label { width: 120px; flex-shrink: 0; font-size: 12px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; padding-top: 2px; }
+  .card-value { font-size: 14px; font-weight: 600; color: #1a202c; }
+  .card-value.light { font-weight: 400; color: #4a5568; }
+  .tip-box { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px 20px; margin: 0 0 28px; font-size: 14px; color: #166534; line-height: 1.7; }
+  .cta-wrapper { text-align: center; margin: 8px 0 4px; }
+  .cta { display: inline-block; background: #0891b2; color: #ffffff !important; text-decoration: none; font-size: 15px; font-weight: 600; padding: 14px 40px; border-radius: 8px; letter-spacing: 0.2px; }
+  .footer { background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 22px 40px; text-align: center; font-size: 12px; color: #94a3b8; line-height: 1.7; }
+  .footer a { color: #0891b2; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <div class="header">
+    <div class="header-logo">Intelligent Education</div>
+    <h1>Your team is ready</h1>
+    <p>A new team member has been assigned to your application</p>
+  </div>
+  <div class="body">
+    <p class="greeting">Hi {{ student_name }},</p>
+    <p class="intro">
+      Great news! A team member has been assigned to support you on your study-abroad journey.
+      They will be your primary point of contact for the role shown below.
+    </p>
+
+    <div class="role-badge">{{ role_label }} assigned</div>
+
+    {% if staff_name %}
+    <div class="card">
+      <div class="card-header">Your {{ role_label }}</div>
+      <div class="card-row">
+        <div class="card-label">Name</div>
+        <div class="card-value">{{ staff_name }}</div>
+      </div>
+      {% if staff_email %}
+      <div class="card-row">
+        <div class="card-label">Email</div>
+        <div class="card-value light"><a href="mailto:{{ staff_email }}" style="color:#0891b2;">{{ staff_email }}</a></div>
+      </div>
+      {% endif %}
+      {% if staff_phone %}
+      <div class="card-row">
+        <div class="card-label">Phone</div>
+        <div class="card-value light">{{ staff_phone }}</div>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="tip-box">
+      &#128161; <strong>What to do next:</strong> Log in to your portal and make sure your profile and documents are up to date. Your {{ role_label }} will reach out to you shortly.
+    </div>
+
+    <div class="cta-wrapper">
+      <a href="{{ portal_url }}" class="cta">Go to My Portal</a>
+    </div>
+  </div>
+  <div class="footer">
+    You received this email because you have an active application at <strong>Intelligent Education</strong>.<br>
+    Questions? Email us at <a href="mailto:contact.intelligenteducation@gmail.com">contact.intelligenteducation@gmail.com</a><br><br>
+    <a href="{{ portal_url }}">My Portal</a> &nbsp;&middot;&nbsp; <a href="mailto:contact.intelligenteducation@gmail.com">Support</a>
+  </div>
+</div>
+</body>
+</html>

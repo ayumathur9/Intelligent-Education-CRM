@@ -269,6 +269,18 @@ class EmailVerifyView(APIView):
         user.is_email_verified = True
         user.save(update_fields=["is_email_verified"])
         logger.info("EmailVerifyView: email verified for user %s", user.pk)
+
+        # Send welcome email now that the address is confirmed.
+        try:
+            from apps.users.tasks import send_welcome_email_task
+            send_welcome_email_task.delay(user.pk)
+        except Exception:
+            try:
+                from apps.common.email_service import send_welcome_email
+                send_welcome_email(user)
+            except Exception:
+                logger.warning("EmailVerifyView: could not send welcome email for user %s", user.pk)
+
         return Response({"detail": "Email verified successfully."})
 
 

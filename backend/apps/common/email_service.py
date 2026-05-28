@@ -463,6 +463,67 @@ def send_doc_uploaded_by_staff_email(doc, uploader_user, uploader_role: str) -> 
     )
 
 
+def send_student_staff_assignment_email(student, staff_user, role_label: str) -> bool:
+    """Notify the student that a counselor/editor/POC has been assigned to them."""
+    if not student or not student.email:
+        return False
+    portal_url = f"{settings.FRONTEND_BASE_URL.rstrip('/')}/student_application/code.html"
+    context = {
+        "student_name": student.full_name or student.student_code,
+        "role_label": role_label,
+        "staff_name": staff_user.full_name or staff_user.email if staff_user else "",
+        "staff_email": staff_user.email if staff_user else "",
+        "staff_phone": getattr(staff_user, "phone", "") or "" if staff_user else "",
+        "portal_url": portal_url,
+    }
+    html_body = render_to_string("emails/student_staff_assigned.html", context)
+    text_body = (
+        f"Hi {context['student_name']},\n\n"
+        f"{context['staff_name']} has been assigned as your {role_label} "
+        "on Intelligent Education.\n\n"
+        f"Log in to your portal: {portal_url}\n\n"
+        "— The Intelligent Education Team"
+    )
+    return _send(
+        subject=f"[Intelligent Education] Your {role_label} has been assigned",
+        text_body=text_body,
+        html_body=html_body,
+        to=[student.email],
+    )
+
+
+def send_school_assigned_email(student, school, assigned_by=None, course=None) -> bool:
+    """Notify the student when a school is added to their application."""
+    if not student or not student.email:
+        return False
+    portal_url = f"{settings.FRONTEND_BASE_URL.rstrip('/')}/student_application/code.html"
+    assigned_by_name = (
+        assigned_by.full_name or assigned_by.email if assigned_by else "Intelligent Education"
+    )
+    context = {
+        "student_name": student.full_name or student.student_code,
+        "school_name": school.name,
+        "school_country": school.country,
+        "course_name": course.name if course else "",
+        "assigned_by_name": assigned_by_name,
+        "portal_url": portal_url,
+    }
+    html_body = render_to_string("emails/school_assigned.html", context)
+    text_body = (
+        f"Hi {context['student_name']},\n\n"
+        f"{school.name} ({school.country}) has been added to your application "
+        f"by {assigned_by_name}.\n\n"
+        f"View your applications: {portal_url}\n\n"
+        "— The Intelligent Education Team"
+    )
+    return _send(
+        subject=f"[Intelligent Education] School added — {school.name}",
+        text_body=text_body,
+        html_body=html_body,
+        to=[student.email],
+    )
+
+
 def send_assignment_email(staff_user, student, role_label: str) -> bool:
     """Notify a staff member that a student has been assigned to them."""
     if not staff_user or not staff_user.email:
