@@ -67,9 +67,6 @@ INSTALLED_APPS = [
     "drf_spectacular",
     # HIGH-005: field-level PII encryption
     "encrypted_model_fields",
-    # SEC-003: django-otp for admin MFA (TOTP)
-    "django_otp",
-    "django_otp.plugins.otp_totp",
     # Local apps
     "apps.common",
     "apps.users",

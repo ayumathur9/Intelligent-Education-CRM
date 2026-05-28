@@ -1,16 +1,11 @@
 from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path, re_path
-from django_otp.admin import OTPAdminSite
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework.permissions import IsAdminUser
 
 from apps.common.health import health_check
 from apps.common.views import media_proxy
-
-# SEC-003: Require a verified TOTP device before any admin page is served.
-# Staff users without a device are forced through django-otp enrollment.
-admin.site.__class__ = OTPAdminSite
 
 # In production, only Django admins can reach the schema/docs endpoints.
 _docs_perms = [] if settings.DEBUG else [IsAdminUser]
