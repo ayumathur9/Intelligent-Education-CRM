@@ -6,7 +6,7 @@ from django.dispatch import receiver
 
 from apps.audit.services import log_activity
 
-from .models import Course, Enquiry, FollowUp, Lead, School, Student
+from .models import Course, Enquiry, FollowUp, Lead, School, Student, StudentSchoolDocument
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
@@ -120,6 +120,45 @@ def enquiry_saved(sender, instance: Enquiry, created: bool, **kwargs):
         action="enquiry.created" if created else "enquiry.updated",
         instance=instance,
     )
+
+
+@receiver(post_save, sender=StudentSchoolDocument)
+def school_document_saved(sender, instance: StudentSchoolDocument, created: bool, **kwargs):
+    """Fire document upload notification emails on new (non-deleted) uploads only."""
+    if not created:
+        return
+    if instance.deleted_at is not None:
+        return
+
+    uploader = instance.uploaded_by
+    uploader_role = getattr(uploader, "role", "") if uploader else ""
+
+    # Determine if uploaded by student or staff
+    is_student_upload = (uploader_role == "student") or (
+        uploader is None and instance.category in ("additional_student",)
+    )
+
+    from apps.crm.tasks import notify_editor_doc_uploaded, notify_student_doc_uploaded
+
+    if is_student_upload:
+        # Immediate notification to editor/counselor
+        notify_editor_doc_uploaded.delay(instance.pk, is_reminder=False, hours_elapsed=0)
+        # 24-hour follow-up
+        notify_editor_doc_uploaded.apply_async(
+            args=[instance.pk, True, 24],
+            countdown=24 * 3600,
+        )
+        # 48-hour follow-up
+        notify_editor_doc_uploaded.apply_async(
+            args=[instance.pk, True, 48],
+            countdown=48 * 3600,
+        )
+    else:
+        # Staff uploaded — notify student + POC
+        role_labels = {"counselor": "Counselor", "editor": "Editor", "admin": "Admin"}
+        role_label = role_labels.get(uploader_role, uploader_role.title() if uploader_role else "Staff")
+        uploader_id = uploader.pk if uploader else 0
+        notify_student_doc_uploaded.delay(instance.pk, uploader_id, role_label)
 
 
 @receiver(post_save, sender=FollowUp)

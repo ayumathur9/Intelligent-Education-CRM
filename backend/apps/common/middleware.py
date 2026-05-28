@@ -198,3 +198,38 @@ class SecurityEventLoggingMiddleware:
             pass
         xff = request.META.get("HTTP_X_FORWARDED_FOR", "")
         return xff.split(",")[0].strip() if xff else request.META.get("REMOTE_ADDR", "")
+
+
+class ServerErrorAlertMiddleware:
+    """
+    Catch unhandled 500-level exceptions and notify admins via email.
+    Only fires in production (DEBUG=False) to avoid alert storms during development.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        return self.get_response(request)
+
+    def process_exception(self, request, exception):
+        import traceback
+        from django.conf import settings as _s
+
+        if _s.DEBUG:
+            return None  # Let Django's debug page handle it.
+
+        try:
+            stack = traceback.format_exc()
+            incident_id = getattr(request, "request_id", str(uuid.uuid4()))
+            exc_type = type(exception).__name__
+            from apps.common.email_service import send_server_error_alert
+            send_server_error_alert(
+                exception_type=exc_type,
+                stack_trace=stack,
+                incident_id=incident_id,
+                path=request.path_info,
+            )
+        except Exception:
+            pass  # Never let alert email break the error response.
+        return None  # Let Django's default 500 handling continue.

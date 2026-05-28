@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Welcome to the team — Intelligent Education</title>
+<style>
+  body { margin: 0; padding: 0; background: #f0f4f8; font-family: 'Segoe UI', Arial, sans-serif; color: #2d3748; }
+  .wrapper { max-width: 600px; margin: 32px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+  .header { background: linear-gradient(135deg, #059669 0%, #065f46 100%); padding: 40px 40px 32px; text-align: center; }
+  .header-logo { font-size: 13px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #6ee7b7; margin-bottom: 10px; }
+  .header h1 { margin: 0 0 6px; color: #ffffff; font-size: 26px; font-weight: 700; }
+  .header p { margin: 0; color: #a7f3d0; font-size: 14px; }
+  .body { padding: 40px 40px 32px; }
+  .greeting { font-size: 17px; font-weight: 600; color: #1a202c; margin: 0 0 12px; }
+  .intro { font-size: 14px; color: #4a5568; line-height: 1.8; margin: 0 0 28px; }
+  .role-badge { display: inline-block; background: #d1fae5; color: #065f46; font-size: 13px; font-weight: 700; padding: 4px 14px; border-radius: 999px; margin: 0 0 24px; }
+  .section-heading { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #94a3b8; margin: 0 0 12px; }
+  .steps { list-style: none; margin: 0 0 28px; padding: 0; }
+  .steps li { display: flex; align-items: flex-start; gap: 12px; font-size: 14px; color: #4a5568; line-height: 1.6; padding: 10px 0; border-bottom: 1px solid #f1f5f9; }
+  .steps li:last-child { border-bottom: none; }
+  .step-num { width: 24px; height: 24px; border-radius: 50%; background: #059669; color: #fff; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .perms-box { background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px; padding: 16px 20px; margin: 0 0 28px; }
+  .perms-box .perm-heading { font-size: 13px; font-weight: 700; color: #065f46; margin: 0 0 8px; }
+  .perms-box ul { margin: 0; padding: 0 0 0 18px; }
+  .perms-box ul li { font-size: 13px; color: #064e3b; line-height: 1.7; }
+  .support-box { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px 20px; margin: 0 0 28px; }
+  .support-box p { margin: 0; font-size: 14px; color: #166534; line-height: 1.7; }
+  .support-box a { color: #15803d; font-weight: 600; }
+  .security-box { background: #fefce8; border: 1px solid #fde68a; border-radius: 8px; padding: 16px 20px; margin: 0 0 28px; }
+  .security-box .sec-heading { font-size: 13px; font-weight: 700; color: #92400e; margin: 0 0 8px; }
+  .security-box ul { margin: 0; padding: 0 0 0 18px; }
+  .security-box ul li { font-size: 13px; color: #78350f; line-height: 1.7; }
+  .cta-wrapper { text-align: center; margin: 8px 0 4px; }
+  .cta { display: inline-block; background: #059669; color: #ffffff !important; text-decoration: none; font-size: 15px; font-weight: 600; padding: 14px 40px; border-radius: 8px; letter-spacing: 0.2px; }
+  .footer { background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 22px 40px; text-align: center; font-size: 12px; color: #94a3b8; line-height: 1.7; }
+  .footer a { color: #059669; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <div class="header">
+    <div class="header-logo">Intelligent Education</div>
+    <h1>Welcome to the team!</h1>
+    <p>Your staff account is ready</p>
+  </div>
+  <div class="body">
+    <p class="greeting">Hi {{ full_name }},</p>
+    <p class="intro">
+      Your account has been set up at <strong>Intelligent Education CRM</strong>.
+      You have been assigned the role of <span class="role-badge">{{ role_label }}</span>
+    </p>
+
+    <div class="section-heading">Getting started</div>
+    <ul class="steps">
+      <li>
+        <div class="step-num">1</div>
+        <div><strong>Log in</strong> — use your email <strong>{{ email }}</strong> and the password you set during account creation.</div>
+      </li>
+      <li>
+        <div class="step-num">2</div>
+        <div><strong>Complete your profile</strong> — add your full name and contact details so students can reach you.</div>
+      </li>
+      <li>
+        <div class="step-num">3</div>
+        <div><strong>Review your assigned students</strong> — your student list is available immediately from the dashboard.</div>
+      </li>
+      <li>
+        <div class="step-num">4</div>
+        <div><strong>Enable two-factor authentication (2FA)</strong> — go to Account Settings → Security to set up TOTP for extra protection.</div>
+      </li>
+    </ul>
+
+    <div class="perms-box">
+      <div class="perm-heading">&#128274; Your permissions as {{ role_label }}</div>
+      <ul>
+        {% if role == "counselor" %}
+        <li>View and manage your assigned students</li>
+        <li>Add interaction logs and follow-up notes</li>
+        <li>Upload and review school application documents</li>
+        <li>Access school and course information</li>
+        {% elif role == "editor" %}
+        <li>Review and edit student application documents</li>
+        <li>Upload revised documents on behalf of students</li>
+        <li>View assigned student profiles (read-only)</li>
+        {% elif role == "admin" %}
+        <li>Full access to all students, staff, and settings</li>
+        <li>Invite and manage team members</li>
+        <li>View platform analytics and audit logs</li>
+        <li>Configure system settings and permissions</li>
+        {% else %}
+        <li>Access granted as per your assigned role</li>
+        {% endif %}
+      </ul>
+    </div>
+
+    <div class="security-box">
+      <div class="sec-heading">&#128274; Security tips</div>
+      <ul>
+        <li>Never share your login credentials with anyone.</li>
+        <li>Always log out when leaving a shared device.</li>
+        <li>Enable 2FA for maximum account protection.</li>
+        <li>We will never ask for your password by email or phone.</li>
+      </ul>
+    </div>
+
+    <div class="support-box">
+      <p>&#128222; Need help getting started?<br>
+      Contact your admin or email us at <a href="mailto:contact.intelligenteducation@gmail.com">contact.intelligenteducation@gmail.com</a>.</p>
+    </div>
+
+    <div class="cta-wrapper">
+      <a href="{{ login_url }}" class="cta">Log In to Your Dashboard</a>
+    </div>
+  </div>
+  <div class="footer">
+    You received this because a staff account was created for you at <strong>Intelligent Education</strong>.<br>
+    Questions? <a href="mailto:contact.intelligenteducation@gmail.com">contact.intelligenteducation@gmail.com</a>
+  </div>
+</div>
+</body>
+</html>

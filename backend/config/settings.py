@@ -128,6 +128,8 @@ MIDDLEWARE = [
     "apps.common.middleware.SecurityHeadersMiddleware",
     # OBS-003: log 401/403/429 security events after authentication is resolved.
     "apps.common.middleware.SecurityEventLoggingMiddleware",
+    # Alert admins on unhandled 500-level exceptions (production only).
+    "apps.common.middleware.ServerErrorAlertMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -625,6 +627,11 @@ CELERY_BEAT_SCHEDULE = {
     "daily-prune-login-failures": {
         "task": "apps.audit.tasks.prune_login_failures",
         "schedule": _crontab(hour=3, minute=45),
+    },
+    # Weekly (Monday 08:00 IST): profile-completion reminder to students with missing fields.
+    "weekly-profile-reminders": {
+        "task": "apps.common.tasks.send_weekly_profile_reminders",
+        "schedule": _crontab(hour=8, minute=0, day_of_week=1),
     },
 }
 

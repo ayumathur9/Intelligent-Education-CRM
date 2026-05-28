@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ subject }} — Intelligent Education</title>
+<style>
+  body { margin: 0; padding: 0; background: #f0f4f8; font-family: 'Segoe UI', Arial, sans-serif; color: #2d3748; }
+  .wrapper { max-width: 600px; margin: 32px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+  .header { padding: 36px 40px 28px; text-align: center; }
+  .header.type-maintenance { background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%); }
+  .header.type-incident    { background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); }
+  .header.type-restored    { background: linear-gradient(135deg, #059669 0%, #065f46 100%); }
+  .header.type-general     { background: linear-gradient(135deg, #1a56db 0%, #1e40af 100%); }
+  .header-logo { font-size: 13px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.7); margin-bottom: 8px; }
+  .header h1 { margin: 0 0 4px; color: #ffffff; font-size: 22px; font-weight: 700; }
+  .header p { margin: 0; color: rgba(255,255,255,0.8); font-size: 13px; }
+  .body { padding: 36px 40px 28px; }
+  .greeting { font-size: 16px; font-weight: 600; color: #1a202c; margin: 0 0 14px; }
+  .message-body { font-size: 14px; color: #4a5568; line-height: 1.8; margin: 0 0 28px; white-space: pre-line; }
+  .meta-card { border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; margin: 0 0 24px; }
+  .meta-header { background: #f8fafc; padding: 10px 18px; border-bottom: 1px solid #e2e8f0; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #64748b; }
+  .meta-row { display: flex; padding: 12px 18px; border-bottom: 1px solid #f1f5f9; }
+  .meta-row:last-child { border-bottom: none; }
+  .meta-label { width: 140px; flex-shrink: 0; font-size: 12px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; padding-top: 2px; }
+  .meta-value { font-size: 14px; color: #1a202c; }
+  .footer { background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 20px 40px; text-align: center; font-size: 12px; color: #94a3b8; line-height: 1.6; }
+  .footer a { color: #1a56db; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <div class="header type-{{ broadcast_type }}">
+    <div class="header-logo">Intelligent Education</div>
+    <h1>{{ header_icon }} {{ header_title }}</h1>
+    <p>{{ header_subtitle }}</p>
+  </div>
+  <div class="body">
+    <p class="greeting">Dear Team / Users,</p>
+    <div class="message-body">{{ body_message }}</div>
+
+    {% if meta_fields %}
+    <div class="meta-card">
+      <div class="meta-header">Additional Information</div>
+      {% for key, value in meta_fields.items %}
+      <div class="meta-row">
+        <div class="meta-label">{{ key }}</div>
+        <div class="meta-value">{{ value }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+  <div class="footer">
+    This is an official notification from <strong>Intelligent Education</strong>.<br>
+    Sent by: {{ sent_by }} on {{ sent_at }}<br>
+    Questions? <a href="mailto:contact.intelligenteducation@gmail.com">contact.intelligenteducation@gmail.com</a>
+  </div>
+</div>
+</body>
+</html>

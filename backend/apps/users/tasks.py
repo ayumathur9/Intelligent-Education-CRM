@@ -97,6 +97,50 @@ def cleanup_expired_reset_tokens(self) -> None:
 
 @shared_task(
     bind=True,
+    autoretry_for=(Exception,),
+    retry_kwargs={"max_retries": 3, "countdown": 60},
+    name="apps.users.tasks.send_staff_onboarding_email",
+    ignore_result=True,
+)
+def send_staff_onboarding_email_task(self, user_id: int) -> None:
+    """Send staff onboarding email asynchronously after account creation."""
+    from apps.users.models import User
+    from apps.common.email_service import send_staff_onboarding_email
+
+    try:
+        user = User.objects.get(pk=user_id, is_active=True)
+    except User.DoesNotExist:
+        logger.warning("send_staff_onboarding_email: user %s not found", user_id)
+        return
+
+    send_staff_onboarding_email(user)
+    logger.info("Staff onboarding email sent to user %s", user_id)
+
+
+@shared_task(
+    bind=True,
+    autoretry_for=(Exception,),
+    retry_kwargs={"max_retries": 3, "countdown": 60},
+    name="apps.users.tasks.send_staff_invite_email",
+    ignore_result=True,
+)
+def send_staff_invite_email_task(self, invite_id: int) -> None:
+    """Send staff invite email asynchronously."""
+    from apps.users.models import StaffInvite
+    from apps.common.email_service import send_staff_invite_email
+
+    try:
+        invite = StaffInvite.objects.get(pk=invite_id)
+    except StaffInvite.DoesNotExist:
+        logger.warning("send_staff_invite_email: invite %s not found", invite_id)
+        return
+
+    send_staff_invite_email(invite)
+    logger.info("Staff invite email sent to %s (invite_id=%s)", invite.email, invite_id)
+
+
+@shared_task(
+    bind=True,
     name="apps.users.tasks.send_assignment_email",
     ignore_result=True,
     autoretry_for=(Exception,),

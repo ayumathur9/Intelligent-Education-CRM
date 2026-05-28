@@ -69,7 +69,41 @@
         <div class="card-value light">{{ student_email }}</div>
       </div>
       {% endif %}
+      {% if student_phone %}
+      <div class="card-row">
+        <div class="card-label">Phone</div>
+        <div class="card-value light">{{ student_phone }}</div>
+      </div>
+      {% endif %}
+      {% if student_course %}
+      <div class="card-row">
+        <div class="card-label">Course</div>
+        <div class="card-value light">{{ student_course }}</div>
+      </div>
+      {% endif %}
     </div>
+
+    {% if counselor_name %}
+    <div class="card">
+      <div class="card-header">Your Contact Details (shared with student)</div>
+      <div class="card-row">
+        <div class="card-label">Name</div>
+        <div class="card-value">{{ counselor_name }}</div>
+      </div>
+      {% if counselor_email %}
+      <div class="card-row">
+        <div class="card-label">Email</div>
+        <div class="card-value light">{{ counselor_email }}</div>
+      </div>
+      {% endif %}
+      {% if counselor_phone %}
+      <div class="card-row">
+        <div class="card-label">Phone</div>
+        <div class="card-value light">{{ counselor_phone }}</div>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
 
     <div class="cta-wrapper">
       <a href="{{ dashboard_url }}" class="cta">View Student on Dashboard</a>

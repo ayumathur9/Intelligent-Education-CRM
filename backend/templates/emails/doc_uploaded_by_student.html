@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Document uploaded — Intelligent Education</title>
+<style>
+  body { margin: 0; padding: 0; background: #f0f4f8; font-family: 'Segoe UI', Arial, sans-serif; color: #2d3748; }
+  .wrapper { max-width: 600px; margin: 32px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+  .header { background: linear-gradient(135deg, #0369a1 0%, #075985 100%); padding: 36px 40px 28px; text-align: center; }
+  .header-logo { font-size: 13px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #7dd3fc; margin-bottom: 8px; }
+  .header h1 { margin: 0 0 4px; color: #ffffff; font-size: 22px; font-weight: 700; }
+  .header p { margin: 0; color: #bae6fd; font-size: 13px; }
+  .body { padding: 36px 40px 28px; }
+  .greeting { font-size: 16px; font-weight: 600; color: #1a202c; margin: 0 0 14px; }
+  .intro { font-size: 14px; color: #4a5568; line-height: 1.8; margin: 0 0 24px; }
+  .badge { display: inline-block; padding: 3px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; margin-bottom: 20px; }
+  .badge-reminder { background: #fef3c7; color: #92400e; }
+  .badge-urgent { background: #fee2e2; color: #991b1b; }
+  .card { border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; margin: 0 0 24px; }
+  .card-header { background: #f0f9ff; padding: 10px 18px; border-bottom: 1px solid #bae6fd; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #0369a1; }
+  .card-row { display: flex; padding: 12px 18px; border-bottom: 1px solid #f1f5f9; }
+  .card-row:last-child { border-bottom: none; }
+  .card-label { width: 130px; flex-shrink: 0; font-size: 12px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; padding-top: 2px; }
+  .card-value { font-size: 14px; color: #1a202c; }
+  .cta-wrapper { text-align: center; margin: 8px 0 4px; }
+  .cta { display: inline-block; background: #0369a1; color: #ffffff !important; text-decoration: none; font-size: 15px; font-weight: 600; padding: 13px 36px; border-radius: 8px; }
+  .footer { background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 20px 40px; text-align: center; font-size: 12px; color: #94a3b8; line-height: 1.6; }
+  .footer a { color: #0369a1; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <div class="header">
+    <div class="header-logo">Intelligent Education</div>
+    <h1>&#128196; Document Uploaded</h1>
+    <p>Action required — student has uploaded a document</p>
+  </div>
+  <div class="body">
+    <p class="greeting">Hi {{ recipient_name }},</p>
+    {% if is_reminder %}
+    <p class="intro">
+      <span class="badge badge-{% if hours_elapsed >= 48 %}urgent{% else %}reminder{% endif %}">
+        &#9200; {% if hours_elapsed >= 48 %}48-hour reminder{% else %}24-hour reminder{% endif %}
+      </span><br>
+      This is a follow-up. The document below was uploaded <strong>{{ hours_elapsed }} hours ago</strong> and is still awaiting your review.
+    </p>
+    {% else %}
+    <p class="intro">
+      A student has uploaded a new document to their school application. Please review it at your earliest convenience.
+    </p>
+    {% endif %}
+
+    <div class="card">
+      <div class="card-header">Document Details</div>
+      <div class="card-row">
+        <div class="card-label">Student</div>
+        <div class="card-value">{{ student_name }} ({{ student_code }})</div>
+      </div>
+      <div class="card-row">
+        <div class="card-label">School</div>
+        <div class="card-value">{{ school_name }}</div>
+      </div>
+      <div class="card-row">
+        <div class="card-label">Document</div>
+        <div class="card-value">{{ file_name }}</div>
+      </div>
+      <div class="card-row">
+        <div class="card-label">Category</div>
+        <div class="card-value">{{ category_label }}</div>
+      </div>
+      <div class="card-row">
+        <div class="card-label">Uploaded at</div>
+        <div class="card-value">{{ uploaded_at }}</div>
+      </div>
+    </div>
+
+    <div class="cta-wrapper">
+      <a href="{{ dashboard_url }}" class="cta">Review Document</a>
+    </div>
+  </div>
+  <div class="footer">
+    You received this because you are the assigned editor for <strong>{{ student_name }}</strong>.<br>
+    <a href="{{ dashboard_url }}">Go to dashboard</a> &nbsp;&middot;&nbsp;
+    <a href="mailto:contact.intelligenteducation@gmail.com">Support</a>
+  </div>
+</div>
+</body>
+</html>

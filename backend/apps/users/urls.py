@@ -1,7 +1,10 @@
 from django.urls import path
 
 from .views import (
+    BroadcastEmailView,
     EmailVerifyView,
+    InviteAcceptView,
+    InviteCreateView,
     LoginView,
     LogoutView,
     MeView,
@@ -23,6 +26,9 @@ urlpatterns = [
     # HIGH-2: Email verification link handler.
     path("auth/verify-email/", EmailVerifyView.as_view(), name="email-verify"),
     # LOW-009: TOTP/MFA endpoints for admin and counselor accounts.
+    path("auth/invite/", InviteCreateView.as_view(), name="invite-create"),
+    path("auth/invite/accept/", InviteAcceptView.as_view(), name="invite-accept"),
+    path("admin/broadcast-email/", BroadcastEmailView.as_view(), name="admin-broadcast-email"),
     path("auth/mfa/setup/", MFASetupView.as_view(), name="mfa-setup"),
     path("auth/mfa/verify/", MFAVerifyView.as_view(), name="mfa-verify"),
     path("auth/mfa/disable/", MFADisableView.as_view(), name="mfa-disable"),

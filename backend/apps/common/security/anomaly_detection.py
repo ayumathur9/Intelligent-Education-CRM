@@ -266,8 +266,11 @@ def _different_subnet(ip1: str, ip2: str) -> bool:
         return False
 
 
+_HIGH_RISK_EVENT_TYPES = {"account_lockout", "brute_force_login", "token_abuse", "impossible_velocity"}
+
+
 def _emit_security_event(event_type: str, ip: str, user_id: int | None, detail: str) -> None:
-    """Fire an async audit log entry. Never blocks the caller."""
+    """Fire an async audit log entry and, for critical events, alert admins by email."""
     try:
         from apps.audit.tasks import log_security_event
         log_security_event.delay(
@@ -278,3 +281,19 @@ def _emit_security_event(event_type: str, ip: str, user_id: int | None, detail: 
         )
     except Exception:
         pass
+
+    if event_type in _HIGH_RISK_EVENT_TYPES:
+        try:
+            user_email = ""
+            if user_id:
+                from apps.users.models import User
+                user_email = User.objects.filter(pk=user_id).values_list("email", flat=True).first() or ""
+            from apps.common.email_service import send_high_risk_alert
+            send_high_risk_alert(
+                event_description=detail,
+                ip_address=ip,
+                user_email=user_email,
+                extra={"Event Type": event_type},
+            )
+        except Exception:
+            pass
