@@ -192,7 +192,7 @@ class PasswordResetRequestView(APIView):
             token_obj = PasswordResetToken.mint(user=user, ttl_minutes=30)
             reset_link = (
                 f"{settings.FRONTEND_BASE_URL.rstrip('/')}"
-                f"/reset-password.html?token={token_obj.token}"
+                f"/reset-password/?token={token_obj.token}"
             )
             try:
                 from apps.users.tasks import send_password_reset_email_task

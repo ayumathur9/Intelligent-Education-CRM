@@ -72,7 +72,7 @@ def _send_reminder(student: Student, missing: list[tuple[str, list[str]]], dry_r
     context = {
         "student_name": student.full_name or student.student_code,
         "missing_sections": missing,
-        "login_url": f"{settings.FRONTEND_BASE_URL.rstrip('/')}/login.html",
+        "login_url": f"{settings.FRONTEND_BASE_URL.rstrip('/')}/login/",
     }
     html_body = render_to_string("emails/profile_reminder.html", context)
     text_body = _plain_text(student, missing)
@@ -104,7 +104,7 @@ def _plain_text(student: Student, missing: list[tuple[str, list[str]]]) -> str:
             lines.append(f"    - {f}")
         lines.append("")
     lines += [
-        f"Log in here: {settings.FRONTEND_BASE_URL.rstrip('/')}/login.html",
+        f"Log in here: {settings.FRONTEND_BASE_URL.rstrip('/')}/login/",
         "",
         "— The Intelligent Education Team",
     ]

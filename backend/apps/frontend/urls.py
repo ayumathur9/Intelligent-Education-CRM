@@ -37,4 +37,6 @@ urlpatterns = [
     path("toggle-pin-note/<int:pk>/", views.toggle_pin_note, name="toggle-pin-note"),
     path("search/", views.global_search, name="global-search"),
     path("dismiss-priority-item/", views.dismiss_priority_item, name="dismiss-priority-item"),
+    path("reset-password/", views.reset_password_view, name="reset-password"),
+    path("accept-invite/", views.accept_invite_view, name="accept-invite"),
 ]

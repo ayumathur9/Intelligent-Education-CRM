@@ -57,7 +57,7 @@ def send_welcome_email(user) -> bool:
     context = {
         "full_name": user.full_name or user.email,
         "email": user.email,
-        "login_url": f"{settings.FRONTEND_BASE_URL.rstrip('/')}/login.html",
+        "login_url": f"{settings.FRONTEND_BASE_URL.rstrip('/')}/login/",
     }
     html_body = render_to_string("emails/welcome.html", context)
     text_body = (
@@ -198,7 +198,7 @@ def _send_admin_alert(
         "recommended_actions": recommended_actions or [],
         "incident_id": incident_id,
         "occurred_at": occurred_at,
-        "dashboard_url": f"{settings.FRONTEND_BASE_URL.rstrip('/')}/admin_dashboard/code.html",
+        "dashboard_url": f"{settings.FRONTEND_BASE_URL.rstrip('/')}/admin-dashboard/",
     }
     html_body = render_to_string("emails/admin_alert.html", context)
     text_lines = [f"[{severity.upper()}] {alert_type}", f"Time: {occurred_at}", ""]
@@ -324,7 +324,7 @@ def send_staff_onboarding_email(user) -> bool:
     """Onboarding email sent to counselors, editors, and admins after account creation."""
     role_labels = {"admin": "Admin", "counselor": "Counselor", "editor": "Editor", "student": "Student"}
     role_label = role_labels.get(user.role, user.role.title())
-    login_url = f"{settings.FRONTEND_BASE_URL.rstrip('/')}/login.html"
+    login_url = f"{settings.FRONTEND_BASE_URL.rstrip('/')}/login/"
     context = {
         "full_name": user.full_name or user.email,
         "email": user.email,
@@ -407,7 +407,7 @@ def send_doc_uploaded_by_student_email(doc, recipient_user, is_reminder: bool = 
         "uploaded_at": uploaded_at_str,
         "is_reminder": is_reminder,
         "hours_elapsed": hours_elapsed,
-        "dashboard_url": f"{settings.FRONTEND_BASE_URL.rstrip('/')}/admin_dashboard/code.html",
+        "dashboard_url": f"{settings.FRONTEND_BASE_URL.rstrip('/')}/admin-dashboard/",
     }
     html_body = render_to_string("emails/doc_uploaded_by_student.html", context)
     reminder_note = f" ({hours_elapsed}h follow-up)" if is_reminder else ""
@@ -437,7 +437,7 @@ def send_doc_uploaded_by_staff_email(doc, uploader_user, uploader_role: str) -> 
 
     category_label = _DOC_CATEGORY_LABELS.get(doc.category, doc.category.replace("_", " ").title())
     uploaded_at_str = doc.uploaded_at.strftime("%d %b %Y, %H:%M UTC") if doc.uploaded_at else "—"
-    portal_url = f"{settings.FRONTEND_BASE_URL.rstrip('/')}/student_application/code.html"
+    portal_url = f"{settings.FRONTEND_BASE_URL.rstrip('/')}/applications/"
     context = {
         "recipient_name": student.full_name or student.student_code,
         "uploader_name": uploader_user.full_name or uploader_user.email if uploader_user else "Intelligent Education Staff",
@@ -467,7 +467,7 @@ def send_student_staff_assignment_email(student, staff_user, role_label: str) ->
     """Notify the student that a counselor/editor/POC has been assigned to them."""
     if not student or not student.email:
         return False
-    portal_url = f"{settings.FRONTEND_BASE_URL.rstrip('/')}/student_application/code.html"
+    portal_url = f"{settings.FRONTEND_BASE_URL.rstrip('/')}/applications/"
     context = {
         "student_name": student.full_name or student.student_code,
         "role_label": role_label,
@@ -496,7 +496,7 @@ def send_school_assigned_email(student, school, assigned_by=None, course=None) -
     """Notify the student when a school is added to their application."""
     if not student or not student.email:
         return False
-    portal_url = f"{settings.FRONTEND_BASE_URL.rstrip('/')}/student_application/code.html"
+    portal_url = f"{settings.FRONTEND_BASE_URL.rstrip('/')}/applications/"
     assigned_by_name = (
         assigned_by.full_name or assigned_by.email if assigned_by else "Intelligent Education"
     )
@@ -539,7 +539,7 @@ def send_assignment_email(staff_user, student, role_label: str) -> bool:
         "counselor_name": staff_user.full_name or "",
         "counselor_email": staff_user.email or "",
         "counselor_phone": getattr(staff_user, "phone", "") or "",
-        "dashboard_url": f"{settings.FRONTEND_BASE_URL.rstrip('/')}/admin_dashboard/code.html",
+        "dashboard_url": f"{settings.FRONTEND_BASE_URL.rstrip('/')}/admin-dashboard/",
     }
     html_body = render_to_string("emails/assignment_notification.html", context)
     text_body = (

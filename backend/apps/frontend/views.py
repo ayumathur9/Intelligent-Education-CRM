@@ -1937,3 +1937,147 @@ def dismiss_priority_item(request):
     return JsonResponse({"ok": True})
 
 
+def reset_password_view(request):
+    """
+    GET  /reset-password/?token=<token>  — show the set-new-password form.
+    POST /reset-password/                — submit new password to the API and redirect.
+    """
+    from apps.users.models import PasswordResetToken
+
+    if request.method == "POST":
+        token_value = request.POST.get("token", "").strip()
+        password = request.POST.get("password", "")
+        confirm = request.POST.get("confirm_password", "")
+
+        if password != confirm:
+            return render(request, "reset_password.html", {
+                "token": token_value,
+                "error": "Passwords do not match.",
+            })
+        if len(password) < 8:
+            return render(request, "reset_password.html", {
+                "token": token_value,
+                "error": "Password must be at least 8 characters.",
+            })
+
+        try:
+            token_obj = PasswordResetToken.objects.select_related("user").get(token=token_value)
+        except PasswordResetToken.DoesNotExist:
+            return render(request, "reset_password.html", {
+                "error": "This reset link is invalid or has already been used.",
+            })
+
+        from django.utils import timezone as _tz
+        if token_obj.used_at or token_obj.expires_at < _tz.now():
+            return render(request, "reset_password.html", {
+                "error": "This reset link has expired. Please request a new one.",
+            })
+
+        token_obj.user.set_password(password)
+        token_obj.user.save(update_fields=["password"])
+        token_obj.used_at = _tz.now()
+        token_obj.save(update_fields=["used_at"])
+
+        return render(request, "reset_password.html", {"success": True})
+
+    token_value = request.GET.get("token", "").strip()
+    if not token_value:
+        return render(request, "reset_password.html", {
+            "error": "No reset token provided. Please use the link from your email.",
+        })
+    return render(request, "reset_password.html", {"token": token_value})
+
+
+def accept_invite_view(request):
+    """
+    GET  /accept-invite/?token=<token>  — show the complete-registration form.
+    POST /accept-invite/                — create the account and redirect to login.
+    """
+    from apps.users.models import StaffInvite, User
+    from django.utils import timezone as _tz
+
+    if request.method == "POST":
+        token_value = request.POST.get("token", "").strip()
+        full_name = request.POST.get("full_name", "").strip()
+        password = request.POST.get("password", "")
+        confirm = request.POST.get("confirm_password", "")
+
+        if password != confirm:
+            return render(request, "accept_invite.html", {
+                "token": token_value,
+                "full_name": full_name,
+                "error": "Passwords do not match.",
+            })
+        if len(password) < 8:
+            return render(request, "accept_invite.html", {
+                "token": token_value,
+                "full_name": full_name,
+                "error": "Password must be at least 8 characters.",
+            })
+
+        try:
+            invite = StaffInvite.objects.select_for_update().get(token=token_value)
+        except StaffInvite.DoesNotExist:
+            return render(request, "accept_invite.html", {
+                "error": "This invite link is invalid or has already been used.",
+            })
+
+        if not invite.is_valid():
+            return render(request, "accept_invite.html", {
+                "error": "This invite has expired or already been used.",
+            })
+
+        if User.objects.filter(email=invite.email).exists():
+            return render(request, "accept_invite.html", {
+                "error": "An account for this email already exists. Please log in.",
+            })
+
+        user = User.objects.create_user(
+            email=invite.email,
+            password=password,
+            full_name=full_name,
+            role=invite.role,
+            is_email_verified=True,
+        )
+        invite.accepted_at = _tz.now()
+        invite.save(update_fields=["accepted_at"])
+
+        try:
+            from apps.users.tasks import send_staff_onboarding_email_task
+            send_staff_onboarding_email_task.delay(user.pk)
+        except Exception:
+            try:
+                from apps.common.email_service import send_staff_onboarding_email
+                send_staff_onboarding_email(user)
+            except Exception:
+                pass
+
+        return redirect("/login/?invite_accepted=1")
+
+    token_value = request.GET.get("token", "").strip()
+    if not token_value:
+        return render(request, "accept_invite.html", {
+            "error": "No invite token provided. Please use the link from your email.",
+        })
+
+    try:
+        invite = StaffInvite.objects.get(token=token_value)
+        if not invite.is_valid():
+            return render(request, "accept_invite.html", {
+                "error": "This invite has expired or already been used.",
+            })
+        invite_email = invite.email
+        invite_role = invite.role
+    except StaffInvite.DoesNotExist:
+        return render(request, "accept_invite.html", {
+            "error": "This invite link is invalid.",
+        })
+
+    role_labels = {"admin": "Admin", "counselor": "Counselor", "editor": "Editor", "student": "Student"}
+    return render(request, "accept_invite.html", {
+        "token": token_value,
+        "invite_email": invite_email,
+        "invite_role": role_labels.get(invite_role, invite_role.title()),
+    })
+
+
