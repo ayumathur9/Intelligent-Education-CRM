@@ -301,6 +301,19 @@ SPECTACULAR_SETTINGS = {
     },
 }
 
+# Silence expected system-check warnings that are either intentional or handled
+# at the infrastructure layer (Railway terminates SSL, drf_spectacular schema
+# warnings are non-functional and affect only API docs generation).
+SILENCED_SYSTEM_CHECKS = [
+    # drf_spectacular cannot auto-detect serializers on plain APIView subclasses.
+    # These are OpenAPI schema warnings only — runtime behaviour is unaffected.
+    "drf_spectacular.W001",
+    "drf_spectacular.W002",
+    # Railway's load balancer handles SSL termination and redirects HTTP→HTTPS.
+    # The app itself does not need SECURE_SSL_REDIRECT=True.
+    "security.W008",
+]
+
 # ---------------------------------------------------------------------------
 # JWT — HIGH-004
 # Rotate refresh tokens, blacklist on rotation, and track last login.
