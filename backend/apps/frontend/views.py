@@ -1027,27 +1027,8 @@ def upload_profile_file(request):
         return JsonResponse({"error": "No student profile linked to your account."}, status=400)
 
     try:
-        # Capture existing profile doc so we can email it before overwriting
-        existing_profile_doc = StudentProfileDocument.objects.filter(student=student, category=category, deleted_at__isnull=True).first()
-
         ext = Path(file_obj.name).suffix
         url = _upload_to_local_storage(file_obj, f"profile_docs/{student.pk}", f"{category}{ext}")
-
-        # Email the replaced document before deletion
-        if existing_profile_doc and existing_profile_doc.file_path:
-            try:
-                import requests as _req
-                import mimetypes as _mt
-                resp = _req.get(existing_profile_doc.file_path, timeout=15)
-                if resp.status_code == 200:
-                    old_filename = existing_profile_doc.file_name or f"{category}{Path(existing_profile_doc.file_path).suffix}"
-                    mime = _mt.guess_type(old_filename)[0] or "application/octet-stream"
-                    _send_doc_deleted_email(
-                        student, old_filename, existing_profile_doc.category,
-                        resp.content, old_filename, mime,
-                    )
-            except Exception:
-                pass
 
         # Soft-delete the previous version so its URL is preserved in the DB.
         StudentProfileDocument.objects.filter(
@@ -1625,23 +1606,6 @@ def _handle_document_upload(request, student, school):
             if not is_privileged and not is_uploader:
                 return "Permission denied: you may only delete files you uploaded."
 
-            # Email a copy of the file before marking deleted.
-            file_bytes = None
-            file_url = doc.file_url or ""
-            if file_url.startswith("http"):
-                try:
-                    import requests as _req
-                    resp = _req.get(file_url, timeout=15)
-                    if resp.status_code == 200:
-                        file_bytes = resp.content
-                except Exception:
-                    pass
-
-            if file_bytes:
-                import mimetypes as _mt
-                mime = _mt.guess_type(doc.file_name)[0] or "application/octet-stream"
-                _send_doc_deleted_email(student, doc.file_name, doc.category, file_bytes, doc.file_name, mime)
-
             # Soft-delete: stamp deleted_at, keep DB record and file intact.
             doc.deleted_at = timezone.now()
             doc.save(update_fields=["deleted_at"])
@@ -1689,9 +1653,9 @@ def school_documents_view(request, school_id):
     if not student or not StudentAssignedSchool.objects.filter(student=student, school=school).exists():
         return redirect("/schools/")
 
-    save_message = None
     if request.method == "POST":
-        save_message = _handle_document_upload(request, student, school)
+        _handle_document_upload(request, student, school)
+        return redirect(request.path)
 
     docs = list(StudentSchoolDocument.objects.filter(student=student, school=school, deleted_at__isnull=True).select_related("uploaded_by"))
     doc_panels = _build_doc_panels(docs)
@@ -1701,7 +1665,6 @@ def school_documents_view(request, school_id):
         "doc_panels": doc_panels,
         "additional_student_docs": [d for d in docs if d.category == "additional_student"],
         "additional_counsel_docs": [d for d in docs if d.category == "additional_counsel"],
-        "save_message": save_message,
         "is_counselor_view": False,
         "student": student,
         "back_url": "/schools/",
@@ -1717,9 +1680,9 @@ def counselor_school_documents_view(request, student_id, school_id):
 
     # All internal roles (admin, counselor, editor) can access documents for any student
 
-    save_message = None
     if request.method == "POST":
-        save_message = _handle_document_upload(request, student, school)
+        _handle_document_upload(request, student, school)
+        return redirect(request.path)
 
     docs = list(StudentSchoolDocument.objects.filter(student=student, school=school, deleted_at__isnull=True).select_related("uploaded_by"))
     doc_panels = _build_doc_panels(docs)
@@ -1729,7 +1692,6 @@ def counselor_school_documents_view(request, student_id, school_id):
         "doc_panels": doc_panels,
         "additional_student_docs": [d for d in docs if d.category == "additional_student"],
         "additional_counsel_docs": [d for d in docs if d.category == "additional_counsel"],
-        "save_message": save_message,
         "is_counselor_view": True,
         "student": student,
         "back_url": f"/counselor-schools/?student_id={student_id}",
