@@ -73,7 +73,7 @@
     </a>
     <!-- Students accordion -->
     <div class="mx-2 my-1">
-      <button onclick="toggleStudentsMenu()"
+      <button id="toggle-students-menu-btn"
               class="w-full flex items-center px-4 py-3 text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 transition-colors rounded-lg">
         <span class="material-symbols-outlined mr-3">group</span>
         <span class="font-label-bold text-label-bold flex-1 text-left">Students</span>
@@ -117,14 +117,14 @@
   </div>
   <div class="flex items-center gap-3 ml-4">
     <div class="relative" id="notif-wrap">
-      <button id="notif-btn" onclick="toggleNotif()" class="relative p-2 text-on-surface-variant hover:text-primary transition-colors rounded-lg">
+      <button id="notif-btn" class="relative p-2 text-on-surface-variant hover:text-primary transition-colors rounded-lg">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         <span id="notif-badge" class="{% if notif_unread_count %}absolute top-1 right-1 min-w-[18px] h-[18px] bg-error text-on-error text-[10px] font-bold rounded-full flex items-center justify-center{% else %}hidden{% endif %}">{{ notif_unread_count|default:"" }}</span>
       </button>
       <div id="notif-panel" class="hidden absolute right-0 top-full mt-2 w-80 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-xl z-50 overflow-hidden">
         <div class="flex items-center justify-between px-4 py-3 border-b border-outline-variant">
           <span class="font-label-bold text-label-bold text-on-surface">Notifications</span>
-          <button onclick="markAllRead(event)" class="text-xs text-primary hover:underline font-label-sm">Mark all read</button>
+          <button id="mark-all-read-btn" class="text-xs text-primary hover:underline font-label-sm">Mark all read</button>
         </div>
         <div id="notif-list" class="max-h-[320px] overflow-y-auto divide-y divide-outline-variant/50">
           <p class="text-center text-on-surface-variant py-8 text-sm">Loading…</p>
@@ -172,7 +172,7 @@
 <div id="student-panel" class="slide-panel fixed top-0 right-0 h-full w-[420px] bg-surface-container-lowest border-l border-outline-variant shadow-2xl z-[60] flex flex-col translate-x-full">
   <div class="flex items-center justify-between px-6 py-5 border-b border-outline-variant shrink-0">
     <h3 class="font-h3 text-h3 text-on-surface" id="sp-name">Student Profile</h3>
-    <button onclick="closeStudentPanel()" class="p-1 text-on-surface-variant hover:text-primary"><span class="material-symbols-outlined">close</span></button>
+    <button id="close-student-panel-btn" class="p-1 text-on-surface-variant hover:text-primary"><span class="material-symbols-outlined">close</span></button>
   </div>
   <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-5" id="sp-body">
     <!-- populated by JS -->
@@ -181,7 +181,7 @@
     <!-- populated by JS -->
   </div>
 </div>
-<div id="student-overlay" onclick="closeStudentPanel()" class="fixed inset-0 bg-black/30 z-[55] hidden"></div>
+<div id="student-overlay" class="fixed inset-0 bg-black/30 z-[55] hidden"></div>
 <!-- ── Main content ───────────────────────────────────────────── -->
 <main id="main-content" class="main-content ml-[260px] mt-[72px] p-gutter min-h-screen">
   <div class="mb-6">
@@ -226,16 +226,16 @@
       <div class="flex items-center gap-2">
         <!-- Tab switcher -->
         <div class="flex items-center gap-1 bg-surface-container-low rounded-lg p-1">
-          <button onclick="counselorSwitchTab('my')" id="counselor-tab-my"
+          <button id="counselor-tab-my" data-tab="my"
                   class="px-3 py-1.5 rounded-md font-label-bold text-[11px] bg-surface-container-lowest text-on-surface shadow-sm transition-all">
             My Students <span class="ml-1 text-[10px] text-on-surface-variant">({{ my_students_count }})</span>
           </button>
-          <button onclick="counselorSwitchTab('all')" id="counselor-tab-all"
+          <button id="counselor-tab-all" data-tab="all"
                   class="px-3 py-1.5 rounded-md font-label-bold text-[11px] text-on-surface-variant hover:text-on-surface transition-all">
             All Students <span class="ml-1 text-[10px] text-on-surface-variant">({{ all_students_count }})</span>
           </button>
         </div>
-        <button onclick="counselorToggleStudents()" title="Collapse/Expand" class="p-1.5 text-on-surface-variant hover:text-primary transition-colors rounded-lg hover:bg-surface-container-low">
+        <button id="counselor-toggle-students-btn" title="Collapse/Expand" class="p-1.5 text-on-surface-variant hover:text-primary transition-colors rounded-lg hover:bg-surface-container-low">
           <span class="material-symbols-outlined text-[20px]" id="counselor-students-toggle-icon">expand_less</span>
         </button>
       </div>
@@ -263,8 +263,7 @@
                   data-counselor="{{ s.counselor.full_name|default:s.counselor.email|default:'—'|escapejs }}"
                   data-poc="{{ s.poc.full_name|default:s.poc.email|default:'—'|escapejs }}"
                   data-code="{{ s.student_code|escapejs }}"
-                  data-pk="{{ s.pk }}"
-                  onclick="openStudentPanel(this)">
+                  data-pk="{{ s.pk }}">
                 <td class="px-5 py-3.5">
                   <div class="flex items-center gap-3">
                     {% if s.user and s.user.avatar %}<img src="/user-avatar/{{ s.user.pk }}/" class="h-9 w-9 rounded-full object-cover shrink-0" alt=""/>{% else %}<div class="h-9 w-9 rounded-full bg-secondary-fixed text-[#00468c] flex items-center justify-center font-bold text-sm shrink-0">{{ s.full_name|first|upper }}</div>{% endif %}
@@ -282,7 +281,7 @@
                   <span class="px-2 py-0.5 bg-secondary-fixed text-[#00468c] rounded-full font-label-bold text-[10px]">POC</span>
                   {% endif %}
                 </td>
-                <td class="px-5 py-3.5" onclick="event.stopPropagation()">
+                <td class="px-5 py-3.5 actions-cell">
                   <div class="flex items-center gap-1.5 flex-wrap">
                     <a href="/student-application/{{ s.pk }}/" class="flex items-center gap-1 px-2.5 py-1 bg-primary text-on-primary rounded-lg font-label-bold text-[10px] hover:bg-primary-container transition-colors">
                       <span class="material-symbols-outlined text-[12px]">open_in_new</span>View
@@ -313,7 +312,7 @@
         <div class="px-gutter pt-4 pb-2">
           <div class="relative max-w-sm">
             <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
-            <input oninput="counselorFilterAll(this.value)" placeholder="Search all students…"
+            <input id="all-students-search" placeholder="Search all students…"
                    class="w-full pl-9 pr-4 py-2 bg-background border border-outline-variant rounded-lg font-body-md text-body-md focus:ring-2 focus:ring-secondary focus:outline-none"/>
           </div>
         </div>
@@ -462,7 +461,7 @@
         <p class="font-label-sm text-label-sm text-on-surface-variant mt-0.5">{% if is_editor %}Browse available schools{% else %}Browse or add a new school{% endif %}</p>
       </div>
       {% if not is_editor %}
-      <button onclick="toggleAddSchool()" id="add-school-btn"
+      <button id="add-school-btn"
               class="flex items-center gap-1.5 px-4 py-2 bg-primary text-on-primary font-label-bold text-label-bold rounded-lg hover:bg-primary-container transition-colors text-[12px]">
         <span class="material-symbols-outlined text-[16px]">add</span>Add School
       </button>
@@ -511,7 +510,7 @@
                     class="mt-1 w-full border border-outline-variant rounded-lg px-3 py-2 font-body-md text-on-surface focus:ring-2 focus:ring-primary focus:border-primary outline-none bg-white resize-none"></textarea>
         </div>
         <div class="col-span-2 flex gap-3 justify-end">
-          <button type="button" onclick="toggleAddSchool()" class="px-4 py-2 border border-outline-variant rounded-lg font-label-bold text-label-bold text-on-surface hover:bg-surface-container transition-colors text-[12px]">Cancel</button>
+          <button type="button" id="cancel-school-btn" class="px-4 py-2 border border-outline-variant rounded-lg font-label-bold text-label-bold text-on-surface hover:bg-surface-container transition-colors text-[12px]">Cancel</button>
           <button type="submit" class="px-5 py-2 bg-primary text-on-primary rounded-lg font-label-bold text-label-bold hover:bg-primary-container transition-colors text-[12px] flex items-center gap-1">
             <span class="material-symbols-outlined text-[14px]">add</span>Add School
           </button>
@@ -523,7 +522,7 @@
     <div class="px-gutter pt-4 pb-3">
       <div class="relative max-w-sm">
         <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
-        <input id="school-search" oninput="filterSchools(this.value)" placeholder="Search schools…" type="text"
+        <input id="school-search" placeholder="Search schools…" type="text"
                class="w-full pl-9 pr-4 py-2 border border-outline-variant rounded-lg font-body-md text-body-md focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none bg-surface-container-low"/>
       </div>
     </div>
@@ -748,10 +747,52 @@ function filterStudents(q) {
 /* ── schools search filter ── */
 function filterSchools(q) {
   const val = q.toLowerCase();
-  document.querySelectorAll("#schools-table .school-row").forEach(row => {
+  document.querySelectorAll("#schools-body .school-row").forEach(row => {
     row.style.display = row.textContent.toLowerCase().includes(val) ? "" : "none";
   });
 }
+// ── Wire up all CSP-safe event listeners ───────────────────────────────────
+(function() {
+  // Sidebar students accordion
+  var tsBtn = document.getElementById('toggle-students-menu-btn');
+  if (tsBtn) tsBtn.addEventListener('click', toggleStudentsMenu);
+  // Student tab switcher
+  var tabContainer = document.querySelector('.flex.items-center.gap-1.bg-surface-container-low.rounded-lg.p-1');
+  if (tabContainer) {
+    tabContainer.addEventListener('click', function(e) {
+      var btn = e.target.closest('[data-tab]');
+      if (btn) counselorSwitchTab(btn.dataset.tab);
+    });
+  }
+  // Collapse/expand students section
+  var ctBtn = document.getElementById('counselor-toggle-students-btn');
+  if (ctBtn) ctBtn.addEventListener('click', counselorToggleStudents);
+  // My students rows — open panel on row click, stop propagation on actions cell
+  var studentsTable = document.getElementById('students-table');
+  if (studentsTable) {
+    studentsTable.addEventListener('click', function(e) {
+      if (e.target.closest('.actions-cell')) { e.stopPropagation(); return; }
+      var row = e.target.closest('tr.student-row');
+      if (row) openStudentPanel(row);
+    });
+  }
+  // Close student panel
+  var closeSpBtn = document.getElementById('close-student-panel-btn');
+  if (closeSpBtn) closeSpBtn.addEventListener('click', closeStudentPanel);
+  var spOverlay = document.getElementById('student-overlay');
+  if (spOverlay) spOverlay.addEventListener('click', closeStudentPanel);
+  // All students search
+  var allSearch = document.getElementById('all-students-search');
+  if (allSearch) allSearch.addEventListener('input', function() { counselorFilterAll(this.value); });
+  // Schools search
+  var schoolSearch = document.getElementById('school-search');
+  if (schoolSearch) schoolSearch.addEventListener('input', function() { filterSchools(this.value); });
+  // Add school toggle
+  var addSchoolBtn = document.getElementById('add-school-btn');
+  if (addSchoolBtn) addSchoolBtn.addEventListener('click', toggleAddSchool);
+  var cancelSchoolBtn = document.getElementById('cancel-school-btn');
+  if (cancelSchoolBtn) cancelSchoolBtn.addEventListener('click', toggleAddSchool);
+})();
 // ── Notifications ──────────────────────────────────────────────────────────
 (function () {
   let _open = false;
@@ -778,7 +819,7 @@ function filterSchools(q) {
     const el = document.getElementById('notif-list');
     if (!notifs.length) { el.innerHTML = '<p class="text-center text-on-surface-variant py-8 text-sm">No notifications yet</p>'; return; }
     el.innerHTML = notifs.map(n => `
-      <div data-nid="${n.id}" onclick="_nRead(${n.id},this)" class="flex items-start gap-3 px-4 py-3 hover:bg-surface-container-low cursor-pointer transition-colors${n.read ? ' opacity-60' : ''}">
+      <div data-nid="${n.id}" class="notif-item flex items-start gap-3 px-4 py-3 hover:bg-surface-container-low cursor-pointer transition-colors${n.read ? ' opacity-60' : ''}">
         <span class="material-symbols-outlined ${n.read ? 'text-on-surface-variant' : 'text-primary'} mt-0.5 text-[18px] flex-shrink-0">${_icon(n.title)}</span>
         <div class="flex-1 min-w-0">
           <p class="font-label-bold text-label-bold text-on-surface text-sm">${_esc(n.title)}</p>
@@ -787,6 +828,9 @@ function filterSchools(q) {
         </div>
         ${!n.read ? '<span class="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-2"></span>' : ''}
       </div>`).join('');
+    el.querySelectorAll('.notif-item').forEach(function(item) {
+      item.addEventListener('click', function() { window._nRead(parseInt(item.dataset.nid), item); });
+    });
   }
   async function _load() {
     try {
@@ -837,6 +881,8 @@ function filterSchools(q) {
       document.getElementById('notif-panel')?.classList.add('hidden');
     }
   });
+  document.getElementById('notif-btn').addEventListener('click', function() { window.toggleNotif(); });
+  document.getElementById('mark-all-read-btn').addEventListener('click', function(e) { window.markAllRead(e); });
   _wsConnect();
   _load();
 })();
