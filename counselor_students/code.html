@@ -52,7 +52,7 @@
       <span class="material-symbols-outlined mr-3">dashboard</span><span class="font-label-bold text-label-bold">Dashboard</span>
     </a>
     <div class="mx-2 my-1">
-      <button onclick="toggleStudentsMenu()"
+      <button id="toggle-students-menu-btn"
               class="w-full flex items-center px-4 py-3 bg-on-primary-fixed-variant text-on-primary rounded-lg">
         <span class="material-symbols-outlined mr-3">group</span>
         <span class="font-label-bold text-label-bold flex-1 text-left">Students</span>
@@ -96,7 +96,7 @@
   <div class="flex items-center gap-3">
     <div class="relative w-full max-w-xs sm:w-72">
       <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
-      <input id="search-input" oninput="filterRows();handleGlobalSearch(this.value,this)" onfocus="if(this.value.length>=2)handleGlobalSearch(this.value,this)" placeholder="Search students, schools…" class="w-full border border-outline-variant rounded-lg pl-10 pr-3 py-2 font-body-md text-body-md focus:ring-2 focus:ring-secondary focus:outline-none" type="text" autocomplete="off"/>
+      <input id="search-input" placeholder="Search students, schools…" class="w-full border border-outline-variant rounded-lg pl-10 pr-3 py-2 font-body-md text-body-md focus:ring-2 focus:ring-secondary focus:outline-none" type="text" autocomplete="off"/>
     </div>
     <a href="/logout/" title="Sign out" class="p-2 text-on-surface-variant hover:text-primary transition-colors rounded-lg">
       <span class="material-symbols-outlined text-[22px]">logout</span>
@@ -107,8 +107,8 @@
 <main id="main-content" class="main-content ml-[260px] mt-[72px] p-gutter min-h-screen">
   <!-- Tabs -->
   <div class="flex gap-2 mb-6 border-b border-outline-variant">
-    <button id="tab-mine" onclick="switchTab('mine')" class="px-5 py-3 font-label-bold text-label-bold text-primary border-b-2 border-primary -mb-px">My Students <span class="ml-1 px-2 py-0.5 bg-primary text-on-primary rounded-full text-[10px]">{{ my_students|length }}</span></button>
-    <button id="tab-all" onclick="switchTab('all')" class="px-5 py-3 font-label-bold text-label-bold text-on-surface-variant border-b-2 border-transparent -mb-px hover:text-primary transition-colors">All Students <span class="ml-1 px-2 py-0.5 bg-surface-container text-on-surface rounded-full text-[10px]">{{ all_students|length }}</span></button>
+    <button id="tab-mine" class="px-5 py-3 font-label-bold text-label-bold text-primary border-b-2 border-primary -mb-px">My Students <span class="ml-1 px-2 py-0.5 bg-primary text-on-primary rounded-full text-[10px]">{{ my_students|length }}</span></button>
+    <button id="tab-all" class="px-5 py-3 font-label-bold text-label-bold text-on-surface-variant border-b-2 border-transparent -mb-px hover:text-primary transition-colors">All Students <span class="ml-1 px-2 py-0.5 bg-surface-container text-on-surface rounded-full text-[10px]">{{ all_students|length }}</span></button>
   </div>
   <!-- My Students -->
   <div id="panel-mine">
@@ -125,7 +125,7 @@
           </thead>
           <tbody class="divide-y divide-outline-variant">
             {% for s in my_students %}
-            <tr class="hover:bg-surface-container-low transition-colors student-row cursor-pointer" onclick="window.location='/student-application/{{ s.pk }}/'">
+            <tr class="hover:bg-surface-container-low transition-colors student-row cursor-pointer" data-url="/student-application/{{ s.pk }}/">
               <td class="px-5 py-4">
                 <div class="flex items-center gap-3">
                   {% if s.user and s.user.avatar %}<img src="/user-avatar/{{ s.user.pk }}/" class="h-9 w-9 rounded-full object-cover shrink-0" alt=""/>{% else %}<div class="h-9 w-9 rounded-full bg-primary flex items-center justify-center text-on-primary font-bold text-sm shrink-0">{{ s.full_name|first|upper }}</div>{% endif %}
@@ -167,7 +167,7 @@
           </thead>
           <tbody class="divide-y divide-outline-variant">
             {% for s in all_students %}
-            <tr class="hover:bg-surface-container-low transition-colors student-row cursor-pointer" onclick="window.location='/student-application/{{ s.pk }}/'">
+            <tr class="hover:bg-surface-container-low transition-colors student-row cursor-pointer" data-url="/student-application/{{ s.pk }}/">
               <td class="px-5 py-4">
                 <div class="flex items-center gap-3">
                   {% if s.user and s.user.avatar %}<img src="/user-avatar/{{ s.user.pk }}/" class="h-9 w-9 rounded-full object-cover shrink-0" alt=""/>{% else %}<div class="h-9 w-9 rounded-full bg-secondary-fixed text-on-secondary-fixed-variant flex items-center justify-center font-bold text-sm shrink-0">{{ s.full_name|first|upper }}</div>{% endif %}
@@ -277,6 +277,27 @@ function filterRows() {
     if(dd && inp && !dd.contains(e.target) && e.target!==inp) _close();
   });
   document.addEventListener('keydown', e => { if(e.key==='Escape') { _close(); _inp()?.blur(); } });
+  const _si = _inp();
+  if (_si) {
+    _si.addEventListener('input', function() { filterRows(); window.handleGlobalSearch(this.value); });
+    _si.addEventListener('focus', function() { if (this.value.length >= 2) window.handleGlobalSearch(this.value); });
+  }
+})();
+// ── Wire up CSP-safe event listeners ──────────────────────────────────────
+(function() {
+  // Tab buttons
+  var tabMine = document.getElementById('tab-mine');
+  var tabAll = document.getElementById('tab-all');
+  if (tabMine) tabMine.addEventListener('click', function() { switchTab('mine'); });
+  if (tabAll) tabAll.addEventListener('click', function() { switchTab('all'); });
+  // Student row clicks — navigate to application page
+  document.addEventListener('click', function(e) {
+    var row = e.target.closest('tr.student-row[data-url]');
+    if (row) window.location = row.dataset.url;
+  });
+  // Sidebar students accordion
+  var tsBtn = document.getElementById('toggle-students-menu-btn');
+  if (tsBtn) tsBtn.addEventListener('click', toggleStudentsMenu);
 })();
 </script>
 <!-- ===== FOOTER ===== -->
