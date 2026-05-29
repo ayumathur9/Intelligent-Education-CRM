@@ -167,9 +167,9 @@
         <textarea id="msg-input" rows="1" placeholder="Message…"
           class="w-full text-[13px] outline-none resize-none max-h-24 bg-transparent font-body-md text-on-surface"
           style="line-height:1.5"
-          onkeydown="handleKey(event)"></textarea>
+          ></textarea>
       </div>
-      <button id="send-btn" onclick="sendMessage()"
+      <button id="send-btn"
         class="w-11 h-11 rounded-full flex items-center justify-center shrink-0 hover:opacity-90 active:scale-95 transition-all disabled:opacity-40"
         style="background:#a20513;box-shadow:0 4px 14px rgba(162,5,19,0.35)">
         <span class="material-symbols-outlined text-white text-[18px]">send</span>
@@ -183,10 +183,30 @@
         <p class="font-label-bold text-label-bold text-on-surface">{{ active_student.full_name }}</p>
         <p class="font-label-sm text-label-sm text-on-surface-variant">Student · Notes</p>
       </div>
-      <div class="ml-auto flex gap-3">
+      <div class="ml-auto flex gap-3 items-center">
         <a href="/counselor-schools/?student_id={{ active_student.pk }}" class="text-[11px] font-label-bold text-primary hover:underline flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">school</span>Schools</a>
         <a href="/counselor-activity/?student_id={{ active_student.pk }}" class="text-[11px] font-label-bold text-on-surface-variant hover:underline flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">history</span>Activity</a>
+        <button id="add-note-btn" title="Add Note" class="flex items-center gap-1 px-3 py-1.5 bg-primary text-on-primary rounded-lg font-label-bold text-[11px] hover:bg-primary-container transition-colors">
+          <span class="material-symbols-outlined text-[15px]">add</span>Add Note
+        </button>
       </div>
+    </div>
+    <!-- Add Note Form (hidden by default) -->
+    <div id="note-compose" class="hidden shrink-0 border-b border-outline-variant bg-surface-container-low px-6 py-4">
+      <form method="post" action="/counselor-interaction-log/?t=student&id={{ active_student.pk }}" id="note-form">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_note">
+        <input type="hidden" name="student_id" value="{{ active_student.pk }}">
+        <textarea id="note-textarea" name="description" rows="3"
+          placeholder="Write a note…"
+          class="w-full border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md text-on-surface focus:ring-2 focus:ring-primary focus:border-primary outline-none bg-white resize-none"></textarea>
+        <div class="flex justify-end gap-2 mt-2">
+          <button type="button" id="cancel-note-btn" class="px-4 py-1.5 border border-outline-variant rounded-lg font-label-bold text-[12px] text-on-surface hover:bg-surface-container transition-colors">Cancel</button>
+          <button type="submit" class="px-4 py-1.5 bg-primary text-on-primary rounded-lg font-label-bold text-[12px] hover:bg-primary-container transition-colors flex items-center gap-1">
+            <span class="material-symbols-outlined text-[14px]">sticky_note_2</span>Save Note
+          </button>
+        </div>
+      </form>
     </div>
     <div id="notes-feed" class="flex-1 overflow-y-auto custom-scrollbar px-8 py-7"
          style="background:#faf6f4 repeating-linear-gradient(0deg,transparent,transparent 35px,rgba(228,190,186,0.18) 35px,rgba(228,190,186,0.18) 36px)">
@@ -213,7 +233,7 @@
               <span class="material-symbols-outlined text-[13px]" style="color:#78350f;font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 20">sticky_note_2</span>
               <span class="font-label-bold text-[11px] tracking-wide" style="color:#78350f">{% if entry.author %}{{ entry.author.full_name|default:entry.author.email }}{% else %}Counselor{% endif %}</span>
               <span class="ml-auto font-label-sm text-[10px]" style="color:#92400e">{{ entry.created_at|date:"M d · H:i" }}</span>
-              <button onclick="togglePin({{ entry.pk }}, this)" title="Unpin"
+              <button title="Unpin" data-pin-pk="{{ entry.pk }}"
                 class="ml-1 rounded-full p-0.5 hover:bg-black/10 transition-colors pin-btn" data-pinned="true">
                 <span class="material-symbols-outlined text-[14px]" style="color:#78350f;font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 20">push_pin</span>
               </button>
@@ -247,7 +267,7 @@
                 <span class="material-symbols-outlined text-[13px]" style="color:#78350f;font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 20">sticky_note_2</span>
                 <span class="font-label-bold text-[11px] tracking-wide" style="color:#78350f">{% if entry.author %}{{ entry.author.full_name|default:entry.author.email }}{% else %}Counselor{% endif %}</span>
                 <span class="ml-auto font-label-sm text-[10px]" style="color:#92400e">{{ entry.created_at|date:"M d · H:i" }}</span>
-                <button onclick="togglePin({{ entry.pk }}, this)" title="{% if entry.is_pinned %}Unpin{% else %}Pin{% endif %}"
+                <button title="{% if entry.is_pinned %}Unpin{% else %}Pin{% endif %}" data-pin-pk="{{ entry.pk }}"
                   class="ml-1 rounded-full p-0.5 hover:bg-black/10 transition-colors pin-btn" data-pinned="{{ entry.is_pinned|lower }}">
                   <span class="material-symbols-outlined text-[14px]" style="color:#78350f;font-variation-settings:'FILL' {% if entry.is_pinned %}1{% else %}0{% endif %},'wght' 400,'GRAD' 0,'opsz' 20">push_pin</span>
                 </button>
@@ -277,7 +297,7 @@
               <span id="wa-status">connecting…</span>
             </p>
           </div>
-          <button onclick="toggleChat()" class="rounded-full p-1 hover:bg-white/10" style="color:rgba(255,255,255,0.8)">
+          <button id="chat-close-btn" class="rounded-full p-1 hover:bg-white/10" style="color:rgba(255,255,255,0.8)">
             <span class="material-symbols-outlined text-[20px]">close</span>
           </button>
         </div>
@@ -312,16 +332,16 @@
             <textarea id="msg-input" rows="1" placeholder="Message…"
               class="w-full text-[13px] outline-none resize-none max-h-20 bg-transparent font-body-md text-on-surface"
               style="line-height:1.5"
-              onkeydown="handleKey(event)"></textarea>
+              ></textarea>
           </div>
-          <button id="send-btn" onclick="sendMessage()"
+          <button id="send-btn"
             class="w-11 h-11 rounded-full flex items-center justify-center shrink-0 hover:opacity-90 active:scale-95 transition-all disabled:opacity-40"
             style="background:#a20513;box-shadow:0 4px 14px rgba(162,5,19,0.35)">
             <span class="material-symbols-outlined text-white text-[18px]">send</span>
           </button>
         </div>
       </div>
-      <button id="chat-fab" onclick="toggleChat()"
+      <button id="chat-fab"
         class="w-14 h-14 rounded-full flex items-center justify-center relative hover:opacity-90 active:scale-95 transition-all"
         style="background:#a20513;box-shadow:0 6px 20px rgba(162,5,19,0.45)">
         <span id="fab-icon" class="material-symbols-outlined text-white text-[24px]" style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">chat</span>
@@ -476,12 +496,45 @@ if (msgInput) {
     msgInput.style.height = "auto";
     msgInput.style.height = Math.min(msgInput.scrollHeight, 96) + "px";
   });
+  msgInput.addEventListener("keydown", handleKey);
 }
 /* scroll to bottom on load */
 ["dm-messages","chat-messages"].forEach(id => {
   const el = document.getElementById(id);
   if (el) el.scrollTop = el.scrollHeight;
 });
+/* ── Wire up CSP-safe event listeners ── */
+(function() {
+  // Chat send button + FAB + close
+  const sendBtn = document.getElementById("send-btn");
+  if (sendBtn) sendBtn.addEventListener("click", sendMessage);
+  const chatFab = document.getElementById("chat-fab");
+  if (chatFab) chatFab.addEventListener("click", toggleChat);
+  const chatCloseBtn = document.getElementById("chat-close-btn");
+  if (chatCloseBtn) chatCloseBtn.addEventListener("click", toggleChat);
+  // Pin/unpin buttons via delegation
+  document.addEventListener("click", function(e) {
+    const btn = e.target.closest("[data-pin-pk]");
+    if (btn) togglePin(parseInt(btn.dataset.pinPk), btn);
+  });
+  // Add note button toggle
+  const addNoteBtn = document.getElementById("add-note-btn");
+  const noteCompose = document.getElementById("note-compose");
+  const cancelNoteBtn = document.getElementById("cancel-note-btn");
+  const noteTa = document.getElementById("note-textarea");
+  if (addNoteBtn && noteCompose) {
+    addNoteBtn.addEventListener("click", function() {
+      noteCompose.classList.toggle("hidden");
+      if (!noteCompose.classList.contains("hidden") && noteTa) noteTa.focus();
+    });
+  }
+  if (cancelNoteBtn && noteCompose) {
+    cancelNoteBtn.addEventListener("click", function() {
+      noteCompose.classList.add("hidden");
+      if (noteTa) noteTa.value = "";
+    });
+  }
+})();
 connect();
 </script>
 <!-- ===== FOOTER ===== -->

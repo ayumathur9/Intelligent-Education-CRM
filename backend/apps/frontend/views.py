@@ -582,6 +582,39 @@ def counselor_interaction_log_view(request):
     is_admin = request.user.role == "admin"
     is_editor = request.user.role == "editor"
 
+    if request.method == "POST" and request.POST.get("action") == "add_note":
+        sid = request.POST.get("student_id", "").strip()
+        description = request.POST.get("description", "").strip()
+        if sid and description:
+            try:
+                student = Student.objects.select_related("user").get(pk=sid)
+                authorized = (
+                    is_admin or is_editor
+                    or student.counselor_id == request.user.pk
+                    or student.poc_id == request.user.pk
+                )
+                if authorized:
+                    StudentActivity.objects.create(
+                        student=student,
+                        activity_type="note_added",
+                        description=description,
+                        created_by=request.user,
+                    )
+                    if student.user_id:
+                        try:
+                            from apps.notifications.service import notify_sync
+                            notify_sync(
+                                student.user,
+                                title=f"New note from {request.user.full_name or request.user.email}",
+                                message=description[:120],
+                                link="/interaction-log/",
+                            )
+                        except Exception:
+                            pass
+            except Student.DoesNotExist:
+                pass
+        return redirect(f"/counselor-interaction-log/?t=student&id={sid}")
+
     if is_admin or is_editor:
         student_threads = (
             Student.objects.filter(is_active=True)
