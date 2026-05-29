@@ -158,13 +158,13 @@
 <main id="main-content" class="main-content ml-[260px] pt-[72px] min-h-screen p-gutter">
   <div class="max-w-3xl mx-auto">
     <!-- Filter Chips -->
-    <div class="flex items-center gap-3 mb-6 flex-wrap">
-      <button onclick="filterActivity('')" class="act-filter-btn active px-4 py-1.5 bg-primary text-on-primary font-label-bold text-label-bold rounded-full text-[12px]" data-type="">All</button>
-      <button onclick="filterActivity('application_submitted')" class="act-filter-btn px-4 py-1.5 bg-surface-container-low text-on-surface font-label-bold text-label-bold rounded-full text-[12px] border border-outline-variant hover:bg-surface-container-high" data-type="application_submitted">Applications</button>
-      <button onclick="filterActivity('document_uploaded')" class="act-filter-btn px-4 py-1.5 bg-surface-container-low text-on-surface font-label-bold text-label-bold rounded-full text-[12px] border border-outline-variant hover:bg-surface-container-high" data-type="document_uploaded">Documents</button>
-      <button onclick="filterActivity('preference_saved')" class="act-filter-btn px-4 py-1.5 bg-surface-container-low text-on-surface font-label-bold text-label-bold rounded-full text-[12px] border border-outline-variant hover:bg-surface-container-high" data-type="preference_saved">School Preferences</button>
-      <button onclick="filterActivity('message_received')" class="act-filter-btn px-4 py-1.5 bg-surface-container-low text-on-surface font-label-bold text-label-bold rounded-full text-[12px] border border-outline-variant hover:bg-surface-container-high" data-type="message_received">Messages</button>
-      <button onclick="filterActivity('profile_updated')" class="act-filter-btn px-4 py-1.5 bg-surface-container-low text-on-surface font-label-bold text-label-bold rounded-full text-[12px] border border-outline-variant hover:bg-surface-container-high" data-type="profile_updated">Profile</button>
+    <div id="activity-filters" class="flex items-center gap-3 mb-6 flex-wrap">
+      <button class="act-filter-btn active px-4 py-1.5 bg-primary text-on-primary font-label-bold text-label-bold rounded-full text-[12px]" data-type="">All</button>
+      <button class="act-filter-btn px-4 py-1.5 bg-surface-container-low text-on-surface font-label-bold text-label-bold rounded-full text-[12px] border border-outline-variant hover:bg-surface-container-high" data-type="application_submitted">Applications</button>
+      <button class="act-filter-btn px-4 py-1.5 bg-surface-container-low text-on-surface font-label-bold text-label-bold rounded-full text-[12px] border border-outline-variant hover:bg-surface-container-high" data-type="document_uploaded">Documents</button>
+      <button class="act-filter-btn px-4 py-1.5 bg-surface-container-low text-on-surface font-label-bold text-label-bold rounded-full text-[12px] border border-outline-variant hover:bg-surface-container-high" data-type="preference_saved">School Preferences</button>
+      <button class="act-filter-btn px-4 py-1.5 bg-surface-container-low text-on-surface font-label-bold text-label-bold rounded-full text-[12px] border border-outline-variant hover:bg-surface-container-high" data-type="message_received">Messages</button>
+      <button class="act-filter-btn px-4 py-1.5 bg-surface-container-low text-on-surface font-label-bold text-label-bold rounded-full text-[12px] border border-outline-variant hover:bg-surface-container-high" data-type="profile_updated">Profile</button>
     </div>
     {% if activities %}
     <!-- Activity Timeline -->
@@ -262,6 +262,13 @@ document.addEventListener('keydown', function(e) {
     });
     document.querySelectorAll('.activity-item').forEach(item => {
       item.style.display = (!type || item.dataset.type === type) ? '' : 'none';
+    });
+  }
+  var _filters = document.getElementById('activity-filters');
+  if (_filters) {
+    _filters.addEventListener('click', function(e) {
+      var btn = e.target.closest('.act-filter-btn');
+      if (btn) filterActivity(btn.dataset.type);
     });
   }
 </script>
