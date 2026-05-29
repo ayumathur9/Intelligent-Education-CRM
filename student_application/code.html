@@ -375,7 +375,7 @@
         </div>
         <div class="relative w-full sm:min-w-[300px] sm:w-auto">
           <label class="absolute -top-2 left-3 bg-surface-container-high px-1 text-label-sm font-bold text-primary text-[10px]">Select School</label>
-          <select id="school-select" onchange="switchSchool(this.value)"
+          <select id="school-select"
                   class="w-full bg-surface-container-lowest border border-outline rounded-lg py-3 px-4 focus:ring-2 focus:ring-primary text-body-md font-bold text-on-surface">
             {% for panel in school_panels %}
             <option value="{{ panel.school.pk }}">{{ panel.school.name }}{% if panel.course %} ({{ panel.course.name }}){% endif %}</option>
@@ -483,7 +483,7 @@
                 <label class="cursor-pointer w-full h-full flex flex-col justify-center items-center">
                   <span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors text-2xl mb-1">cloud_upload</span>
                   <p class="text-[10px] text-on-surface-variant">Upload LOR</p>
-                  <input type="file" name="file" class="hidden" onchange="this.form.querySelector('[name=category]').value='lor'; this.form.submit();"/>
+                  <input type="file" name="file" class="hidden" data-category="lor"/>
                 </label>
               </div>
             </div>
@@ -522,7 +522,7 @@
                 <label class="cursor-pointer w-full h-full flex flex-col justify-center items-center">
                   <span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors text-2xl mb-1">cloud_upload</span>
                   <p class="text-[10px] text-on-surface-variant">Upload Essay</p>
-                  <input type="file" name="file" class="hidden" onchange="this.form.querySelector('[name=category]').value='essay'; this.form.submit();"/>
+                  <input type="file" name="file" class="hidden" data-category="essay"/>
                 </label>
               </div>
             </div>
@@ -561,7 +561,7 @@
                 <label class="cursor-pointer w-full h-full flex flex-col justify-center items-center">
                   <span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors text-2xl mb-1">cloud_upload</span>
                   <p class="text-[10px] text-on-surface-variant">Upload Resume</p>
-                  <input type="file" name="file" class="hidden" onchange="this.form.querySelector('[name=category]').value='resume'; this.form.submit();"/>
+                  <input type="file" name="file" class="hidden" data-category="resume"/>
                 </label>
               </div>
             </div>
@@ -599,7 +599,7 @@
                   <label class="cursor-pointer w-full h-full flex flex-col justify-center items-center">
                     <span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors text-xl mb-0.5">cloud_upload</span>
                     <p class="text-[10px] text-on-surface-variant">Upload (Student)</p>
-                    <input type="file" name="file" class="hidden" onchange="this.form.querySelector('[name=category]').value='additional_student'; this.form.submit();"/>
+                    <input type="file" name="file" class="hidden" data-category="additional_student"/>
                   </label>
                 </div>
               </div>
@@ -631,7 +631,7 @@
                   <label class="cursor-pointer w-full h-full flex flex-col justify-center items-center">
                     <span class="material-symbols-outlined text-outline group-hover:text-secondary transition-colors text-xl mb-0.5">cloud_upload</span>
                     <p class="text-[10px] text-on-surface-variant">Upload (Counsellor)</p>
-                    <input type="file" name="file" class="hidden" onchange="this.form.querySelector('[name=category]').value='additional_counsel'; this.form.submit();"/>
+                    <input type="file" name="file" class="hidden" data-category="additional_counsel"/>
                   </label>
                 </div>
               </div>
@@ -704,6 +704,18 @@ function toggleStudentsMenu() {
   menu.classList.toggle('hidden', isOpen);
   chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
 }
+document.addEventListener('DOMContentLoaded', function() {
+  var schoolSelect = document.getElementById('school-select');
+  if (schoolSelect) {
+    schoolSelect.addEventListener('change', function() { switchSchool(this.value); });
+  }
+  document.querySelectorAll('input[type="file"][data-category]').forEach(function(inp) {
+    inp.addEventListener('change', function() {
+      this.form.querySelector('[name=category]').value = this.dataset.category;
+      this.form.submit();
+    });
+  });
+});
 </script>
 
 <!-- ===== FOOTER ===== -->

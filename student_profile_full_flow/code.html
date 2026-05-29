@@ -270,7 +270,7 @@
           <p class="font-label-bold text-label-bold text-on-surface mb-1">Profile Photo</p>
           <label class="cursor-pointer inline-flex items-center gap-2 px-4 py-2 border border-outline-variant rounded-lg text-[12px] font-label-bold text-on-surface hover:bg-surface-container-low transition-colors">
             <span class="material-symbols-outlined text-[16px]">upload</span>Upload Photo
-            <input type="file" accept="image/*" class="hidden" onchange="uploadFile(this,'avatar','avatar-status','avatar-name')"/>
+            <input type="file" accept="image/*" class="hidden" data-doc-type="avatar" data-badge="avatar-status" data-name="avatar-name"/>
           </label>
           <p id="avatar-name" class="text-xs text-on-surface-variant mt-1"></p>
           <p id="avatar-status" class="text-xs mt-0.5"></p>
@@ -678,7 +678,7 @@
               <div class="flex items-center gap-2 ml-3 shrink-0">
                 <span id="doc-passport-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase {% if profile_docs.passport %}bg-green-100 text-green-700{% else %}bg-yellow-100 text-yellow-700{% endif %}">{% if profile_docs.passport %}Uploaded{% else %}Pending{% endif %}</span>
                 {% if profile_docs.passport %}<a href="/profile-doc/{{ profile_docs.passport.id }}/view/" target="_blank" class="flex items-center gap-1 bg-surface-container border border-outline-variant text-on-surface px-2 py-1.5 rounded text-xs font-bold hover:bg-surface-variant transition-colors"><span class="material-symbols-outlined" style="font-size:14px;line-height:1">visibility</span>View</a><a href="/profile-doc/{{ profile_docs.passport.id }}/view/?download={{ profile_docs.passport.file_name }}" class="flex items-center gap-1 bg-secondary-container text-on-secondary-container px-2 py-1.5 rounded text-xs font-bold hover:opacity-80 transition-colors"><span class="material-symbols-outlined" style="font-size:14px;line-height:1">download</span>DL</a>{% endif %}
-                {% if is_own_profile %}<label class="cursor-pointer bg-primary text-on-primary px-3 py-1.5 rounded text-xs font-bold hover:bg-primary-container transition-colors">{% if profile_docs.passport %}Update{% else %}Upload{% endif %}<input type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png" onchange="uploadFile(this,'passport','doc-passport-badge','doc-passport-name')"/></label>{% endif %}
+                {% if is_own_profile %}<label class="cursor-pointer bg-primary text-on-primary px-3 py-1.5 rounded text-xs font-bold hover:bg-primary-container transition-colors">{% if profile_docs.passport %}Update{% else %}Upload{% endif %}<input type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png" data-doc-type="passport" data-badge="doc-passport-badge" data-name="doc-passport-name"/></label>{% endif %}
               </div>
             </div>
           </div>
@@ -696,7 +696,7 @@
               <div class="flex items-center gap-2 ml-3 shrink-0">
                 <span id="doc-marksheet_10-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase {% if profile_docs.marksheet_10 %}bg-green-100 text-green-700{% else %}bg-yellow-100 text-yellow-700{% endif %}">{% if profile_docs.marksheet_10 %}Uploaded{% else %}Pending{% endif %}</span>
                 {% if profile_docs.marksheet_10 %}<a href="/profile-doc/{{ profile_docs.marksheet_10.id }}/view/" target="_blank" class="flex items-center gap-1 bg-surface-container border border-outline-variant text-on-surface px-2 py-1.5 rounded text-xs font-bold hover:bg-surface-variant transition-colors"><span class="material-symbols-outlined" style="font-size:14px;line-height:1">visibility</span>View</a><a href="/profile-doc/{{ profile_docs.marksheet_10.id }}/view/?download={{ profile_docs.marksheet_10.file_name }}" class="flex items-center gap-1 bg-secondary-container text-on-secondary-container px-2 py-1.5 rounded text-xs font-bold hover:opacity-80 transition-colors"><span class="material-symbols-outlined" style="font-size:14px;line-height:1">download</span>DL</a>{% endif %}
-                {% if is_own_profile %}<label class="cursor-pointer bg-primary text-on-primary px-3 py-1.5 rounded text-xs font-bold hover:bg-primary-container transition-colors">{% if profile_docs.marksheet_10 %}Update{% else %}Upload{% endif %}<input type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png" onchange="uploadFile(this,'marksheet_10','doc-marksheet_10-badge','doc-marksheet_10-name')"/></label>{% endif %}
+                {% if is_own_profile %}<label class="cursor-pointer bg-primary text-on-primary px-3 py-1.5 rounded text-xs font-bold hover:bg-primary-container transition-colors">{% if profile_docs.marksheet_10 %}Update{% else %}Upload{% endif %}<input type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png" data-doc-type="marksheet_10" data-badge="doc-marksheet_10-badge" data-name="doc-marksheet_10-name"/></label>{% endif %}
               </div>
             </div>
           </div>
@@ -714,7 +714,7 @@
               <div class="flex items-center gap-2 ml-3 shrink-0">
                 <span id="doc-marksheet_11-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase {% if profile_docs.marksheet_11 %}bg-green-100 text-green-700{% else %}bg-yellow-100 text-yellow-700{% endif %}">{% if profile_docs.marksheet_11 %}Uploaded{% else %}Pending{% endif %}</span>
                 {% if profile_docs.marksheet_11 %}<a href="/profile-doc/{{ profile_docs.marksheet_11.id }}/view/" target="_blank" class="flex items-center gap-1 bg-surface-container border border-outline-variant text-on-surface px-2 py-1.5 rounded text-xs font-bold hover:bg-surface-variant transition-colors"><span class="material-symbols-outlined" style="font-size:14px;line-height:1">visibility</span>View</a><a href="/profile-doc/{{ profile_docs.marksheet_11.id }}/view/?download={{ profile_docs.marksheet_11.file_name }}" class="flex items-center gap-1 bg-secondary-container text-on-secondary-container px-2 py-1.5 rounded text-xs font-bold hover:opacity-80 transition-colors"><span class="material-symbols-outlined" style="font-size:14px;line-height:1">download</span>DL</a>{% endif %}
-                {% if is_own_profile %}<label class="cursor-pointer bg-primary text-on-primary px-3 py-1.5 rounded text-xs font-bold hover:bg-primary-container transition-colors">{% if profile_docs.marksheet_11 %}Update{% else %}Upload{% endif %}<input type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png" onchange="uploadFile(this,'marksheet_11','doc-marksheet_11-badge','doc-marksheet_11-name')"/></label>{% endif %}
+                {% if is_own_profile %}<label class="cursor-pointer bg-primary text-on-primary px-3 py-1.5 rounded text-xs font-bold hover:bg-primary-container transition-colors">{% if profile_docs.marksheet_11 %}Update{% else %}Upload{% endif %}<input type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png" data-doc-type="marksheet_11" data-badge="doc-marksheet_11-badge" data-name="doc-marksheet_11-name"/></label>{% endif %}
               </div>
             </div>
           </div>
@@ -732,7 +732,7 @@
               <div class="flex items-center gap-2 ml-3 shrink-0">
                 <span id="doc-marksheet_12-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase {% if profile_docs.marksheet_12 %}bg-green-100 text-green-700{% else %}bg-yellow-100 text-yellow-700{% endif %}">{% if profile_docs.marksheet_12 %}Uploaded{% else %}Pending{% endif %}</span>
                 {% if profile_docs.marksheet_12 %}<a href="/profile-doc/{{ profile_docs.marksheet_12.id }}/view/" target="_blank" class="flex items-center gap-1 bg-surface-container border border-outline-variant text-on-surface px-2 py-1.5 rounded text-xs font-bold hover:bg-surface-variant transition-colors"><span class="material-symbols-outlined" style="font-size:14px;line-height:1">visibility</span>View</a><a href="/profile-doc/{{ profile_docs.marksheet_12.id }}/view/?download={{ profile_docs.marksheet_12.file_name }}" class="flex items-center gap-1 bg-secondary-container text-on-secondary-container px-2 py-1.5 rounded text-xs font-bold hover:opacity-80 transition-colors"><span class="material-symbols-outlined" style="font-size:14px;line-height:1">download</span>DL</a>{% endif %}
-                {% if is_own_profile %}<label class="cursor-pointer bg-primary text-on-primary px-3 py-1.5 rounded text-xs font-bold hover:bg-primary-container transition-colors">{% if profile_docs.marksheet_12 %}Update{% else %}Upload{% endif %}<input type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png" onchange="uploadFile(this,'marksheet_12','doc-marksheet_12-badge','doc-marksheet_12-name')"/></label>{% endif %}
+                {% if is_own_profile %}<label class="cursor-pointer bg-primary text-on-primary px-3 py-1.5 rounded text-xs font-bold hover:bg-primary-container transition-colors">{% if profile_docs.marksheet_12 %}Update{% else %}Upload{% endif %}<input type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png" data-doc-type="marksheet_12" data-badge="doc-marksheet_12-badge" data-name="doc-marksheet_12-name"/></label>{% endif %}
               </div>
             </div>
           </div>
@@ -750,7 +750,7 @@
               <div class="flex items-center gap-2 ml-3 shrink-0">
                 <span id="doc-english_proficiency-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase {% if profile_docs.english_proficiency %}bg-green-100 text-green-700{% else %}bg-yellow-100 text-yellow-700{% endif %}">{% if profile_docs.english_proficiency %}Uploaded{% else %}Pending{% endif %}</span>
                 {% if profile_docs.english_proficiency %}<a href="/profile-doc/{{ profile_docs.english_proficiency.id }}/view/" target="_blank" class="flex items-center gap-1 bg-surface-container border border-outline-variant text-on-surface px-2 py-1.5 rounded text-xs font-bold hover:bg-surface-variant transition-colors"><span class="material-symbols-outlined" style="font-size:14px;line-height:1">visibility</span>View</a><a href="/profile-doc/{{ profile_docs.english_proficiency.id }}/view/?download={{ profile_docs.english_proficiency.file_name }}" class="flex items-center gap-1 bg-secondary-container text-on-secondary-container px-2 py-1.5 rounded text-xs font-bold hover:opacity-80 transition-colors"><span class="material-symbols-outlined" style="font-size:14px;line-height:1">download</span>DL</a>{% endif %}
-                {% if is_own_profile %}<label class="cursor-pointer bg-primary text-on-primary px-3 py-1.5 rounded text-xs font-bold hover:bg-primary-container transition-colors">{% if profile_docs.english_proficiency %}Update{% else %}Upload{% endif %}<input type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png" onchange="uploadFile(this,'english_proficiency','doc-english_proficiency-badge','doc-english_proficiency-name')"/></label>{% endif %}
+                {% if is_own_profile %}<label class="cursor-pointer bg-primary text-on-primary px-3 py-1.5 rounded text-xs font-bold hover:bg-primary-container transition-colors">{% if profile_docs.english_proficiency %}Update{% else %}Upload{% endif %}<input type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png" data-doc-type="english_proficiency" data-badge="doc-english_proficiency-badge" data-name="doc-english_proficiency-name"/></label>{% endif %}
               </div>
             </div>
           </div>
@@ -768,7 +768,7 @@
               <div class="flex items-center gap-2 ml-3 shrink-0">
                 <span id="doc-gre_gmat_other-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase {% if profile_docs.gre_gmat_other %}bg-green-100 text-green-700{% else %}bg-yellow-100 text-yellow-700{% endif %}">{% if profile_docs.gre_gmat_other %}Uploaded{% else %}Pending{% endif %}</span>
                 {% if profile_docs.gre_gmat_other %}<a href="/profile-doc/{{ profile_docs.gre_gmat_other.id }}/view/" target="_blank" class="flex items-center gap-1 bg-surface-container border border-outline-variant text-on-surface px-2 py-1.5 rounded text-xs font-bold hover:bg-surface-variant transition-colors"><span class="material-symbols-outlined" style="font-size:14px;line-height:1">visibility</span>View</a><a href="/profile-doc/{{ profile_docs.gre_gmat_other.id }}/view/?download={{ profile_docs.gre_gmat_other.file_name }}" class="flex items-center gap-1 bg-secondary-container text-on-secondary-container px-2 py-1.5 rounded text-xs font-bold hover:opacity-80 transition-colors"><span class="material-symbols-outlined" style="font-size:14px;line-height:1">download</span>DL</a>{% endif %}
-                {% if is_own_profile %}<label class="cursor-pointer bg-primary text-on-primary px-3 py-1.5 rounded text-xs font-bold hover:bg-primary-container transition-colors">{% if profile_docs.gre_gmat_other %}Update{% else %}Upload{% endif %}<input type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png" onchange="uploadFile(this,'gre_gmat_other','doc-gre_gmat_other-badge','doc-gre_gmat_other-name')"/></label>{% endif %}
+                {% if is_own_profile %}<label class="cursor-pointer bg-primary text-on-primary px-3 py-1.5 rounded text-xs font-bold hover:bg-primary-container transition-colors">{% if profile_docs.gre_gmat_other %}Update{% else %}Upload{% endif %}<input type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png" data-doc-type="gre_gmat_other" data-badge="doc-gre_gmat_other-badge" data-name="doc-gre_gmat_other-name"/></label>{% endif %}
               </div>
             </div>
           </div>
@@ -1128,6 +1128,11 @@ document.getElementById('sameAsPermanent').addEventListener('change', function()
   } else {
     fields.classList.remove('opacity-50', 'pointer-events-none');
   }
+});
+document.querySelectorAll('input[type="file"][data-doc-type]').forEach(function(inp) {
+  inp.addEventListener('change', function() {
+    uploadFile(this, this.dataset.docType, this.dataset.badge, this.dataset.name);
+  });
 });
 </script>
 

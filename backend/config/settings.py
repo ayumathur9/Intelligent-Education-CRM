@@ -336,12 +336,27 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
 EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
 EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "1") == "1"
+EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", "0") == "1"
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
 EMAIL_TIMEOUT = 10  # seconds — prevents infinite hang on SMTP failure
 DEFAULT_FROM_EMAIL = os.getenv(
     "DEFAULT_FROM_EMAIL", "Intelligent Education <no-reply@example.com>"
 )
+
+# ---------------------------------------------------------------------------
+# EMAIL DELIVERABILITY — rate limiting + provider notes
+# ---------------------------------------------------------------------------
+# Per-address hourly rate limit.  Protects against accidental spam spikes.
+# Brute-force welcome/reset emails to the same address are blocked after 10/hr.
+EMAIL_RATE_LIMIT_PER_HOUR = int(os.getenv("EMAIL_RATE_LIMIT_PER_HOUR", "10"))
+
+# When EMAIL_BACKEND_PROVIDER=resend, override HOST/PORT/CREDENTIALS automatically.
+# Supported: "gmail" (default), "resend", "postmark", "sendgrid", "mailgun"
+# To migrate to Resend: set EMAIL_HOST=smtp.resend.com EMAIL_PORT=465
+#   EMAIL_USE_SSL=1 EMAIL_USE_TLS=0
+#   EMAIL_HOST_USER=resend EMAIL_HOST_PASSWORD=<Resend API key>
+#   DEFAULT_FROM_EMAIL="Intelligent Education <no-reply@intelligenteducation.org>"
 FRONTEND_BASE_URL = os.getenv("FRONTEND_BASE_URL", "https://crm.intelligenteducation.org")
 
 # ---------------------------------------------------------------------------
@@ -599,6 +614,13 @@ CELERY_WORKER_PREFETCH_MULTIPLIER = 1     # fair scheduling
 # Task routing — define separate queues for different task classes.
 CELERY_TASK_DEFAULT_QUEUE = "default"
 CELERY_TASK_QUEUES_DEFAULT_EXCHANGE = "default"
+
+# Email tasks run on a dedicated queue with conservative concurrency so a spike
+# of outbound mail does not starve other Celery workers.
+CELERY_TASK_ROUTES = {
+    "apps.common.email_tasks.*": {"queue": "email"},
+    "apps.notifications.tasks.*": {"queue": "default"},
+}
 
 # Beat schedule for periodic maintenance tasks.
 from celery.schedules import crontab as _crontab  # noqa: E402

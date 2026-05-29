@@ -1,82 +1,56 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>School Added to Your Application</title>
-<style>
-  body { margin: 0; padding: 0; background: #f0f4f8; font-family: 'Segoe UI', Arial, sans-serif; color: #2d3748; }
-  .wrapper { max-width: 600px; margin: 32px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-  .header { background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); padding: 40px 40px 32px; text-align: center; }
-  .header-logo { font-size: 13px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #ddd6fe; margin-bottom: 10px; }
-  .header h1 { margin: 0 0 6px; color: #ffffff; font-size: 24px; font-weight: 700; }
-  .header p { margin: 0; color: #ede9fe; font-size: 14px; }
-  .body { padding: 40px 40px 32px; }
-  .greeting { font-size: 17px; font-weight: 600; color: #1a202c; margin: 0 0 12px; }
-  .intro { font-size: 14px; color: #4a5568; line-height: 1.8; margin: 0 0 28px; }
-  .school-card { background: #faf5ff; border: 1px solid #ddd6fe; border-radius: 10px; padding: 20px 24px; margin: 0 0 28px; }
-  .school-name { font-size: 18px; font-weight: 700; color: #6d28d9; margin: 0 0 6px; }
-  .school-meta { font-size: 13px; color: #7c3aed; }
-  .card { border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; margin: 0 0 28px; }
-  .card-header { background: #f8fafc; padding: 12px 20px; border-bottom: 1px solid #e2e8f0; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #94a3b8; }
-  .card-row { display: flex; padding: 14px 20px; border-bottom: 1px solid #f1f5f9; align-items: flex-start; }
-  .card-row:last-child { border-bottom: none; }
-  .card-label { width: 140px; flex-shrink: 0; font-size: 12px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; padding-top: 2px; }
-  .card-value { font-size: 14px; font-weight: 600; color: #1a202c; }
-  .card-value.light { font-weight: 400; color: #4a5568; }
-  .tip-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 16px 20px; margin: 0 0 28px; font-size: 14px; color: #1e40af; line-height: 1.7; }
-  .cta-wrapper { text-align: center; margin: 8px 0 4px; }
-  .cta { display: inline-block; background: #7c3aed; color: #ffffff !important; text-decoration: none; font-size: 15px; font-weight: 600; padding: 14px 40px; border-radius: 8px; letter-spacing: 0.2px; }
-  .footer { background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 22px 40px; text-align: center; font-size: 12px; color: #94a3b8; line-height: 1.7; }
-  .footer a { color: #7c3aed; text-decoration: none; }
-</style>
-</head>
-<body>
-<div class="wrapper">
-  <div class="header">
-    <div class="header-logo">Intelligent Education</div>
-    <h1>New school added &#127979;</h1>
-    <p>Your application portfolio has been updated</p>
-  </div>
-  <div class="body">
-    <p class="greeting">Hi {{ student_name }},</p>
-    <p class="intro">
-      Your counsellor has added a new school to your application. Review the details below and
-      log in to your portal to check documents, deadlines, and next steps.
-    </p>
+{% extends "emails/base_email.html" %}
 
-    <div class="school-card">
-      <div class="school-name">{{ school_name }}</div>
-      <div class="school-meta">&#127757; {{ school_country }}</div>
-    </div>
+{% block title %}New School Added to Your Application — Intelligent Education{% endblock %}
+{% block preview_text %}{{ school_name }} has been added to your study-abroad application portfolio.{% endblock %}
 
-    <div class="card">
-      <div class="card-header">Application Details</div>
-      {% if course_name %}
-      <div class="card-row">
-        <div class="card-label">Course</div>
-        <div class="card-value">{{ course_name }}</div>
-      </div>
-      {% endif %}
-      <div class="card-row">
-        <div class="card-label">Added by</div>
-        <div class="card-value light">{{ assigned_by_name }}</div>
-      </div>
-    </div>
+{% block header_title_size %}24px{% endblock %}
+{% block header_title %}New school added &#127979;{% endblock %}
+{% block header_subtitle %}Your application portfolio has been updated{% endblock %}
 
-    <div class="tip-box">
-      &#128196; <strong>Action required:</strong> Log in to your portal to upload any required documents for this school and confirm your application details with your counsellor.
-    </div>
+{% block body %}
+<p style="margin:0 0 12px 0;font-size:17px;font-weight:600;color:#1a202c;font-family:Arial,Helvetica,sans-serif;" class="dm-heading">Hi {{ student_name }},</p>
+<p style="margin:0 0 28px 0;font-size:14px;color:#4a5568;line-height:1.8;font-family:Arial,Helvetica,sans-serif;" class="dm-text">
+  Your counsellor has added a new school to your application. Review the details below and
+  log in to your portal to check documents, deadlines, and next steps.
+</p>
 
-    <div class="cta-wrapper">
-      <a href="{{ portal_url }}" class="cta">View My Applications</a>
-    </div>
-  </div>
-  <div class="footer">
-    You received this email because you have an active application at <strong>Intelligent Education</strong>.<br>
-    Questions? Email us at <a href="mailto:contact.intelligenteducation@gmail.com">contact.intelligenteducation@gmail.com</a><br><br>
-    <a href="{{ portal_url }}">My Portal</a> &nbsp;&middot;&nbsp; <a href="mailto:contact.intelligenteducation@gmail.com">Support</a>
-  </div>
-</div>
-</body>
-</html>
+<!-- School card -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #bfdbfe;border-radius:10px;margin:0 0 24px;" class="dm-info-box">
+<tr><td style="background-color:#eff6ff;border-radius:10px;padding:20px 24px;" class="dm-info-box">
+  <p style="margin:0 0 4px 0;font-size:18px;font-weight:700;color:#1e40af;font-family:Arial,Helvetica,sans-serif;" class="dm-info-text">{{ school_name }}</p>
+  <p style="margin:0;font-size:13px;color:#2563eb;font-family:Arial,Helvetica,sans-serif;" class="dm-info-text">&#127757; {{ school_country }}</p>
+</td></tr>
+</table>
+
+<!-- Application details -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e2e8f0;border-radius:10px;margin:0 0 24px;">
+  <tr><td colspan="2" style="background-color:#f8fafc;border-bottom:1px solid #e2e8f0;border-radius:10px 10px 0 0;padding:10px 20px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;font-family:Arial,Helvetica,sans-serif;" class="dm-card-hdr">Application Details</td></tr>
+  {% if course_name %}<tr><td class="card-lbl" style="width:140px;padding:12px 20px;font-size:12px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;vertical-align:top;border-bottom:1px solid #f1f5f9;font-family:Arial,Helvetica,sans-serif;" class="dm-lbl">Course</td><td style="padding:12px 20px;font-size:14px;font-weight:600;color:#1a202c;border-bottom:1px solid #f1f5f9;font-family:Arial,Helvetica,sans-serif;" class="dm-text">{{ course_name }}</td></tr>{% endif %}
+  <tr><td class="card-lbl" style="width:140px;padding:12px 20px;font-size:12px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;vertical-align:top;font-family:Arial,Helvetica,sans-serif;" class="dm-lbl">Added by</td><td style="padding:12px 20px;font-size:14px;color:#4a5568;font-family:Arial,Helvetica,sans-serif;" class="dm-text">{{ assigned_by_name }}</td></tr>
+</table>
+
+<!-- Action required info box -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #bfdbfe;border-radius:8px;margin:0 0 28px;" class="dm-info-box">
+<tr><td style="background-color:#eff6ff;border-radius:8px;padding:16px 20px;" class="dm-info-box">
+  <p style="margin:0;font-size:14px;color:#1e40af;line-height:1.6;font-family:Arial,Helvetica,sans-serif;" class="dm-info-text">
+    &#128196;&nbsp; <strong>Action required:</strong> Log in to your portal to upload any required documents for this school and confirm your application details with your counsellor.
+  </p>
+</td></tr>
+</table>
+
+<!-- CTA -->
+<table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0" style="margin:8px auto 4px;">
+<tr><td align="center" bgcolor="#1a56db" style="border-radius:8px;background-color:#1a56db;">
+  <a href="{{ portal_url }}" style="display:inline-block;background-color:#1a56db;border-radius:8px;color:#ffffff;font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:700;line-height:1;padding:14px 36px;text-decoration:none;text-align:center;">View My Applications</a>
+</td></tr>
+</table>
+{% endblock %}
+
+{% block footer_content %}
+You received this email because you have an active application at <strong>Intelligent Education</strong>.<br>
+Questions? Email us at <a href="mailto:contact.intelligenteducation@gmail.com" style="color:#1a56db;text-decoration:none;">contact.intelligenteducation@gmail.com</a><br>
+<a href="{{ portal_url }}" style="color:#1a56db;text-decoration:none;">My Portal</a>
+&nbsp;&middot;&nbsp;
+<a href="mailto:contact.intelligenteducation@gmail.com" style="color:#1a56db;text-decoration:none;">Support</a>
+{% if unsubscribe_url %}&nbsp;&middot;&nbsp;<a href="{{ unsubscribe_url }}" style="color:#94a3b8;text-decoration:none;font-size:11px;">Unsubscribe</a>{% endif %}
+{% endblock %}

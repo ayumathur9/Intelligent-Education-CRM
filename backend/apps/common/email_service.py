@@ -1,14 +1,30 @@
 from __future__ import annotations
 
+import hashlib
+import hmac
 import logging
 import smtplib
 import socket
+import uuid
+from typing import Any
+from urllib.parse import quote
 
 from django.conf import settings
+from django.core.cache import cache
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 
 logger = logging.getLogger(__name__)
+
+SUPPORT_EMAIL = "contact.intelligenteducation@gmail.com"
+
+# Security tips injected into every template context automatically.
+_SECURITY_TIPS: list[str] = [
+    "Never share your password with anyone, including Intelligent Education staff.",
+    "Always log out after using a shared or public device.",
+    "We will never ask for your password over email or phone.",
+    "If you did not expect this email, contact us immediately.",
+]
 
 # MED-5: Only retry on transient SMTP errors (network issues, temp unavailability).
 # Don't retry on permanent errors (auth failure, bad recipient, etc.).
@@ -23,8 +39,40 @@ _TRANSIENT_SMTP_ERRORS = (
 )
 
 
+def get_unsubscribe_url(email: str) -> str:
+    """Return an HMAC-SHA256-signed one-click unsubscribe URL for the given address."""
+    secret = settings.SECRET_KEY.encode()
+    token = hmac.new(secret, email.encode("utf-8"), hashlib.sha256).hexdigest()
+    base = settings.FRONTEND_BASE_URL.rstrip("/")
+    return f"{base}/unsubscribe/?email={quote(email)}&token={token}"
+
+
 def _smtp_configured() -> bool:
     return bool(settings.EMAIL_HOST_USER and settings.EMAIL_HOST_PASSWORD)
+
+
+def _rate_allow(to: str) -> bool:
+    """Return True if sending to this address is within the hourly rate limit."""
+    limit = getattr(settings, "EMAIL_RATE_LIMIT_PER_HOUR", 10)
+    key = f"email_rl:{to}"
+    count: int = cache.get(key, 0)
+    if count >= limit:
+        logger.warning("email_rate_limited to=%s count=%d", to, count)
+        return False
+    cache.set(key, count + 1, timeout=3600)
+    return True
+
+
+def _build_context(to_email: str | None, extra: dict[str, Any]) -> dict[str, Any]:
+    """Merge per-send context with common variables injected into every template."""
+    ctx: dict[str, Any] = {
+        "support_email": SUPPORT_EMAIL,
+        "security_tips": _SECURITY_TIPS,
+    }
+    if to_email:
+        ctx["unsubscribe_url"] = get_unsubscribe_url(to_email)
+    ctx.update(extra)
+    return ctx
 
 
 def _send(subject: str, text_body: str, html_body: str, to: list[str]) -> bool:
@@ -33,15 +81,40 @@ def _send(subject: str, text_body: str, html_body: str, to: list[str]) -> bool:
         return False
     if not to:
         return False
+
+    # Per-address rate limiting (skip for multi-recipient broadcast lists).
+    if len(to) == 1 and not _rate_allow(to[0]):
+        return False
+
+    msg_id = f"<{uuid.uuid4().hex}@intelligenteducation.org>"
+    recipient = to[0] if len(to) == 1 else SUPPORT_EMAIL
+    unsub_url = get_unsubscribe_url(recipient) if len(to) == 1 else ""
+
+    headers: dict[str, str] = {
+        "Message-ID": msg_id,
+        "X-Mailer": "Intelligent-Education-CRM/1.0",
+        "Precedence": "bulk",
+        "Reply-To": SUPPORT_EMAIL,
+    }
+    if unsub_url:
+        headers["List-Unsubscribe"] = (
+            f"<mailto:{SUPPORT_EMAIL}?subject=unsubscribe>,"
+            f" <{unsub_url}>"
+        )
+        headers["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click"
+
     try:
         msg = EmailMultiAlternatives(
             subject=subject,
             body=text_body,
             from_email=settings.DEFAULT_FROM_EMAIL,
             to=to,
+            reply_to=[SUPPORT_EMAIL],
+            headers=headers,
         )
         msg.attach_alternative(html_body, "text/html")
         msg.send(fail_silently=False)
+        logger.info("email_sent to=%s subject=%r msg_id=%s", to, subject, msg_id)
         return True
     except _TRANSIENT_SMTP_ERRORS:
         # Transient failure — Celery will retry via the task wrapper.
@@ -54,11 +127,11 @@ def _send(subject: str, text_body: str, html_body: str, to: list[str]) -> bool:
 
 
 def send_welcome_email(user) -> bool:
-    context = {
+    context = _build_context(user.email, {
         "full_name": user.full_name or user.email,
         "email": user.email,
         "login_url": f"{settings.FRONTEND_BASE_URL.rstrip('/')}/login/",
-    }
+    })
     html_body = render_to_string("emails/welcome.html", context)
     text_body = (
         f"Hi {context['full_name']},\n\n"
@@ -75,10 +148,10 @@ def send_welcome_email(user) -> bool:
 
 
 def send_password_reset_email(user, reset_url: str) -> bool:
-    context = {
+    context = _build_context(user.email, {
         "full_name": user.full_name or user.email,
         "reset_url": reset_url,
-    }
+    })
     html_body = render_to_string("emails/password_reset.html", context)
     text_body = (
         f"Hi {context['full_name']},\n\n"
@@ -142,7 +215,7 @@ def send_broadcast_email(
     config = _BROADCAST_CONFIGS.get(broadcast_type, _BROADCAST_CONFIGS["general"])
     subject = custom_subject or _BROADCAST_SUBJECTS.get(broadcast_type, "[Intelligent Education] Notice")
     sent_at = _tz.now().strftime("%d %b %Y, %H:%M UTC")
-    context = {
+    context = _build_context(None, {
         "broadcast_type": broadcast_type,
         "header_icon": config["header_icon"],
         "header_title": config["header_title"],
@@ -152,7 +225,7 @@ def send_broadcast_email(
         "sent_by": sent_by,
         "sent_at": sent_at,
         "subject": subject,
-    }
+    })
     html_body = render_to_string("emails/broadcast.html", context)
     text_body = f"{config['header_title']}\n\n{body_message}\n\n— {sent_by} ({sent_at})"
     return _send(subject=subject, text_body=text_body, html_body=html_body, to=recipients)
@@ -200,6 +273,7 @@ def _send_admin_alert(
         "occurred_at": occurred_at,
         "dashboard_url": f"{settings.FRONTEND_BASE_URL.rstrip('/')}/admin-dashboard/",
     }
+    context = _build_context(None, context)
     html_body = render_to_string("emails/admin_alert.html", context)
     text_lines = [f"[{severity.upper()}] {alert_type}", f"Time: {occurred_at}", ""]
     for k, v in details.items():
@@ -325,13 +399,13 @@ def send_staff_onboarding_email(user) -> bool:
     role_labels = {"admin": "Admin", "counselor": "Counselor", "editor": "Editor", "student": "Student"}
     role_label = role_labels.get(user.role, user.role.title())
     login_url = f"{settings.FRONTEND_BASE_URL.rstrip('/')}/login/"
-    context = {
+    context = _build_context(user.email, {
         "full_name": user.full_name or user.email,
         "email": user.email,
         "role": user.role,
         "role_label": role_label,
         "login_url": login_url,
-    }
+    })
     html_body = render_to_string("emails/staff_onboarding.html", context)
     text_body = (
         f"Hi {context['full_name']},\n\n"
@@ -359,13 +433,13 @@ def send_staff_invite_email(invite) -> bool:
     role_labels = {"admin": "Admin", "counselor": "Counselor", "editor": "Editor", "student": "Student"}
     role_label = role_labels.get(invite.role, invite.role.title())
     expires_str = invite.expires_at.strftime("%d %b %Y, %H:%M UTC")
-    context = {
+    context = _build_context(invite.email, {
         "invitee_email": invite.email,
         "invited_by": invited_by_name,
         "role_label": role_label,
         "invite_url": invite_url,
         "expires_at": expires_str,
-    }
+    })
     html_body = render_to_string("emails/staff_invite.html", context)
     text_body = (
         f"Hi {invite.email},\n\n"
@@ -397,7 +471,7 @@ def send_doc_uploaded_by_student_email(doc, recipient_user, is_reminder: bool = 
         return False
     category_label = _DOC_CATEGORY_LABELS.get(doc.category, doc.category.replace("_", " ").title())
     uploaded_at_str = doc.uploaded_at.strftime("%d %b %Y, %H:%M UTC") if doc.uploaded_at else "—"
-    context = {
+    context = _build_context(recipient_user.email, {
         "recipient_name": recipient_user.full_name or recipient_user.email,
         "student_name": doc.student.full_name or doc.student.student_code,
         "student_code": doc.student.student_code,
@@ -408,7 +482,7 @@ def send_doc_uploaded_by_student_email(doc, recipient_user, is_reminder: bool = 
         "is_reminder": is_reminder,
         "hours_elapsed": hours_elapsed,
         "dashboard_url": f"{settings.FRONTEND_BASE_URL.rstrip('/')}/admin-dashboard/",
-    }
+    })
     html_body = render_to_string("emails/doc_uploaded_by_student.html", context)
     reminder_note = f" ({hours_elapsed}h follow-up)" if is_reminder else ""
     text_body = (
@@ -438,7 +512,7 @@ def send_doc_uploaded_by_staff_email(doc, uploader_user, uploader_role: str) -> 
     category_label = _DOC_CATEGORY_LABELS.get(doc.category, doc.category.replace("_", " ").title())
     uploaded_at_str = doc.uploaded_at.strftime("%d %b %Y, %H:%M UTC") if doc.uploaded_at else "—"
     portal_url = f"{settings.FRONTEND_BASE_URL.rstrip('/')}/applications/"
-    context = {
+    context = _build_context(recipients[0] if len(recipients) == 1 else None, {
         "recipient_name": student.full_name or student.student_code,
         "uploader_name": uploader_user.full_name or uploader_user.email if uploader_user else "Intelligent Education Staff",
         "uploader_role": uploader_role,
@@ -447,7 +521,7 @@ def send_doc_uploaded_by_staff_email(doc, uploader_user, uploader_role: str) -> 
         "category_label": category_label,
         "uploaded_at": uploaded_at_str,
         "portal_url": portal_url,
-    }
+    })
     html_body = render_to_string("emails/doc_uploaded_by_staff.html", context)
     text_body = (
         f"Hi {context['recipient_name']},\n\n"
@@ -468,14 +542,14 @@ def send_student_staff_assignment_email(student, staff_user, role_label: str) ->
     if not student or not student.email:
         return False
     portal_url = f"{settings.FRONTEND_BASE_URL.rstrip('/')}/applications/"
-    context = {
+    context = _build_context(student.email, {
         "student_name": student.full_name or student.student_code,
         "role_label": role_label,
         "staff_name": staff_user.full_name or staff_user.email if staff_user else "",
         "staff_email": staff_user.email if staff_user else "",
         "staff_phone": getattr(staff_user, "phone", "") or "" if staff_user else "",
         "portal_url": portal_url,
-    }
+    })
     html_body = render_to_string("emails/student_staff_assigned.html", context)
     text_body = (
         f"Hi {context['student_name']},\n\n"
@@ -500,14 +574,14 @@ def send_school_assigned_email(student, school, assigned_by=None, course=None) -
     assigned_by_name = (
         assigned_by.full_name or assigned_by.email if assigned_by else "Intelligent Education"
     )
-    context = {
+    context = _build_context(student.email, {
         "student_name": student.full_name or student.student_code,
         "school_name": school.name,
         "school_country": school.country,
         "course_name": course.name if course else "",
         "assigned_by_name": assigned_by_name,
         "portal_url": portal_url,
-    }
+    })
     html_body = render_to_string("emails/school_assigned.html", context)
     text_body = (
         f"Hi {context['student_name']},\n\n"
@@ -528,7 +602,7 @@ def send_assignment_email(staff_user, student, role_label: str) -> bool:
     """Notify a staff member that a student has been assigned to them."""
     if not staff_user or not staff_user.email:
         return False
-    context = {
+    context = _build_context(staff_user.email, {
         "staff_name": staff_user.full_name or staff_user.email,
         "role_label": role_label,
         "student_name": student.full_name or student.student_code,
@@ -540,7 +614,7 @@ def send_assignment_email(staff_user, student, role_label: str) -> bool:
         "counselor_email": staff_user.email or "",
         "counselor_phone": getattr(staff_user, "phone", "") or "",
         "dashboard_url": f"{settings.FRONTEND_BASE_URL.rstrip('/')}/admin-dashboard/",
-    }
+    })
     html_body = render_to_string("emails/assignment_notification.html", context)
     text_body = (
         f"Hi {context['staff_name']},\n\n"

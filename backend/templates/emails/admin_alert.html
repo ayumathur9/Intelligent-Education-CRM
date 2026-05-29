@@ -1,106 +1,68 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Alert — Intelligent Education</title>
-<style>
-  body { margin: 0; padding: 0; background: #f0f4f8; font-family: 'Segoe UI', Arial, sans-serif; color: #2d3748; }
-  .wrapper { max-width: 600px; margin: 32px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-  .header { padding: 36px 40px 28px; text-align: center; }
-  .header.severity-critical { background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); }
-  .header.severity-high    { background: linear-gradient(135deg, #d97706 0%, #92400e 100%); }
-  .header.severity-medium  { background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); }
-  .header.severity-info    { background: linear-gradient(135deg, #0891b2 0%, #164e63 100%); }
-  .header-logo { font-size: 13px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.7); margin-bottom: 8px; }
-  .header h1 { margin: 0 0 4px; color: #ffffff; font-size: 22px; font-weight: 700; }
-  .header p { margin: 0; color: rgba(255,255,255,0.8); font-size: 13px; }
-  .body { padding: 36px 40px 28px; }
-  .severity-badge { display: inline-block; padding: 4px 14px; border-radius: 999px; font-size: 12px; font-weight: 700; margin-bottom: 20px; }
-  .badge-critical { background: #fee2e2; color: #991b1b; }
-  .badge-high     { background: #fef3c7; color: #92400e; }
-  .badge-medium   { background: #dbeafe; color: #1e40af; }
-  .badge-info     { background: #cffafe; color: #164e63; }
-  .intro { font-size: 14px; color: #4a5568; line-height: 1.8; margin: 0 0 24px; }
-  .card { border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; margin: 0 0 24px; }
-  .card-header { background: #f8fafc; padding: 10px 18px; border-bottom: 1px solid #e2e8f0; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #64748b; }
-  .card-row { display: flex; padding: 12px 18px; border-bottom: 1px solid #f1f5f9; align-items: flex-start; }
-  .card-row:last-child { border-bottom: none; }
-  .card-label { width: 140px; flex-shrink: 0; font-size: 12px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; padding-top: 2px; }
-  .card-value { font-size: 14px; color: #1a202c; word-break: break-word; }
-  .code-block { background: #1e293b; color: #94a3b8; font-family: 'Courier New', monospace; font-size: 12px; padding: 16px; border-radius: 8px; margin: 0 0 24px; overflow-x: auto; white-space: pre-wrap; word-break: break-all; }
-  .action-box { background: #fef3c7; border: 1px solid #fde68a; border-radius: 8px; padding: 16px 20px; margin: 0 0 24px; }
-  .action-box .action-heading { font-size: 13px; font-weight: 700; color: #92400e; margin: 0 0 8px; }
-  .action-box ul { margin: 0; padding: 0 0 0 18px; }
-  .action-box ul li { font-size: 13px; color: #78350f; line-height: 1.7; }
-  .cta-wrapper { text-align: center; margin: 8px 0 4px; }
-  .cta { display: inline-block; background: #1e293b; color: #ffffff !important; text-decoration: none; font-size: 15px; font-weight: 600; padding: 13px 36px; border-radius: 8px; }
-  .footer { background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 20px 40px; text-align: center; font-size: 12px; color: #94a3b8; line-height: 1.6; }
-  .footer a { color: #1e293b; text-decoration: none; }
-</style>
-</head>
-<body>
-<div class="wrapper">
-  <div class="header severity-{{ severity }}">
-    <div class="header-logo">Intelligent Education — Admin Alert</div>
-    <h1>&#9888; {{ alert_type }}</h1>
-    <p>{{ alert_subtitle }}</p>
-  </div>
-  <div class="body">
-    <span class="severity-badge badge-{{ severity }}">{{ severity|upper }}</span>
+{% extends "emails/base_email.html" %}
 
-    <p class="intro">{{ alert_intro }}</p>
+{% block title %}Admin Alert — Intelligent Education{% endblock %}
+{% block preview_text %}{{ severity|upper }}: {{ alert_type }}{% endblock %}
 
-    <div class="card">
-      <div class="card-header">Event Details</div>
-      <div class="card-row">
-        <div class="card-label">Alert Type</div>
-        <div class="card-value">{{ alert_type }}</div>
-      </div>
-      <div class="card-row">
-        <div class="card-label">Occurred At</div>
-        <div class="card-value">{{ occurred_at }}</div>
-      </div>
-      {% if incident_id %}
-      <div class="card-row">
-        <div class="card-label">Incident ID</div>
-        <div class="card-value">{{ incident_id }}</div>
-      </div>
-      {% endif %}
-      {% for key, value in details.items %}
-      <div class="card-row">
-        <div class="card-label">{{ key }}</div>
-        <div class="card-value">{{ value }}</div>
-      </div>
-      {% endfor %}
-    </div>
+{% block header_bgcolor %}{% if severity == "critical" %}#dc2626{% elif severity == "high" %}#d97706{% elif severity == "medium" %}#2563eb{% else %}#0891b2{% endif %}{% endblock %}
+{% block header_gradient %}{% if severity == "critical" %}linear-gradient(135deg,#dc2626 0%,#991b1b 100%){% elif severity == "high" %}linear-gradient(135deg,#d97706 0%,#92400e 100%){% elif severity == "medium" %}linear-gradient(135deg,#2563eb 0%,#1e40af 100%){% else %}linear-gradient(135deg,#0891b2 0%,#164e63 100%){% endif %}{% endblock %}
+{% block header_title_size %}22px{% endblock %}
+{% block header_title %}&#9888; {{ alert_type }}{% endblock %}
+{% block header_subtitle %}{{ alert_subtitle }}{% endblock %}
 
-    {% if stack_trace %}
-    <div style="font-size:13px;font-weight:700;color:#64748b;margin:0 0 8px;text-transform:uppercase;letter-spacing:0.5px;">Stack Trace / Error Log</div>
-    <div class="code-block">{{ stack_trace }}</div>
-    {% endif %}
+{% block body %}
+<p style="margin:0 0 20px 0;">
+  <span style="display:inline-block;padding:4px 14px;border-radius:999px;font-size:12px;font-weight:700;font-family:Arial,Helvetica,sans-serif;{% if severity == 'critical' %}background-color:#fee2e2;color:#991b1b;{% elif severity == 'high' %}background-color:#fef3c7;color:#92400e;{% elif severity == 'medium' %}background-color:#dbeafe;color:#1e40af;{% else %}background-color:#cffafe;color:#164e63;{% endif %}">{{ severity|upper }}</span>
+</p>
 
-    {% if recommended_actions %}
-    <div class="action-box">
-      <div class="action-heading">&#128221; Recommended Actions</div>
-      <ul>
-        {% for action in recommended_actions %}
-        <li>{{ action }}</li>
-        {% endfor %}
-      </ul>
-    </div>
-    {% endif %}
+<p style="margin:0 0 24px 0;font-size:14px;color:#4a5568;line-height:1.8;font-family:Arial,Helvetica,sans-serif;" class="dm-text">{{ alert_intro }}</p>
 
-    <div class="cta-wrapper">
-      <a href="{{ dashboard_url }}" class="cta">Go to Admin Dashboard</a>
-    </div>
-  </div>
-  <div class="footer">
-    This is an automated alert from <strong>Intelligent Education CRM</strong>.<br>
-    Only administrators receive these alerts.<br>
-    <a href="{{ dashboard_url }}">Admin Dashboard</a> &nbsp;&middot;&nbsp;
-    <a href="mailto:contact.intelligenteducation@gmail.com">Support</a>
-  </div>
-</div>
-</body>
-</html>
+<!-- Event details -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e2e8f0;border-radius:10px;margin:0 0 24px;">
+  <tr><td colspan="2" style="background-color:#f8fafc;border-bottom:1px solid #e2e8f0;border-radius:10px 10px 0 0;padding:10px 18px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;font-family:Arial,Helvetica,sans-serif;" class="dm-card-hdr">Event Details</td></tr>
+  <tr><td class="card-lbl" style="width:140px;padding:12px 18px;font-size:12px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;vertical-align:top;border-bottom:1px solid #f1f5f9;font-family:Arial,Helvetica,sans-serif;" class="dm-lbl">Alert Type</td><td style="padding:12px 18px;font-size:14px;color:#1a202c;border-bottom:1px solid #f1f5f9;font-family:Arial,Helvetica,sans-serif;" class="dm-text">{{ alert_type }}</td></tr>
+  <tr><td class="card-lbl" style="width:140px;padding:12px 18px;font-size:12px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;vertical-align:top;{% if incident_id or details %}border-bottom:1px solid #f1f5f9;{% endif %}font-family:Arial,Helvetica,sans-serif;" class="dm-lbl">Occurred At</td><td style="padding:12px 18px;font-size:14px;color:#1a202c;{% if incident_id or details %}border-bottom:1px solid #f1f5f9;{% endif %}font-family:Arial,Helvetica,sans-serif;" class="dm-text">{{ occurred_at }}</td></tr>
+  {% if incident_id %}
+  <tr><td class="card-lbl" style="width:140px;padding:12px 18px;font-size:12px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;vertical-align:top;{% if details %}border-bottom:1px solid #f1f5f9;{% endif %}font-family:Arial,Helvetica,sans-serif;" class="dm-lbl">Incident ID</td><td style="padding:12px 18px;font-size:14px;color:#1a202c;{% if details %}border-bottom:1px solid #f1f5f9;{% endif %}font-family:Arial,Helvetica,sans-serif;" class="dm-text">{{ incident_id }}</td></tr>
+  {% endif %}
+  {% for key, value in details.items %}
+  <tr><td class="card-lbl" style="width:140px;padding:12px 18px;font-size:12px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;vertical-align:top;{% if not forloop.last %}border-bottom:1px solid #f1f5f9;{% endif %}font-family:Arial,Helvetica,sans-serif;" class="dm-lbl">{{ key }}</td><td style="padding:12px 18px;font-size:14px;color:#1a202c;{% if not forloop.last %}border-bottom:1px solid #f1f5f9;{% endif %}font-family:Arial,Helvetica,sans-serif;word-break:break-word;" class="dm-text">{{ value }}</td></tr>
+  {% endfor %}
+</table>
+
+{% if stack_trace %}
+<p style="margin:0 0 8px 0;font-size:13px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;font-family:Arial,Helvetica,sans-serif;">Stack Trace / Error Log</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 24px;">
+<tr><td style="background-color:#1e293b;border-radius:8px;padding:16px;" class="dm-pre">
+  <p style="margin:0;font-family:'Courier New',Courier,monospace;font-size:12px;color:#94a3b8;white-space:pre-wrap;word-break:break-all;line-height:1.5;">{{ stack_trace }}</p>
+</td></tr>
+</table>
+{% endif %}
+
+{% if recommended_actions %}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #fde68a;border-radius:8px;margin:0 0 24px;" class="dm-warn-box">
+<tr><td style="background-color:#fef3c7;border-radius:8px;padding:16px 20px;" class="dm-warn-box">
+  <p style="margin:0 0 8px 0;font-size:13px;font-weight:700;color:#92400e;font-family:Arial,Helvetica,sans-serif;" class="dm-warn-text">&#128221; Recommended Actions</p>
+  {% for action in recommended_actions %}
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 2px;">
+  <tr><td style="width:16px;vertical-align:top;padding-top:3px;font-size:13px;color:#78350f;" class="dm-warn-text">&bull;</td><td style="padding-left:6px;font-size:13px;color:#78350f;line-height:1.7;font-family:Arial,Helvetica,sans-serif;" class="dm-warn-text">{{ action }}</td></tr>
+  </table>
+  {% endfor %}
+</td></tr>
+</table>
+{% endif %}
+
+<!-- CTA -->
+<table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0" style="margin:8px auto 4px;">
+<tr><td align="center" bgcolor="#1e293b" style="border-radius:8px;background-color:#1e293b;">
+  <a href="{{ dashboard_url }}" style="display:inline-block;background-color:#1e293b;border-radius:8px;color:#ffffff;font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:700;line-height:1;padding:14px 36px;text-decoration:none;text-align:center;">Go to Admin Dashboard</a>
+</td></tr>
+</table>
+{% endblock %}
+
+{% block footer_content %}
+This is an automated alert from <strong>Intelligent Education CRM</strong>.<br>
+Only administrators receive these alerts.<br>
+<a href="{{ dashboard_url }}" style="color:#1a56db;text-decoration:none;">Admin Dashboard</a>
+&nbsp;&middot;&nbsp;
+<a href="mailto:contact.intelligenteducation@gmail.com" style="color:#1a56db;text-decoration:none;">Support</a>
+{% endblock %}

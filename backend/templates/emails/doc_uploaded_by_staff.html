@@ -1,77 +1,39 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Document ready — Intelligent Education</title>
-<style>
-  body { margin: 0; padding: 0; background: #f0f4f8; font-family: 'Segoe UI', Arial, sans-serif; color: #2d3748; }
-  .wrapper { max-width: 600px; margin: 32px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-  .header { background: linear-gradient(135deg, #059669 0%, #065f46 100%); padding: 36px 40px 28px; text-align: center; }
-  .header-logo { font-size: 13px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #6ee7b7; margin-bottom: 8px; }
-  .header h1 { margin: 0 0 4px; color: #ffffff; font-size: 22px; font-weight: 700; }
-  .header p { margin: 0; color: #a7f3d0; font-size: 13px; }
-  .body { padding: 36px 40px 28px; }
-  .greeting { font-size: 16px; font-weight: 600; color: #1a202c; margin: 0 0 14px; }
-  .intro { font-size: 14px; color: #4a5568; line-height: 1.8; margin: 0 0 24px; }
-  .card { border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; margin: 0 0 24px; }
-  .card-header { background: #ecfdf5; padding: 10px 18px; border-bottom: 1px solid #a7f3d0; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #059669; }
-  .card-row { display: flex; padding: 12px 18px; border-bottom: 1px solid #f1f5f9; }
-  .card-row:last-child { border-bottom: none; }
-  .card-label { width: 130px; flex-shrink: 0; font-size: 12px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; padding-top: 2px; }
-  .card-value { font-size: 14px; color: #1a202c; }
-  .cta-wrapper { text-align: center; margin: 8px 0 4px; }
-  .cta { display: inline-block; background: #059669; color: #ffffff !important; text-decoration: none; font-size: 15px; font-weight: 600; padding: 13px 36px; border-radius: 8px; }
-  .footer { background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 20px 40px; text-align: center; font-size: 12px; color: #94a3b8; line-height: 1.6; }
-  .footer a { color: #059669; text-decoration: none; }
-</style>
-</head>
-<body>
-<div class="wrapper">
-  <div class="header">
-    <div class="header-logo">Intelligent Education</div>
-    <h1>&#10003; Document Ready</h1>
-    <p>A document has been uploaded to your application</p>
-  </div>
-  <div class="body">
-    <p class="greeting">Hi {{ recipient_name }},</p>
-    <p class="intro">
-      <strong>{{ uploader_name }}</strong> ({{ uploader_role }}) has uploaded a document to your school application.
-      You can review it by logging into your portal.
-    </p>
+{% extends "emails/base_email.html" %}
 
-    <div class="card">
-      <div class="card-header">Document Details</div>
-      <div class="card-row">
-        <div class="card-label">School</div>
-        <div class="card-value">{{ school_name }}</div>
-      </div>
-      <div class="card-row">
-        <div class="card-label">Document</div>
-        <div class="card-value">{{ file_name }}</div>
-      </div>
-      <div class="card-row">
-        <div class="card-label">Category</div>
-        <div class="card-value">{{ category_label }}</div>
-      </div>
-      <div class="card-row">
-        <div class="card-label">Uploaded by</div>
-        <div class="card-value">{{ uploader_name }} — {{ uploader_role }}</div>
-      </div>
-      <div class="card-row">
-        <div class="card-label">Uploaded at</div>
-        <div class="card-value">{{ uploaded_at }}</div>
-      </div>
-    </div>
+{% block title %}Document Ready — Intelligent Education{% endblock %}
+{% block preview_text %}{{ uploader_name }} has uploaded a document to your application. Review it now.{% endblock %}
 
-    <div class="cta-wrapper">
-      <a href="{{ portal_url }}" class="cta">View My Application</a>
-    </div>
-  </div>
-  <div class="footer">
-    You received this as part of your application with <strong>Intelligent Education</strong>.<br>
-    Questions? <a href="mailto:contact.intelligenteducation@gmail.com">contact.intelligenteducation@gmail.com</a>
-  </div>
-</div>
-</body>
-</html>
+{% block header_bgcolor %}#059669{% endblock %}
+{% block header_gradient %}linear-gradient(135deg,#059669 0%,#065f46 100%){% endblock %}
+{% block header_title_size %}22px{% endblock %}
+{% block header_title %}&#10003; Document Ready{% endblock %}
+{% block header_subtitle %}A document has been uploaded to your application{% endblock %}
+
+{% block body %}
+<p style="margin:0 0 14px 0;font-size:16px;font-weight:600;color:#1a202c;font-family:Arial,Helvetica,sans-serif;" class="dm-heading">Hi {{ recipient_name }},</p>
+<p style="margin:0 0 24px 0;font-size:14px;color:#4a5568;line-height:1.8;font-family:Arial,Helvetica,sans-serif;" class="dm-text">
+  <strong>{{ uploader_name }}</strong> ({{ uploader_role }}) has uploaded a document to your school application.
+  You can review it by logging into your portal.
+</p>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e2e8f0;border-radius:10px;margin:0 0 24px;">
+  <tr><td colspan="2" style="background-color:#ecfdf5;border-bottom:1px solid #a7f3d0;border-radius:10px 10px 0 0;padding:10px 18px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#059669;font-family:Arial,Helvetica,sans-serif;">Document Details</td></tr>
+  <tr><td class="card-lbl" style="width:130px;padding:12px 18px;font-size:12px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;vertical-align:top;border-bottom:1px solid #f1f5f9;font-family:Arial,Helvetica,sans-serif;" class="dm-lbl">School</td><td style="padding:12px 18px;font-size:14px;color:#1a202c;border-bottom:1px solid #f1f5f9;font-family:Arial,Helvetica,sans-serif;" class="dm-text">{{ school_name }}</td></tr>
+  <tr><td class="card-lbl" style="width:130px;padding:12px 18px;font-size:12px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;vertical-align:top;border-bottom:1px solid #f1f5f9;font-family:Arial,Helvetica,sans-serif;" class="dm-lbl">Document</td><td style="padding:12px 18px;font-size:14px;color:#1a202c;border-bottom:1px solid #f1f5f9;font-family:Arial,Helvetica,sans-serif;" class="dm-text">{{ file_name }}</td></tr>
+  <tr><td class="card-lbl" style="width:130px;padding:12px 18px;font-size:12px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;vertical-align:top;border-bottom:1px solid #f1f5f9;font-family:Arial,Helvetica,sans-serif;" class="dm-lbl">Category</td><td style="padding:12px 18px;font-size:14px;color:#1a202c;border-bottom:1px solid #f1f5f9;font-family:Arial,Helvetica,sans-serif;" class="dm-text">{{ category_label }}</td></tr>
+  <tr><td class="card-lbl" style="width:130px;padding:12px 18px;font-size:12px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;vertical-align:top;border-bottom:1px solid #f1f5f9;font-family:Arial,Helvetica,sans-serif;" class="dm-lbl">Uploaded by</td><td style="padding:12px 18px;font-size:14px;color:#1a202c;border-bottom:1px solid #f1f5f9;font-family:Arial,Helvetica,sans-serif;" class="dm-text">{{ uploader_name }} &mdash; {{ uploader_role }}</td></tr>
+  <tr><td class="card-lbl" style="width:130px;padding:12px 18px;font-size:12px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;vertical-align:top;font-family:Arial,Helvetica,sans-serif;" class="dm-lbl">Uploaded at</td><td style="padding:12px 18px;font-size:14px;color:#1a202c;font-family:Arial,Helvetica,sans-serif;" class="dm-text">{{ uploaded_at }}</td></tr>
+</table>
+
+<table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0" style="margin:8px auto 4px;">
+<tr><td align="center" bgcolor="#059669" style="border-radius:8px;background-color:#059669;">
+  <a href="{{ portal_url }}" style="display:inline-block;background-color:#059669;border-radius:8px;color:#ffffff;font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:700;line-height:1;padding:14px 36px;text-decoration:none;text-align:center;">View My Application</a>
+</td></tr>
+</table>
+{% endblock %}
+
+{% block footer_content %}
+You received this as part of your application with <strong>Intelligent Education</strong>.<br>
+Questions? <a href="mailto:contact.intelligenteducation@gmail.com" style="color:#1a56db;text-decoration:none;">contact.intelligenteducation@gmail.com</a>
+{% if unsubscribe_url %}&nbsp;&middot;&nbsp;<a href="{{ unsubscribe_url }}" style="color:#94a3b8;text-decoration:none;font-size:11px;">Unsubscribe</a>{% endif %}
+{% endblock %}
