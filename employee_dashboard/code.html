@@ -321,26 +321,35 @@
             <thead class="bg-surface-container-low">
               <tr>
                 <th class="px-5 py-3 font-label-bold text-label-bold text-on-surface-variant uppercase tracking-wider text-[11px]">Student</th>
-                <th class="px-5 py-3 font-label-bold text-label-bold text-on-surface-variant uppercase tracking-wider text-[11px]">Course</th>
+                <th class="px-5 py-3 font-label-bold text-label-bold text-on-surface-variant uppercase tracking-wider text-[11px]">Editor</th>
                 <th class="px-5 py-3 font-label-bold text-label-bold text-on-surface-variant uppercase tracking-wider text-[11px]">Counselor</th>
                 <th class="px-5 py-3 font-label-bold text-label-bold text-on-surface-variant uppercase tracking-wider text-[11px]">Actions</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-outline-variant" id="all-students-tbody">
               {% for s in all_students %}
-              <tr class="hover:bg-surface-container-low transition-colors counselor-row-all">
+              <tr class="hover:bg-surface-container-low transition-colors cursor-pointer counselor-row-all"
+                  data-pk="{{ s.pk }}"
+                  data-name="{{ s.full_name|escapejs }}"
+                  data-email="{{ s.email|escapejs }}"
+                  data-phone="{{ s.phone|escapejs }}"
+                  data-code="{{ s.student_code|escapejs }}"
+                  data-course="{{ s.course.name|default:'—'|escapejs }}"
+                  data-counselor="{{ s.counselor.full_name|default:s.counselor.email|default:'—'|escapejs }}"
+                  data-poc="{{ s.poc.full_name|default:s.poc.email|default:'—'|escapejs }}">
                 <td class="px-5 py-3.5">
                   <div class="flex items-center gap-3">
                     {% if s.user and s.user.avatar %}<img src="/user-avatar/{{ s.user.pk }}/" class="h-9 w-9 rounded-full object-cover shrink-0" alt=""/>{% else %}<div class="h-9 w-9 rounded-full bg-primary-fixed text-on-primary-fixed-variant flex items-center justify-center font-bold text-sm shrink-0">{{ s.full_name|first|upper }}</div>{% endif %}
                     <div>
                       <p class="font-label-bold text-label-bold text-on-surface">{{ s.full_name }}</p>
                       <p class="font-label-sm text-label-sm text-on-surface-variant">{{ s.email }}</p>
+                      <p class="font-label-sm text-label-sm text-on-surface-variant">ID: {{ s.student_code|default:"—" }}</p>
                     </div>
                   </div>
                 </td>
-                <td class="px-5 py-3.5 font-body-md text-on-surface-variant text-[12px]">{{ s.course.name|default:"—" }}</td>
+                <td class="px-5 py-3.5 font-body-md text-on-surface-variant text-[12px]">{{ s.editor.full_name|default:"—" }}</td>
                 <td class="px-5 py-3.5 font-body-md text-on-surface-variant text-[12px]">{{ s.counselor.full_name|default:"—" }}</td>
-                <td class="px-5 py-3.5">
+                <td class="px-5 py-3.5 actions-cell">
                   <div class="flex items-center gap-1.5 flex-wrap">
                     <a href="/student-application/{{ s.pk }}/" class="flex items-center gap-1 px-2.5 py-1 bg-primary text-on-primary rounded-lg font-label-bold text-[10px] hover:bg-primary-container transition-colors">
                       <span class="material-symbols-outlined text-[12px]">open_in_new</span>View
@@ -603,6 +612,9 @@
 <script id="students-json" type="application/json" nonce="{{ csp_nonce }}">
 [{% for s in my_students %}{"pk":{{ s.pk }},"name":"{{ s.full_name|escapejs }}","email":"{{ s.email|escapejs }}","phone":"{{ s.phone|escapejs }}","code":"{{ s.student_code|escapejs }}","course":"{{ s.course.name|default:'—'|escapejs }}","counselor":"{{ s.counselor.full_name|default:s.counselor.email|default:'—'|escapejs }}","poc":"{{ s.poc.full_name|default:s.poc.email|default:'—'|escapejs }}","nationality":"{{ s.nationality|escapejs }}","dob":"{{ s.dob|default:''|escapejs }}","gender":"{{ s.gender|escapejs }}","passport":"{{ s.passport_number|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}]
 </script>
+<script id="all-students-json" type="application/json" nonce="{{ csp_nonce }}">
+[{% for s in all_students %}{"pk":{{ s.pk }},"name":"{{ s.full_name|escapejs }}","email":"{{ s.email|escapejs }}","phone":"{{ s.phone|escapejs }}","code":"{{ s.student_code|escapejs }}","course":"{{ s.course.name|default:'—'|escapejs }}","counselor":"{{ s.counselor.full_name|default:s.counselor.email|default:'—'|escapejs }}","poc":"{{ s.poc.full_name|default:s.poc.email|default:'—'|escapejs }}","nationality":"{{ s.nationality|escapejs }}","dob":"{{ s.dob|default:''|escapejs }}","gender":"{{ s.gender|escapejs }}","passport":"{{ s.passport_number|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}]
+</script>
 <script nonce="{{ csp_nonce }}">
 function toggleSidebar() {
   const sb = document.getElementById('sidebar');
@@ -625,9 +637,10 @@ function toggleProfile() {
 }
 /* ── student panel ── */
 const studentData = JSON.parse(document.getElementById("students-json").textContent);
+const allStudentData = JSON.parse(document.getElementById("all-students-json").textContent);
 function openStudentPanel(row) {
   const pk = parseInt(row.dataset.pk);
-  const s = studentData.find(x => x.pk === pk);
+  const s = studentData.find(x => x.pk === pk) || allStudentData.find(x => x.pk === pk);
   if (!s) return;
   document.getElementById("sp-name").textContent = s.name;
   const rows = [
@@ -773,6 +786,15 @@ function filterSchools(q) {
     studentsTable.addEventListener('click', function(e) {
       if (e.target.closest('.actions-cell')) { e.stopPropagation(); return; }
       var row = e.target.closest('tr.student-row');
+      if (row) openStudentPanel(row);
+    });
+  }
+  // All students rows — same panel, uses allStudentData lookup
+  var allStudentsTbody = document.getElementById('all-students-tbody');
+  if (allStudentsTbody) {
+    allStudentsTbody.addEventListener('click', function(e) {
+      if (e.target.closest('.actions-cell')) { e.stopPropagation(); return; }
+      var row = e.target.closest('tr.counselor-row-all');
       if (row) openStudentPanel(row);
     });
   }

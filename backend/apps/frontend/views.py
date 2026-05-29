@@ -323,7 +323,7 @@ def dashboard(request):
         my_students = Student.objects.filter(
             Q(counselor=request.user) | Q(poc=request.user), is_active=True
         ).select_related("course", "counselor", "poc", "user").order_by("full_name")
-        all_students = Student.objects.filter(is_active=True).select_related("course", "counselor", "poc", "user").order_by("full_name")
+        all_students = Student.objects.filter(is_active=True).select_related("course", "counselor", "poc", "editor", "user").order_by("full_name")
         counselor_users = _User.objects.filter(role__in=("admin", "counselor", "editor"), is_active=True).order_by("role", "full_name")
         all_student_ids = list(all_students.values_list("pk", flat=True))
         context = {
@@ -391,7 +391,7 @@ def employee_dashboard(request):
     # INFRA-003: use cached school list to avoid N+1 on every dashboard load.
     from apps.crm.services.cache_service import get_active_schools
     all_schools = get_active_schools()
-    all_students = Student.objects.filter(is_active=True).select_related("course", "counselor", "poc", "user").order_by("full_name")
+    all_students = Student.objects.filter(is_active=True).select_related("course", "counselor", "poc", "editor", "user").order_by("full_name")
 
     pinned_notes = list(
         StudentActivity.objects.filter(
