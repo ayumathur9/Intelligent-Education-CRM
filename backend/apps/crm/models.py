@@ -541,7 +541,8 @@ class StudentReference(models.Model):
     title = models.CharField(max_length=255)
     reference_type = models.CharField(max_length=10, choices=TYPE_CHOICES, default="file")
     file_name = models.CharField(max_length=255, blank=True, default="")
-    file_path = models.CharField(max_length=1000, blank=True, default="")
+    file_data = models.TextField(blank=True, default="")   # base64-encoded file content
+    file_mime = models.CharField(max_length=100, blank=True, default="")
     url = models.URLField(max_length=2000, blank=True, default="")
     note = models.TextField(blank=True, default="")
     added_by = models.ForeignKey(

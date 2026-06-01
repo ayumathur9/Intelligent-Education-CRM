@@ -126,86 +126,79 @@
 <a href="/"><h2 class="font-h2 text-h2 font-bold text-on-primary dark:text-on-primary-container">Intelligent Education</h2></a>
     <p class="font-label-bold text-label-bold text-on-primary/60 uppercase tracking-wider">Student Portal</p>
   </div>
-  <nav class="flex-1 px-2 space-y-1 overflow-y-auto">
-    <a class="flex items-center gap-3 px-4 py-3 bg-on-primary-fixed-variant text-on-primary rounded-lg mx-2 my-1 transition-transform scale-95" href="/">
-      <span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
-      <span class="font-label-bold text-label-bold">Dashboard</span>
-    </a>
-    <a class="flex items-center gap-3 px-4 py-3 text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg mx-2 my-1" href="/my-profile/">
-      <span class="material-symbols-outlined" data-icon="person">person</span>
-      <span class="font-label-bold text-label-bold">My Profile</span>
-    </a>
-    <a class="flex items-center gap-3 px-4 py-3 text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg mx-2 my-1" href="/schools/">
-      <span class="material-symbols-outlined" data-icon="school">school</span>
-      <span class="font-label-bold text-label-bold">Schools</span>
-    </a>
-    <a class="flex items-center gap-3 px-4 py-3 text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg mx-2 my-1" href="/interaction-log/">
-      <span class="material-symbols-outlined" data-icon="list_alt">list_alt</span>
-      <span class="font-label-bold text-label-bold">Interaction Log</span>
-    </a>
-    <a class="flex items-center gap-3 px-4 py-3 text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg mx-2 my-1" href="/recent-activity/">
-      <span class="material-symbols-outlined" data-icon="history">history</span>
-      <span class="font-label-bold text-label-bold">Recent Activity</span>
-    </a>
-  </nav>
+  <!-- Nav + References share one scrollable flex-1 column -->
+  <div class="flex-1 flex flex-col overflow-y-auto min-h-0">
+    <nav class="px-2 space-y-1 shrink-0">
+      <a class="flex items-center gap-3 px-4 py-3 bg-on-primary-fixed-variant text-on-primary rounded-lg mx-2 my-1 transition-transform scale-95" href="/">
+        <span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+        <span class="font-label-bold text-label-bold">Dashboard</span>
+      </a>
+      <a class="flex items-center gap-3 px-4 py-3 text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg mx-2 my-1" href="/my-profile/">
+        <span class="material-symbols-outlined" data-icon="person">person</span>
+        <span class="font-label-bold text-label-bold">My Profile</span>
+      </a>
+      <a class="flex items-center gap-3 px-4 py-3 text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg mx-2 my-1" href="/schools/">
+        <span class="material-symbols-outlined" data-icon="school">school</span>
+        <span class="font-label-bold text-label-bold">Schools</span>
+      </a>
+      <a class="flex items-center gap-3 px-4 py-3 text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg mx-2 my-1" href="/interaction-log/">
+        <span class="material-symbols-outlined" data-icon="list_alt">list_alt</span>
+        <span class="font-label-bold text-label-bold">Interaction Log</span>
+      </a>
+      <a class="flex items-center gap-3 px-4 py-3 text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg mx-2 my-1" href="/recent-activity/">
+        <span class="material-symbols-outlined" data-icon="history">history</span>
+        <span class="font-label-bold text-label-bold">Recent Activity</span>
+      </a>
+    </nav>
 
-  {% if student_references %}
-  <!-- ── References Section ── -->
-  <div class="px-4 pb-4 overflow-y-auto" style="max-height:40vh;">
-    <div class="flex items-center justify-between mb-2 mt-2">
-      <p class="font-label-bold text-[10px] uppercase tracking-widest text-on-primary/60">References</p>
-      {% with unseen_count=student_references|length %}
-      {% if unseen_count %}
-      <span class="bg-yellow-400 text-yellow-900 text-[9px] font-bold px-1.5 py-0.5 rounded-full" id="ref-unseen-badge">
-        {% with ns=0 %}{% for r in student_references %}{% if r.pk not in seen_reference_ids %}{{ forloop.counter0|add:1 }}{% endif %}{% endfor %}{% endwith %}
-      </span>
-      {% endif %}
-      {% endwith %}
-    </div>
-    <div class="space-y-2" id="references-list">
-      {% for ref in student_references %}
-      <div class="ref-item bg-on-primary-fixed-variant/20 rounded-xl p-3 border border-on-primary/10 transition-all" data-ref-id="{{ ref.pk }}" data-seen="{% if ref.pk in seen_reference_ids %}1{% else %}0{% endif %}">
-        <div class="flex items-start gap-2">
-          <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 {% if ref.reference_type == 'url' %}bg-secondary/30{% else %}bg-on-primary/20{% endif %}">
-            <span class="material-symbols-outlined text-[14px] text-on-primary">{% if ref.reference_type == 'url' %}link{% else %}description{% endif %}</span>
-          </div>
-          <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-1.5">
-              <p class="font-label-bold text-[11px] text-on-primary truncate flex-1">{{ ref.title }}</p>
-              {% if ref.pk not in seen_reference_ids %}
-              <span class="w-2 h-2 rounded-full bg-yellow-400 shrink-0 ref-unseen-dot" title="New"></span>
-              {% endif %}
+    {% if student_references %}
+    <!-- ── References Section ── -->
+    <div class="px-4 pt-4 pb-2 border-t border-on-primary/20 mt-3">
+      <div class="flex items-center justify-between mb-3">
+        <p class="font-label-bold text-[10px] uppercase tracking-widest text-on-primary/60">References</p>
+        {% with unseen=0 %}
+        {% for r in student_references %}{% if r.pk not in seen_reference_ids %}
+        <span class="bg-yellow-400 text-yellow-900 text-[9px] font-bold px-1.5 py-0.5 rounded-full" id="ref-unseen-badge">!</span>
+        {% endif %}{% endfor %}
+        {% endwith %}
+      </div>
+      <div class="space-y-2" id="references-list">
+        {% for ref in student_references %}
+        <div class="ref-item bg-on-primary-fixed-variant/20 rounded-xl p-3 border border-on-primary/10" data-ref-id="{{ ref.pk }}">
+          <div class="flex items-start gap-2">
+            <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-on-primary/20">
+              <span class="material-symbols-outlined text-[14px] text-on-primary">{% if ref.reference_type == 'url' %}link{% else %}description{% endif %}</span>
             </div>
-            {% if ref.note %}
-            <p class="text-[10px] text-on-primary/60 leading-snug mt-0.5 line-clamp-2">{{ ref.note }}</p>
-            {% endif %}
-            <div class="flex items-center gap-2 mt-1.5">
-              {% if ref.reference_type == 'url' %}
-              <a href="{{ ref.url }}" target="_blank" rel="noopener"
-                 class="ref-open-btn text-[10px] text-on-primary/70 hover:text-on-primary underline flex items-center gap-0.5 font-label-bold"
-                 data-ref-id="{{ ref.pk }}">
-                <span class="material-symbols-outlined text-[12px]">open_in_new</span>Open
-              </a>
-              {% else %}
-              <a href="/reference-file/{{ ref.pk }}/"
-                 class="ref-open-btn text-[10px] text-on-primary/70 hover:text-on-primary underline flex items-center gap-0.5 font-label-bold"
-                 data-ref-id="{{ ref.pk }}">
-                <span class="material-symbols-outlined text-[12px]">download</span>Download
-              </a>
-              {% endif %}
-              {% if ref.pk not in seen_reference_ids %}
-              <button class="mark-seen-btn text-[10px] text-on-primary/50 hover:text-on-primary/80 font-label-sm transition-colors" data-ref-id="{{ ref.pk }}">
-                Mark seen
-              </button>
-              {% endif %}
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-1.5">
+                <p class="font-label-bold text-[11px] text-on-primary truncate flex-1">{{ ref.title }}</p>
+                {% if ref.pk not in seen_reference_ids %}
+                <span class="w-2 h-2 rounded-full bg-yellow-400 shrink-0 ref-unseen-dot"></span>
+                {% endif %}
+              </div>
+              {% if ref.note %}<p class="text-[10px] text-on-primary/60 leading-snug mt-0.5 line-clamp-2">{{ ref.note }}</p>{% endif %}
+              <div class="flex items-center gap-2 mt-1.5 flex-wrap">
+                {% if ref.reference_type == 'url' %}
+                <a href="{{ ref.url }}" target="_blank" rel="noopener" class="ref-open-btn text-[10px] text-on-primary/80 hover:text-on-primary underline flex items-center gap-0.5 font-label-bold" data-ref-id="{{ ref.pk }}">
+                  <span class="material-symbols-outlined text-[12px]">open_in_new</span>Open
+                </a>
+                {% else %}
+                <a href="/reference-file/{{ ref.pk }}/" class="ref-open-btn text-[10px] text-on-primary/80 hover:text-on-primary underline flex items-center gap-0.5 font-label-bold" data-ref-id="{{ ref.pk }}">
+                  <span class="material-symbols-outlined text-[12px]">download</span>Download
+                </a>
+                {% endif %}
+                {% if ref.pk not in seen_reference_ids %}
+                <button class="mark-seen-btn text-[10px] text-on-primary/50 hover:text-on-primary/80 font-label-sm" data-ref-id="{{ ref.pk }}">Mark seen</button>
+                {% endif %}
+              </div>
             </div>
           </div>
         </div>
+        {% endfor %}
       </div>
-      {% endfor %}
     </div>
+    {% endif %}
   </div>
-  {% endif %}
 </aside>
 <!-- Top Navbar -->
 <header id="main-header" class="fixed top-0 right-0 h-[72px] left-[260px] bg-surface-container-lowest shadow-[0px_4px_12px_rgba(0,0,0,0.05)] border-b border-outline-variant flex items-center justify-between px-4 lg:px-gutter z-40">

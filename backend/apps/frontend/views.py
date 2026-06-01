@@ -2043,11 +2043,11 @@ def student_references_view(request, student_id):
                     ref.url = url
                 else:
                     try:
-                        stored_url = _upload_to_local_storage(
-                            uploaded_file, f"references/{student.pk}", uploaded_file.name
-                        )
+                        import base64 as _b64, mimetypes as _mt
+                        file_bytes = uploaded_file.read()
                         ref.file_name = uploaded_file.name
-                        ref.file_path = stored_url
+                        ref.file_mime = _mt.guess_type(uploaded_file.name)[0] or "application/octet-stream"
+                        ref.file_data = _b64.b64encode(file_bytes).decode("ascii")
                     except Exception as exc:
                         error_message = f"Upload failed: {exc}"
                         ref = None
@@ -2109,11 +2109,22 @@ def serve_reference_file(request, ref_id):
     if not is_owner and not is_staff:
         return HttpResponseForbidden("Access denied.")
 
+    if not ref.file_data:
+        from django.http import HttpResponseNotFound
+        return HttpResponseNotFound("File data not available.")
+
     # Mark as seen when student downloads
     if is_owner:
         ref.seen_by.add(user)
 
-    return redirect(ref.file_path)
+    import base64 as _b64
+    from django.http import HttpResponse
+    file_bytes = _b64.b64decode(ref.file_data)
+    mime = ref.file_mime or "application/octet-stream"
+    response = HttpResponse(file_bytes, content_type=mime)
+    safe_name = ref.file_name.replace('"', '') if ref.file_name else "reference"
+    response["Content-Disposition"] = f'attachment; filename="{safe_name}"'
+    return response
 
 
 def reset_password_view(request):
