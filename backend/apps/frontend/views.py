@@ -1680,10 +1680,29 @@ def _handle_document_upload(request, student, school):
             if not is_privileged and not is_uploader:
                 return "Permission denied: you may only delete files you uploaded."
 
+            # Read file from local storage before soft-deleting.
+            file_bytes = None
+            file_url = doc.file_url or ""
+            if file_url.startswith("/media/"):
+                import os as _os
+                relative = file_url[len("/media/"):]
+                full_path = _os.path.join(django_settings.MEDIA_ROOT, relative)
+                try:
+                    with open(full_path, "rb") as _f:
+                        file_bytes = _f.read()
+                except Exception:
+                    pass
+
             # Soft-delete: stamp deleted_at, keep DB record and file intact.
             doc.deleted_at = timezone.now()
             doc.save(update_fields=["deleted_at"])
-            _send_doc_deleted_notification(student, doc.file_name, doc.category)
+
+            if file_bytes:
+                import mimetypes as _mt
+                mime = _mt.guess_type(doc.file_name)[0] or "application/octet-stream"
+                _send_doc_deleted_email(student, doc.file_name, doc.category, file_bytes, doc.file_name, mime)
+            else:
+                _send_doc_deleted_notification(student, doc.file_name, doc.category)
             return "Document deleted."
         return None
 
