@@ -2129,6 +2129,47 @@ def serve_reference_file(request, ref_id):
 
 
 @login_required(login_url=_LOGIN_URL)
+def student_add_reference_view(request):
+    """Allow the student to add their own reference (file or URL) to their profile."""
+    if request.method != "POST":
+        return redirect("/my-references/")
+    student = _get_student_for_user(request.user)
+    if not student:
+        return redirect("/my-references/")
+
+    title = request.POST.get("title", "").strip()
+    ref_type = request.POST.get("reference_type", "file")
+    note = request.POST.get("note", "").strip()
+    url = request.POST.get("url", "").strip()
+    uploaded_file = request.FILES.get("file")
+
+    if not title:
+        return redirect("/my-references/?ref_error=no_title")
+    if ref_type == "url" and not url:
+        return redirect("/my-references/?ref_error=no_url")
+    if ref_type == "file" and not uploaded_file:
+        return redirect("/my-references/?ref_error=no_file")
+
+    ref = StudentReference(
+        student=student, title=title, reference_type=ref_type,
+        note=note, added_by=request.user,
+    )
+    if ref_type == "url":
+        ref.url = url
+    else:
+        try:
+            import base64 as _b64, mimetypes as _mt
+            file_bytes = uploaded_file.read()
+            ref.file_name = uploaded_file.name
+            ref.file_mime = _mt.guess_type(uploaded_file.name)[0] or "application/octet-stream"
+            ref.file_data = _b64.b64encode(file_bytes).decode("ascii")
+        except Exception:
+            return redirect("/my-references/?ref_error=upload_failed")
+    ref.save()
+    return redirect("/my-references/?ref_added=1")
+
+
+@login_required(login_url=_LOGIN_URL)
 def quick_upload_view(request):
     """Dashboard quick-upload: student uploads a doc for one of their assigned schools."""
     if request.method != "POST":
