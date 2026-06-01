@@ -2142,11 +2142,11 @@ def quick_upload_view(request):
     except (School.DoesNotExist, ValueError, TypeError):
         return redirect("/?upload_error=invalid_school")
     if not StudentAssignedSchool.objects.filter(student=student, school=school).exists():
-        return redirect("/?upload_error=not_assigned")
+        return redirect("/my-references/?upload_error=not_assigned")
     result = _handle_document_upload(request, student, school)
     if result and "failed" in result.lower():
-        return redirect("/?upload_error=1")
-    return redirect("/?uploaded=1")
+        return redirect("/my-references/?upload_error=1")
+    return redirect("/my-references/?uploaded=1")
 
 
 @login_required(login_url=_LOGIN_URL)
@@ -2160,9 +2160,14 @@ def my_references_view(request):
             .prefetch_related("seen_by")
             .order_by("-created_at")
         )
+    assigned_schools = list(
+        StudentAssignedSchool.objects.filter(student=student)
+        .select_related("school").order_by("school__name")
+    ) if student else []
     return render(request, "my_references/code.html", {
         "student_obj": student,
         "references": references,
+        "assigned_schools": assigned_schools,
     })
 
 
