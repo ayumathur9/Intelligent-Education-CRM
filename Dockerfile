@@ -38,6 +38,8 @@ COPY student_dashboard/       /templates/student_dashboard/
 COPY student_profile/         /templates/student_profile/
 COPY student_profile_full_flow/ /templates/student_profile_full_flow/
 COPY student_profile_multi_step/ /templates/student_profile_multi_step/
+COPY my_references/             /templates/my_references/
+COPY student_references/        /templates/student_references/
 
 # Collect static files at build time
 RUN DJANGO_SECRET_KEY=build-placeholder DJANGO_DEBUG=0 python manage.py collectstatic --noinput
