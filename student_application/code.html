@@ -722,8 +722,7 @@ document.addEventListener('DOMContentLoaded', function() {
   if (so) so.addEventListener('click', toggleSidebar);
   var hb = document.getElementById('hamburger-btn');
   if (hb) hb.addEventListener('click', toggleSidebar);
-  var tsBtn = document.getElementById('toggle-students-menu-btn');
-  if (tsBtn) tsBtn.addEventListener('click', toggleStudentsMenu);
+  document.querySelectorAll('[id="toggle-students-menu-btn"]').forEach(function(b) { b.addEventListener('click', toggleStudentsMenu); });
   var ntBtn = document.getElementById('note-toggle-btn');
   if (ntBtn) ntBtn.addEventListener('click', toggleNoteForm);
   var ncBtn = document.getElementById('note-cancel-btn');

@@ -298,7 +298,14 @@ function filterRows() {
   // Sidebar students accordion
   var tsBtn = document.getElementById('toggle-students-menu-btn');
   if (tsBtn) tsBtn.addEventListener('click', toggleStudentsMenu);
-})();
+
+  // T&C / PP modal click-outside-to-close
+  document.addEventListener('click', function(e) {
+    ['tc-modal','pp-modal'].forEach(function(id) {
+      var m = document.getElementById(id);
+      if (m && !m.classList.contains('hidden') && e.target === m) m.classList.add('hidden');
+    });
+  });})();
 </script>
 <!-- ===== FOOTER ===== -->
 <footer id="main-footer" style="margin-left:260px;" class="border-t border-[#e4beba] bg-[#fff0ef] py-4 px-6 text-center text-xs text-[#5b403d]">
