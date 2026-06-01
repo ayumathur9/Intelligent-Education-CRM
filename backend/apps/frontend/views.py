@@ -2127,6 +2127,23 @@ def serve_reference_file(request, ref_id):
     return response
 
 
+@login_required(login_url=_LOGIN_URL)
+def my_references_view(request):
+    student = _get_student_for_user(request.user)
+    references = []
+    if student:
+        references = list(
+            StudentReference.objects.filter(student=student, is_active=True)
+            .select_related("added_by")
+            .prefetch_related("seen_by")
+            .order_by("-created_at")
+        )
+    return render(request, "my_references/code.html", {
+        "student_obj": student,
+        "references": references,
+    })
+
+
 def reset_password_view(request):
     """
     GET  /reset-password/?token=<token>  — show the set-new-password form.

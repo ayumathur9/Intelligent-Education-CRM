@@ -41,6 +41,7 @@ urlpatterns = [
     path("student-references/<int:student_id>/", views.student_references_view, name="student-references"),
     path("api/references/<int:ref_id>/seen/", views.mark_reference_seen, name="mark-reference-seen"),
     path("reference-file/<int:ref_id>/", views.serve_reference_file, name="serve-reference-file"),
+    path("my-references/", views.my_references_view, name="my-references"),
     path("reset-password/", views.reset_password_view, name="reset-password"),
     path("accept-invite/", views.accept_invite_view, name="accept-invite"),
 ]
