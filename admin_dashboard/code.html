@@ -931,6 +931,15 @@ async function dismissPriorityItem(itemType, itemId, elementId, countId, contain
   const el = document.getElementById(elementId);
   const countEl = document.getElementById(countId);
   if (!el) return;
+  const csrf = document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '';
+  try {
+    const r = await fetch('/dismiss-priority-item/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': csrf },
+      body: 'item_type=' + encodeURIComponent(itemType) + '&item_id=' + encodeURIComponent(itemId),
+    });
+    if (!r.ok) return;
+  } catch (_) { return; }
   el.style.transition = 'opacity 0.3s, max-height 0.3s';
   el.style.opacity = '0';
   el.style.overflow = 'hidden';
@@ -941,14 +950,6 @@ async function dismissPriorityItem(itemType, itemId, elementId, countId, contain
     const current = parseInt((countEl.textContent || '(0)').replace(/\D/g,'')) || 0;
     countEl.textContent = '(' + Math.max(0, current - 1) + ')';
   }
-  const csrf = document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '';
-  try {
-    await fetch('/dismiss-priority-item/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': csrf },
-      body: 'item_type=' + encodeURIComponent(itemType) + '&item_id=' + encodeURIComponent(itemId),
-    });
-  } catch (_) {}
 }
 </script>
 <!-- ===== FOOTER ===== -->
