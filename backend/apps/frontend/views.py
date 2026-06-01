@@ -816,6 +816,7 @@ def student_dashboard(request):
         "poc": student.poc if student else None,
         "editor": student.editor if student else None,
         "preferred_schools_count": StudentAssignedSchool.objects.filter(student=student).count() if student else 0,
+        "assigned_schools": list(StudentAssignedSchool.objects.filter(student=student).select_related("school").order_by("school__name")) if student else [],
         "recent_activities": StudentActivity.objects.filter(student=student).order_by("-created_at")[:5] if student else [],
         "unread_messages_count": unread,
         "notif_unread_count": _Notif.objects.filter(user=request.user, read_at__isnull=True).count(),
@@ -2125,6 +2126,27 @@ def serve_reference_file(request, ref_id):
     safe_name = ref.file_name.replace('"', '') if ref.file_name else "reference"
     response["Content-Disposition"] = f'attachment; filename="{safe_name}"'
     return response
+
+
+@login_required(login_url=_LOGIN_URL)
+def quick_upload_view(request):
+    """Dashboard quick-upload: student uploads a doc for one of their assigned schools."""
+    if request.method != "POST":
+        return redirect("/")
+    student = _get_student_for_user(request.user)
+    if not student:
+        return redirect("/")
+    school_id = request.POST.get("school_id")
+    try:
+        school = School.objects.get(pk=school_id)
+    except (School.DoesNotExist, ValueError, TypeError):
+        return redirect("/?upload_error=invalid_school")
+    if not StudentAssignedSchool.objects.filter(student=student, school=school).exists():
+        return redirect("/?upload_error=not_assigned")
+    result = _handle_document_upload(request, student, school)
+    if result and "failed" in result.lower():
+        return redirect("/?upload_error=1")
+    return redirect("/?uploaded=1")
 
 
 @login_required(login_url=_LOGIN_URL)
