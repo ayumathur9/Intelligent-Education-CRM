@@ -1569,6 +1569,47 @@ def _build_doc_panels(docs_qs):
     ]
 
 
+def _send_doc_deleted_notification(student, doc_name, doc_category):
+    """Send a plain-text notification email when a document is deleted (no attachment)."""
+    from django.core.mail import send_mail
+
+    if not (
+        getattr(django_settings, "EMAIL_HOST_USER", None)
+        and getattr(django_settings, "EMAIL_HOST_PASSWORD", None)
+    ):
+        return
+
+    recipients = []
+    if student.email:
+        recipients.append(student.email)
+    if student.user_id and student.user and student.user.email and student.user.email not in recipients:
+        recipients.append(student.user.email)
+    if student.counselor_id and student.counselor and student.counselor.email:
+        recipients.append(student.counselor.email)
+    if student.editor_id and student.editor and student.editor.email:
+        recipients.append(student.editor.email)
+    if student.poc_id and student.poc and student.poc.email:
+        recipients.append(student.poc.email)
+
+    if not recipients:
+        return
+
+    student_name = student.full_name or student.email or f"Student #{student.pk}"
+    category_display = doc_category.replace("_", " ").title()
+    subject = f"[IE CRM] Document Deleted – {doc_name} ({student_name})"
+    body = (
+        f"A document has been deleted from the Intelligent Education CRM.\n\n"
+        f"Student : {student_name}\n"
+        f"Document: {doc_name}\n"
+        f"Category: {category_display}\n\n"
+        f"— Intelligent Education CRM"
+    )
+    try:
+        send_mail(subject, body, django_settings.DEFAULT_FROM_EMAIL, list(set(recipients)), fail_silently=True)
+    except Exception:
+        pass
+
+
 def _send_doc_deleted_email(student, doc_name, doc_category, file_bytes, filename, mimetype=None):
     """Email the deleted document as an attachment to student, counselor, editor and POC."""
     from django.core.mail import EmailMessage
@@ -1642,6 +1683,7 @@ def _handle_document_upload(request, student, school):
             # Soft-delete: stamp deleted_at, keep DB record and file intact.
             doc.deleted_at = timezone.now()
             doc.save(update_fields=["deleted_at"])
+            _send_doc_deleted_notification(student, doc.file_name, doc.category)
             return "Document deleted."
         return None
 
