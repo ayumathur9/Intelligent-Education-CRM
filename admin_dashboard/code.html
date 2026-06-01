@@ -446,8 +446,8 @@
             <p class="font-label-sm text-label-sm text-on-surface-variant text-[11px] truncate">{{ item.subtitle }}</p>
           </div>
           <a href="/student-application/{{ item.student_pk }}/" class="shrink-0 px-2.5 py-1 bg-surface-container-low text-on-surface rounded-lg font-label-bold text-[10px] hover:bg-outline-variant transition-colors">View</a>
-          <button onclick="dismissPriorityItem('{{ item.type }}', {{ item.item_id }}, 'pi-admin-{{ item.type }}-{{ item.item_id }}', 'admin-red-count', 'admin-red-items')"
-                  class="shrink-0 px-2.5 py-1 bg-red-100 text-red-700 rounded-lg font-label-bold text-[10px] hover:bg-red-200 transition-colors active:scale-95">Done</button>
+          <button class="dismiss-btn shrink-0 px-2.5 py-1 bg-red-100 text-red-700 rounded-lg font-label-bold text-[10px] hover:bg-red-200 transition-colors active:scale-95"
+                  data-item-type="{{ item.type }}" data-item-id="{{ item.item_id }}" data-element-id="pi-admin-{{ item.type }}-{{ item.item_id }}" data-count-id="admin-red-count" data-container-id="admin-red-items">Done</button>
         </div>
         {% empty %}
         <p class="px-gutter py-4 text-on-surface-variant font-label-sm text-[11px] italic">No high-priority items.</p>
@@ -470,7 +470,8 @@
             <p class="font-label-sm text-label-sm text-on-surface-variant text-[11px] truncate">{{ item.subtitle }}</p>
           </div>
           <a href="/student-application/{{ item.student_pk }}/" class="shrink-0 px-2.5 py-1 bg-surface-container-low text-on-surface rounded-lg font-label-bold text-[10px] hover:bg-outline-variant transition-colors">View</a>
-          <button onclick="dismissPriorityItem('{{ item.type }}', {{ item.item_id }}, 'pi-admin-{{ item.type }}-{{ item.item_id }}', 'admin-yellow-count', 'admin-yellow-items')"
+          <button class="dismiss-btn"
+                  data-item-type="{{ item.type }}" data-item-id="{{ item.item_id }}" data-element-id="pi-admin-{{ item.type }}-{{ item.item_id }}" data-count-id="admin-yellow-count" data-container-id="admin-yellow-items"
                   class="shrink-0 px-2.5 py-1 bg-yellow-100 text-yellow-700 rounded-lg font-label-bold text-[10px] hover:bg-yellow-200 transition-colors active:scale-95">Done</button>
         </div>
         {% empty %}
@@ -494,7 +495,8 @@
             <p class="font-label-sm text-label-sm text-on-surface-variant text-[11px] truncate">{{ item.subtitle }}</p>
           </div>
           <a href="/student-application/{{ item.student_pk }}/" class="shrink-0 px-2.5 py-1 bg-surface-container-low text-on-surface rounded-lg font-label-bold text-[10px] hover:bg-outline-variant transition-colors">View</a>
-          <button onclick="dismissPriorityItem('{{ item.type }}', {{ item.item_id }}, 'pi-admin-{{ item.type }}-{{ item.item_id }}', 'admin-green-count', 'admin-green-items')"
+          <button class="dismiss-btn"
+                  data-item-type="{{ item.type }}" data-item-id="{{ item.item_id }}" data-element-id="pi-admin-{{ item.type }}-{{ item.item_id }}" data-count-id="admin-green-count" data-container-id="admin-green-items"
                   class="shrink-0 px-2.5 py-1 bg-green-100 text-green-700 rounded-lg font-label-bold text-[10px] hover:bg-green-200 transition-colors active:scale-95">Done</button>
         </div>
         {% empty %}
@@ -844,6 +846,11 @@ function filterSchoolRows(q) {
   if (fMy) fMy.addEventListener('input', function() { adminFilterRows(this, 'my'); });
   var fAll = document.getElementById('admin-filter-all');
   if (fAll) fAll.addEventListener('input', function() { adminFilterRows(this, 'all'); });
+  // Priority list dismiss buttons
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('.dismiss-btn');
+    if (btn) dismissPriorityItem(btn.dataset.itemType, btn.dataset.itemId, btn.dataset.elementId, btn.dataset.countId, btn.dataset.containerId);
+  });
 })();
 // ── Global Search Dropdown ────────────────────────────────────────────────────
 (function () {
