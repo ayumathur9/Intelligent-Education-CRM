@@ -148,8 +148,64 @@
       <span class="font-label-bold text-label-bold">Recent Activity</span>
     </a>
   </nav>
-  <!-- Counselor / POC Contact Card -->
-  
+
+  {% if student_references %}
+  <!-- ── References Section ── -->
+  <div class="px-4 pb-4 overflow-y-auto" style="max-height:40vh;">
+    <div class="flex items-center justify-between mb-2 mt-2">
+      <p class="font-label-bold text-[10px] uppercase tracking-widest text-on-primary/60">References</p>
+      {% with unseen_count=student_references|length %}
+      {% if unseen_count %}
+      <span class="bg-yellow-400 text-yellow-900 text-[9px] font-bold px-1.5 py-0.5 rounded-full" id="ref-unseen-badge">
+        {% with ns=0 %}{% for r in student_references %}{% if r.pk not in seen_reference_ids %}{{ forloop.counter0|add:1 }}{% endif %}{% endfor %}{% endwith %}
+      </span>
+      {% endif %}
+      {% endwith %}
+    </div>
+    <div class="space-y-2" id="references-list">
+      {% for ref in student_references %}
+      <div class="ref-item bg-on-primary-fixed-variant/20 rounded-xl p-3 border border-on-primary/10 transition-all" data-ref-id="{{ ref.pk }}" data-seen="{% if ref.pk in seen_reference_ids %}1{% else %}0{% endif %}">
+        <div class="flex items-start gap-2">
+          <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 {% if ref.reference_type == 'url' %}bg-secondary/30{% else %}bg-on-primary/20{% endif %}">
+            <span class="material-symbols-outlined text-[14px] text-on-primary">{% if ref.reference_type == 'url' %}link{% else %}description{% endif %}</span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-1.5">
+              <p class="font-label-bold text-[11px] text-on-primary truncate flex-1">{{ ref.title }}</p>
+              {% if ref.pk not in seen_reference_ids %}
+              <span class="w-2 h-2 rounded-full bg-yellow-400 shrink-0 ref-unseen-dot" title="New"></span>
+              {% endif %}
+            </div>
+            {% if ref.note %}
+            <p class="text-[10px] text-on-primary/60 leading-snug mt-0.5 line-clamp-2">{{ ref.note }}</p>
+            {% endif %}
+            <div class="flex items-center gap-2 mt-1.5">
+              {% if ref.reference_type == 'url' %}
+              <a href="{{ ref.url }}" target="_blank" rel="noopener"
+                 class="ref-open-btn text-[10px] text-on-primary/70 hover:text-on-primary underline flex items-center gap-0.5 font-label-bold"
+                 data-ref-id="{{ ref.pk }}">
+                <span class="material-symbols-outlined text-[12px]">open_in_new</span>Open
+              </a>
+              {% else %}
+              <a href="/reference-file/{{ ref.pk }}/"
+                 class="ref-open-btn text-[10px] text-on-primary/70 hover:text-on-primary underline flex items-center gap-0.5 font-label-bold"
+                 data-ref-id="{{ ref.pk }}">
+                <span class="material-symbols-outlined text-[12px]">download</span>Download
+              </a>
+              {% endif %}
+              {% if ref.pk not in seen_reference_ids %}
+              <button class="mark-seen-btn text-[10px] text-on-primary/50 hover:text-on-primary/80 font-label-sm transition-colors" data-ref-id="{{ ref.pk }}">
+                Mark seen
+              </button>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
 </aside>
 <!-- Top Navbar -->
 <header id="main-header" class="fixed top-0 right-0 h-[72px] left-[260px] bg-surface-container-lowest shadow-[0px_4px_12px_rgba(0,0,0,0.05)] border-b border-outline-variant flex items-center justify-between px-4 lg:px-gutter z-40">
@@ -685,6 +741,35 @@ document.addEventListener('keydown', function(e) {
   document.getElementById('mark-all-read-btn').addEventListener('click', function(e) { window.markAllRead(e); });
   _wsConnect();
   _load();
+})();
+// ── References: mark as seen ──
+(function() {
+  function _csrf() { var m = document.cookie.match(/csrftoken=([^;]+)/); return m ? m[1] : ''; }
+  function markSeen(refId) {
+    fetch('/api/references/' + refId + '/seen/', {method:'POST', headers:{'X-CSRFToken':_csrf()}})
+      .then(function(r) { if (!r.ok) return; })
+      .catch(function() {});
+    // Update UI: hide yellow dot and "Mark seen" button for this ref
+    var item = document.querySelector('.ref-item[data-ref-id="' + refId + '"]');
+    if (item) {
+      item.querySelectorAll('.ref-unseen-dot, .mark-seen-btn').forEach(function(el) { el.remove(); });
+      item.dataset.seen = '1';
+    }
+    // Update sidebar badge count
+    var unseen = document.querySelectorAll('.ref-unseen-dot').length;
+    var badge = document.getElementById('ref-unseen-badge');
+    if (badge) { if (unseen > 0) badge.textContent = unseen; else badge.remove(); }
+  }
+  // Mark seen when "Mark seen" button is clicked
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('.mark-seen-btn');
+    if (btn) markSeen(btn.dataset.refId);
+  });
+  // Auto-mark seen when download/open link is clicked
+  document.addEventListener('click', function(e) {
+    var a = e.target.closest('.ref-open-btn');
+    if (a && a.dataset.refId) markSeen(a.dataset.refId);
+  });
 })();
 // ── Wire up profile drawer + sidebar ──
 (function() {

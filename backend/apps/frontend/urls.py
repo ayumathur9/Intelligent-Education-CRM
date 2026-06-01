@@ -37,6 +37,10 @@ urlpatterns = [
     path("toggle-pin-note/<int:pk>/", views.toggle_pin_note, name="toggle-pin-note"),
     path("search/", views.global_search, name="global-search"),
     path("dismiss-priority-item/", views.dismiss_priority_item, name="dismiss-priority-item"),
+    # Student References
+    path("student-references/<int:student_id>/", views.student_references_view, name="student-references"),
+    path("api/references/<int:ref_id>/seen/", views.mark_reference_seen, name="mark-reference-seen"),
+    path("reference-file/<int:ref_id>/", views.serve_reference_file, name="serve-reference-file"),
     path("reset-password/", views.reset_password_view, name="reset-password"),
     path("accept-invite/", views.accept_invite_view, name="accept-invite"),
 ]

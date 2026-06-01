@@ -16,7 +16,7 @@ from apps.crm.models import (
     Course, DocumentCategory, EducationHistory,
     Lead, PriorityItemDismissal, Reference, School, Student, StudentActivity,
     StudentAssignedSchool, StudentPreference, StudentProfileDocument,
-    StudentSchoolDocument, WorkExperience,
+    StudentSchoolDocument, StudentReference, WorkExperience,
 )
 
 _LOGIN_URL = "/login/"
@@ -822,6 +822,14 @@ def student_dashboard(request):
         "pinned_notes": StudentActivity.objects.filter(
             student=student, activity_type__in=("note", "note_added"), is_pinned=True
         ).select_related("created_by").order_by("-created_at") if student else [],
+        "student_references": StudentReference.objects.filter(
+            student=student, is_active=True
+        ).select_related("added_by").order_by("-created_at") if student else [],
+        "seen_reference_ids": set(
+            StudentReference.objects.filter(
+                student=student, is_active=True, seen_by=request.user
+            ).values_list("pk", flat=True)
+        ) if student else set(),
     }
     return render(request, "student_dashboard/code.html", context)
 
@@ -1991,6 +1999,121 @@ def dismiss_priority_item(request):
         user=request.user, item_type=item_type, item_id=item_id
     )
     return JsonResponse({"ok": True})
+
+
+# ─── Student References ───────────────────────────────────────────────────────
+
+@login_required(login_url=_LOGIN_URL)
+def student_references_view(request, student_id):
+    """Admin/Counselor: manage references for a specific student."""
+    if request.user.role not in ("admin", "counselor", "editor"):
+        return redirect("/")
+
+    student = get_object_or_404(Student, pk=student_id)
+
+    # Editors can only manage their assigned students
+    if request.user.role == "editor" and student.editor_id != request.user.pk:
+        return redirect("/")
+
+    save_message = None
+    error_message = None
+
+    if request.method == "POST":
+        action = request.POST.get("action")
+
+        if action == "add":
+            title = request.POST.get("title", "").strip()
+            ref_type = request.POST.get("reference_type", "file")
+            note = request.POST.get("note", "").strip()
+            url = request.POST.get("url", "").strip()
+            uploaded_file = request.FILES.get("file")
+
+            if not title:
+                error_message = "Title is required."
+            elif ref_type == "url" and not url:
+                error_message = "URL is required for link references."
+            elif ref_type == "file" and not uploaded_file:
+                error_message = "Please select a file to upload."
+            else:
+                ref = StudentReference(
+                    student=student, title=title, reference_type=ref_type,
+                    note=note, added_by=request.user,
+                )
+                if ref_type == "url":
+                    ref.url = url
+                else:
+                    try:
+                        stored_url = _upload_to_local_storage(
+                            uploaded_file, f"references/{student.pk}", uploaded_file.name
+                        )
+                        ref.file_name = uploaded_file.name
+                        ref.file_path = stored_url
+                    except Exception as exc:
+                        error_message = f"Upload failed: {exc}"
+                        ref = None
+                if ref:
+                    ref.save()
+                    save_message = f"Reference '{title}' added."
+
+        elif action == "delete":
+            ref_id = request.POST.get("ref_id")
+            StudentReference.objects.filter(pk=ref_id, student=student).update(is_active=False)
+            save_message = "Reference removed."
+
+        return redirect(f"/student-references/{student_id}/")
+
+    references = StudentReference.objects.filter(
+        student=student, is_active=True
+    ).select_related("added_by").prefetch_related("seen_by").order_by("-created_at")
+
+    return render(request, "student_references/code.html", {
+        "student": student,
+        "references": references,
+        "save_message": save_message,
+        "error_message": error_message,
+    })
+
+
+@login_required(login_url=_LOGIN_URL)
+def mark_reference_seen(request, ref_id):
+    """Student marks a reference as seen (AJAX POST)."""
+    if request.method != "POST":
+        return JsonResponse({"error": "POST required"}, status=405)
+    try:
+        ref = StudentReference.objects.get(pk=ref_id, is_active=True)
+    except StudentReference.DoesNotExist:
+        return JsonResponse({"error": "Not found"}, status=404)
+    # Only the assigned student can mark as seen
+    student = _get_student_for_user(request.user)
+    if not student or ref.student_id != student.pk:
+        return JsonResponse({"error": "Forbidden"}, status=403)
+    ref.seen_by.add(request.user)
+    return JsonResponse({"ok": True})
+
+
+@login_required(login_url=_LOGIN_URL)
+def serve_reference_file(request, ref_id):
+    """Serve a reference file download to the assigned student or staff."""
+    from django.http import HttpResponseForbidden, HttpResponseNotFound
+    try:
+        ref = StudentReference.objects.select_related("student__user").get(
+            pk=ref_id, is_active=True, reference_type="file"
+        )
+    except StudentReference.DoesNotExist:
+        return HttpResponseNotFound("Reference not found.")
+
+    user = request.user
+    student = _get_student_for_user(user)
+    is_owner = student and ref.student_id == student.pk
+    is_staff = getattr(user, "role", None) in ("admin", "counselor", "editor")
+    if not is_owner and not is_staff:
+        return HttpResponseForbidden("Access denied.")
+
+    # Mark as seen when student downloads
+    if is_owner:
+        ref.seen_by.add(user)
+
+    return redirect(ref.file_path)
 
 
 def reset_password_view(request):
