@@ -377,7 +377,7 @@ NGINX_MEDIA_ACCEL = os.getenv("NGINX_MEDIA_ACCEL", "0") == "1"
 # ---------------------------------------------------------------------------
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 CSRF_COOKIE_SECURE = not DEBUG
-CSRF_COOKIE_HTTPONLY = True       # CSRF token not accessible via JS (defence-in-depth)
+CSRF_COOKIE_HTTPONLY = False      # Must be False — JS reads csrftoken cookie for all AJAX requests
 CSRF_COOKIE_SAMESITE = "Lax"
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
