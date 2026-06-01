@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html class="light" lang="en">
 <head>
 <meta charset="utf-8"/>
@@ -570,7 +570,7 @@
             <div class="edu-entry p-5 bg-surface-container-low rounded-xl border border-outline-variant relative">
               <div class="flex items-center justify-between mb-4">
                 <h3 class="font-label-bold text-on-surface">Academic Record #<span class="edu-num">{{ forloop.counter }}</span></h3>
-                <button type="button" onclick="removeEntry(this, 'edu')" class="text-error hover:bg-error-container p-1 rounded transition-colors">
+                <button type="button" class="remove-entry-btn text-error hover:bg-error-container p-1 rounded transition-colors" data-type="edu">
                   <span class="material-symbols-outlined text-[20px]">delete</span>
                 </button>
               </div>
@@ -618,7 +618,7 @@
             <div class="edu-entry p-5 bg-surface-container-low rounded-xl border border-outline-variant relative">
               <div class="flex items-center justify-between mb-4">
                 <h3 class="font-label-bold text-on-surface">Academic Record #<span class="edu-num">1</span></h3>
-                <button type="button" onclick="removeEntry(this, 'edu')" class="text-error hover:bg-error-container p-1 rounded transition-colors">
+                <button type="button" class="remove-entry-btn text-error hover:bg-error-container p-1 rounded transition-colors" data-type="edu">
                   <span class="material-symbols-outlined text-[20px]">delete</span>
                 </button>
               </div>
@@ -664,7 +664,7 @@
           {% endif %}
         </div>
         <div class="px-6 pb-6">
-          <button type="button" onclick="addEduEntry()" class="w-full py-3 border-2 border-dashed border-outline-variant rounded-xl text-on-surface-variant font-label-bold hover:border-primary hover:text-primary transition-all flex items-center justify-center">
+          <button type="button" id="add-edu-btn" class="w-full py-3 border-2 border-dashed border-outline-variant rounded-xl text-on-surface-variant font-label-bold hover:border-primary hover:text-primary transition-all flex items-center justify-center">
             <span class="material-symbols-outlined mr-2">add_circle</span> Add Another Academic History
           </button>
         </div>
@@ -801,7 +801,7 @@
             <div class="work-entry p-5 bg-surface-container-low rounded-xl border border-outline-variant relative">
               <div class="flex items-center justify-between mb-4">
                 <h3 class="font-label-bold text-on-surface">Work Experience #<span class="work-num">{{ forloop.counter }}</span></h3>
-                <button type="button" onclick="removeEntry(this, 'work')" class="text-error hover:bg-error-container p-1 rounded transition-colors">
+                <button type="button" class="remove-entry-btn text-error hover:bg-error-container p-1 rounded transition-colors" data-type="work">
                   <span class="material-symbols-outlined text-[20px]">delete</span>
                 </button>
               </div>
@@ -835,7 +835,7 @@
             <div class="work-entry p-5 bg-surface-container-low rounded-xl border border-outline-variant relative">
               <div class="flex items-center justify-between mb-4">
                 <h3 class="font-label-bold text-on-surface">Work Experience #<span class="work-num">1</span></h3>
-                <button type="button" onclick="removeEntry(this, 'work')" class="text-error hover:bg-error-container p-1 rounded transition-colors">
+                <button type="button" class="remove-entry-btn text-error hover:bg-error-container p-1 rounded transition-colors" data-type="work">
                   <span class="material-symbols-outlined text-[20px]">delete</span>
                 </button>
               </div>
@@ -867,7 +867,7 @@
           {% endif %}
         </div>
         <div class="px-6 pb-6">
-          <button type="button" onclick="addWorkEntry()" class="w-full py-3 border-2 border-dashed border-outline-variant rounded-xl text-on-surface-variant font-label-bold hover:border-primary hover:text-primary transition-all flex items-center justify-center">
+          <button type="button" id="add-work-btn" class="w-full py-3 border-2 border-dashed border-outline-variant rounded-xl text-on-surface-variant font-label-bold hover:border-primary hover:text-primary transition-all flex items-center justify-center">
             <span class="material-symbols-outlined mr-2">add_circle</span> Add Work Experience
           </button>
         </div>
@@ -954,7 +954,7 @@ function addEduEntry() {
   div.innerHTML = `
     <div class="flex items-center justify-between mb-4">
       <h3 class="font-label-bold text-on-surface">Academic Record #<span class="edu-num">${idx}</span></h3>
-      <button type="button" onclick="removeEntry(this, 'edu')" class="text-error hover:bg-error-container p-1 rounded transition-colors">
+      <button type="button" class="remove-entry-btn text-error hover:bg-error-container p-1 rounded transition-colors" data-type="edu">
         <span class="material-symbols-outlined text-[20px]">delete</span>
       </button>
     </div>
@@ -1013,7 +1013,7 @@ function addWorkEntry() {
   div.innerHTML = `
     <div class="flex items-center justify-between mb-4">
       <h3 class="font-label-bold text-on-surface">Work Experience #<span class="work-num">${idx}</span></h3>
-      <button type="button" onclick="removeEntry(this, 'work')" class="text-error hover:bg-error-container p-1 rounded transition-colors">
+      <button type="button" class="remove-entry-btn text-error hover:bg-error-container p-1 rounded transition-colors" data-type="work">
         <span class="material-symbols-outlined text-[20px]">delete</span>
       </button>
     </div>
@@ -1147,24 +1147,46 @@ document.querySelectorAll('input[type="file"][data-doc-type]').forEach(function(
     uploadFile(this, this.dataset.docType, this.dataset.badge, this.dataset.name);
   });
 });
+// ── Wire up CSP-safe event listeners ──
+(function() {
+  var so = document.getElementById('sidebar-overlay');
+  if (so) so.addEventListener('click', toggleSidebar);
+  var hb = document.getElementById('hamburger-btn');
+  if (hb) hb.addEventListener('click', toggleSidebar);
+  var aeb = document.getElementById('add-edu-btn');
+  if (aeb) aeb.addEventListener('click', addEduEntry);
+  var awb = document.getElementById('add-work-btn');
+  if (awb) awb.addEventListener('click', addWorkEntry);
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('.remove-entry-btn');
+    if (btn) removeEntry(btn, btn.dataset.type);
+  });
+  // T&C / PP modal open/close
+  document.addEventListener('click', function(e) {
+    var ob = e.target.closest('[data-open-modal]');
+    if (ob) { document.getElementById(ob.dataset.openModal)?.classList.remove('hidden'); return; }
+    var cb = e.target.closest('[data-close-modal]');
+    if (cb) { document.getElementById(cb.dataset.closeModal)?.classList.add('hidden'); }
+  });
+})();
 </script>
 
 
 <!-- ===== FOOTER ===== -->
 <footer id="main-footer" style="margin-left:260px;" class="border-t border-[#e4beba] bg-[#fff0ef] py-4 px-6 text-center text-xs text-[#5b403d]">
   <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-1">
-    <button onclick="document.getElementById('tc-modal').classList.remove('hidden')" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">Terms &amp; Conditions</button>
+    <button data-open-modal="tc-modal" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">Terms &amp; Conditions</button>
     <span class="text-[#e4beba]">|</span>
-    <button onclick="document.getElementById('pp-modal').classList.remove('hidden')" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">Privacy Policy</button>
+    <button data-open-modal="pp-modal" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">Privacy Policy</button>
   </div>
 </footer>
 
 <!-- T&amp;C Modal -->
-<div id="tc-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-black/40 p-4" onclick="if(event.target===this)this.classList.add('hidden')">
+<div id="tc-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-black/40 p-4">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col">
     <div class="flex items-center justify-between px-6 py-4 border-b border-[#e4beba]">
       <h2 class="text-lg font-semibold text-[#271816]" style="font-family:'Lexend',sans-serif;">Terms &amp; Conditions</h2>
-      <button onclick="document.getElementById('tc-modal').classList.add('hidden')" class="text-[#5b403d] hover:text-[#271816] transition-colors rounded-full p-1 hover:bg-[#ffe9e6]">
+      <button data-close-modal="tc-modal" class="text-[#5b403d] hover:text-[#271816] transition-colors rounded-full p-1 hover:bg-[#ffe9e6]">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
     </div>
@@ -1267,11 +1289,11 @@ document.querySelectorAll('input[type="file"][data-doc-type]').forEach(function(
   </div>
 </div>
 <!-- Privacy Policy Modal -->
-<div id="pp-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-black/40 p-4" onclick="if(event.target===this)this.classList.add('hidden')">
+<div id="pp-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-black/40 p-4">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col">
     <div class="flex items-center justify-between px-6 py-4 border-b border-[#e4beba]">
       <h2 class="text-lg font-semibold text-[#271816]" style="font-family:'Lexend',sans-serif;">Privacy Policy</h2>
-      <button onclick="document.getElementById('pp-modal').classList.add('hidden')" class="text-[#5b403d] hover:text-[#271816] transition-colors rounded-full p-1 hover:bg-[#ffe9e6]">
+      <button data-close-modal="pp-modal" class="text-[#5b403d] hover:text-[#271816] transition-colors rounded-full p-1 hover:bg-[#ffe9e6]">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
     </div>

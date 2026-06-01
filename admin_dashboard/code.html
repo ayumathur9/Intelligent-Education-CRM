@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html class="light" lang="en"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
@@ -425,7 +425,7 @@
         <p class="font-body-md text-body-md text-on-surface-variant">Action items sorted by urgency</p>
       </div>
     </div>
-    <button onclick="adminTogglePriority()" title="Collapse/Expand" class="p-1.5 text-on-surface-variant hover:text-primary transition-colors rounded-lg hover:bg-surface-container-low">
+    <button id="admin-priority-toggle-btn" title="Collapse/Expand" class="p-1.5 text-on-surface-variant hover:text-primary transition-colors rounded-lg hover:bg-surface-container-low">
       <span class="material-symbols-outlined text-[20px]" id="admin-priority-toggle-icon">expand_less</span>
     </button>
   </div>
@@ -516,7 +516,7 @@
 <div class="flex items-center space-x-4">
 <div class="relative min-w-[280px]">
 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" data-icon="search">search</span>
-<input id="counselor-filter" oninput="filterCounselorCards(this.value)" class="w-full pl-10 pr-4 py-2 bg-background border border-outline-variant rounded-lg focus:ring-2 focus:ring-secondary focus:outline-none font-body-md text-body-md" placeholder="Search counselors..." type="text"/>
+<input id="counselor-filter" class="w-full pl-10 pr-4 py-2 bg-background border border-outline-variant rounded-lg focus:ring-2 focus:ring-secondary focus:outline-none font-body-md text-body-md" placeholder="Search counselors..." type="text"/>
 </div>
 <button class="border border-secondary text-secondary px-4 py-2 rounded-lg font-label-bold hover:bg-secondary/5 transition-colors active:scale-95">
                             Directory Export
@@ -572,7 +572,7 @@
   <div class="flex items-center gap-3">
     <div class="relative min-w-[240px]">
       <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
-      <input id="school-filter" oninput="filterSchoolRows(this.value)" placeholder="Search schools…"
+      <input id="school-filter" placeholder="Search schools…"
              class="w-full pl-10 pr-4 py-2 bg-background border border-outline-variant rounded-lg focus:ring-2 focus:ring-secondary focus:outline-none font-body-md text-body-md"/>
     </div>
     <a href="/admin-schools/" class="bg-primary text-on-primary px-4 py-2 rounded-lg font-label-bold flex items-center gap-2 hover:bg-on-primary-fixed-variant transition-colors active:scale-95 text-[12px]">
@@ -851,6 +851,19 @@ function filterSchoolRows(q) {
     var btn = e.target.closest('.dismiss-btn');
     if (btn) dismissPriorityItem(btn.dataset.itemType, btn.dataset.itemId, btn.dataset.elementId, btn.dataset.countId, btn.dataset.containerId);
   });
+  // Priority collapse
+  var aptBtn = document.getElementById('admin-priority-toggle-btn');
+  if (aptBtn) aptBtn.addEventListener('click', adminTogglePriority);
+  // Filter inputs
+  var cfInput = document.getElementById('counselor-filter');
+  if (cfInput) cfInput.addEventListener('input', function() { filterCounselorCards(this.value); });
+  var sfInput = document.getElementById('school-filter');
+  if (sfInput) sfInput.addEventListener('input', function() { filterSchoolRows(this.value); });
+  // Sidebar
+  var so = document.getElementById('sidebar-overlay');
+  if (so) so.addEventListener('click', toggleSidebar);
+  var hb = document.getElementById('hamburger-btn');
+  if (hb) hb.addEventListener('click', toggleSidebar);
 })();
 // ── Global Search Dropdown ────────────────────────────────────────────────────
 (function () {

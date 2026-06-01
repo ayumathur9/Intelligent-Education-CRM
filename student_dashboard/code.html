@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html class="light" lang="en">
 <head>
 <meta charset="utf-8"/>
@@ -191,7 +191,7 @@
           {% if student_obj %}ID: {{ student_obj.student_code }}{% else %}Student{% endif %}
         </p>
       </div>
-      <button onclick="openProfileDrawer()" title="View My Profile" class="block rounded-full hover:ring-2 hover:ring-primary transition-all cursor-pointer flex-shrink-0">
+      <button id="open-profile-drawer-btn" title="View My Profile" class="block rounded-full hover:ring-2 hover:ring-primary transition-all cursor-pointer flex-shrink-0">
         {% if user.avatar %}
         <img src="/my-avatar/" class="w-10 h-10 rounded-full object-cover border-2 border-outline-variant" alt="Profile"/>
         {% else %}
@@ -411,7 +411,7 @@
   </div>
 </main>
 <!-- ── Profile Drawer Overlay ── -->
-<div id="profile-drawer-overlay" onclick="closeProfileDrawer()" class="fixed inset-0 bg-black/40 z-50 hidden opacity-0 transition-opacity duration-300"></div>
+<div id="profile-drawer-overlay" class="fixed inset-0 bg-black/40 z-50 hidden opacity-0 transition-opacity duration-300"></div>
 <!-- ── Profile Drawer Panel ── -->
 <aside id="profile-drawer" class="fixed top-0 right-0 h-full w-[400px] bg-surface z-50 shadow-2xl flex flex-col translate-x-full transition-transform duration-300 ease-in-out">
   <!-- Drawer Header -->
@@ -429,7 +429,7 @@
         <p class="font-label-sm text-label-sm text-on-surface-variant">{% if student_obj %}ID: {{ student_obj.student_code }}{% else %}Student{% endif %}</p>
       </div>
     </div>
-    <button onclick="closeProfileDrawer()" class="p-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-colors">
+    <button id="close-profile-drawer-btn" class="p-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-colors">
       <span class="material-symbols-outlined">close</span>
     </button>
   </div>
@@ -686,21 +686,34 @@ document.addEventListener('keydown', function(e) {
   _wsConnect();
   _load();
 })();
+// ── Wire up profile drawer + sidebar ──
+(function() {
+  var so = document.getElementById('sidebar-overlay');
+  if (so) so.addEventListener('click', toggleSidebar);
+  var hb = document.getElementById('hamburger-btn');
+  if (hb) hb.addEventListener('click', toggleSidebar);
+  var opd = document.getElementById('open-profile-drawer-btn');
+  if (opd) opd.addEventListener('click', openProfileDrawer);
+  var cpd = document.getElementById('close-profile-drawer-btn');
+  if (cpd) cpd.addEventListener('click', closeProfileDrawer);
+  var pdo = document.getElementById('profile-drawer-overlay');
+  if (pdo) pdo.addEventListener('click', closeProfileDrawer);
+})();
 </script>
 <!-- ===== FOOTER ===== -->
 <footer id="main-footer" style="margin-left:260px;" class="border-t border-[#e4beba] bg-[#fff0ef] py-4 px-6 text-center text-xs text-[#5b403d]">
   <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-1">
-    <button onclick="document.getElementById('tc-modal').classList.remove('hidden')" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">Terms &amp; Conditions</button>
+    <button data-open-modal="tc-modal" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">Terms &amp; Conditions</button>
     <span class="text-[#e4beba]">|</span>
-    <button onclick="document.getElementById('pp-modal').classList.remove('hidden')" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">Privacy Policy</button>
+    <button data-open-modal="pp-modal" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">Privacy Policy</button>
   </div>
 </footer>
 <!-- T&amp;C Modal -->
-<div id="tc-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-black/40 p-4" onclick="if(event.target===this)this.classList.add('hidden')">
+<div id="tc-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-black/40 p-4">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col">
     <div class="flex items-center justify-between px-6 py-4 border-b border-[#e4beba]">
       <h2 class="text-lg font-semibold text-[#271816]" style="font-family:'Lexend',sans-serif;">Terms &amp; Conditions</h2>
-      <button onclick="document.getElementById('tc-modal').classList.add('hidden')" class="text-[#5b403d] hover:text-[#271816] transition-colors rounded-full p-1 hover:bg-[#ffe9e6]">
+      <button data-close-modal="tc-modal" class="text-[#5b403d] hover:text-[#271816] transition-colors rounded-full p-1 hover:bg-[#ffe9e6]">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
     </div>
@@ -785,11 +798,11 @@ document.addEventListener('keydown', function(e) {
   </div>
 </div>
 <!-- Privacy Policy Modal -->
-<div id="pp-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-black/40 p-4" onclick="if(event.target===this)this.classList.add('hidden')">
+<div id="pp-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-black/40 p-4">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col">
     <div class="flex items-center justify-between px-6 py-4 border-b border-[#e4beba]">
       <h2 class="text-lg font-semibold text-[#271816]" style="font-family:'Lexend',sans-serif;">Privacy Policy</h2>
-      <button onclick="document.getElementById('pp-modal').classList.add('hidden')" class="text-[#5b403d] hover:text-[#271816] transition-colors rounded-full p-1 hover:bg-[#ffe9e6]">
+      <button data-close-modal="pp-modal" class="text-[#5b403d] hover:text-[#271816] transition-colors rounded-full p-1 hover:bg-[#ffe9e6]">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
     </div>
