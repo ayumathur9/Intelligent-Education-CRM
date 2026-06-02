@@ -260,8 +260,8 @@
                   data-email="{{ s.email|escapejs }}"
                   data-phone="{{ s.phone|escapejs }}"
                   data-course="{{ s.course.name|default:'—'|escapejs }}"
-                  data-counselor="{{ s.counselor.full_name|default:s.counselor.email|default:'—'|escapejs }}"
-                  data-poc="{{ s.poc.full_name|default:s.poc.email|default:'—'|escapejs }}"
+                  data-counselor="{% if s.counselor %}{{ s.counselor.full_name|default:s.counselor.email|escapejs }}{% else %}—{% endif %}"
+                  data-poc="{% if s.poc %}{{ s.poc.full_name|default:s.poc.email|escapejs }}{% else %}—{% endif %}"
                   data-code="{{ s.student_code|escapejs }}"
                   data-pk="{{ s.pk }}">
                 <td class="px-5 py-3.5">
@@ -338,8 +338,8 @@
                   data-phone="{{ s.phone|escapejs }}"
                   data-code="{{ s.student_code|escapejs }}"
                   data-course="{{ s.course.name|default:'—'|escapejs }}"
-                  data-counselor="{{ s.counselor.full_name|default:s.counselor.email|default:'—'|escapejs }}"
-                  data-poc="{{ s.poc.full_name|default:s.poc.email|default:'—'|escapejs }}">
+                  data-counselor="{% if s.counselor %}{{ s.counselor.full_name|default:s.counselor.email|escapejs }}{% else %}—{% endif %}"
+                  data-poc="{% if s.poc %}{{ s.poc.full_name|default:s.poc.email|escapejs }}{% else %}—{% endif %}">
                 <td class="px-5 py-3.5">
                   <div class="flex items-center gap-3">
                     {% if s.user and s.user.avatar %}<img src="/user-avatar/{{ s.user.pk }}/" class="h-9 w-9 rounded-full object-cover shrink-0" alt=""/>{% else %}<div class="h-9 w-9 rounded-full bg-primary-fixed text-on-primary-fixed-variant flex items-center justify-center font-bold text-sm shrink-0">{{ s.full_name|first|upper }}</div>{% endif %}
@@ -618,10 +618,10 @@
 </main>
 <!-- ── Student data for JS panel ─────────────────────────────── -->
 <script id="students-json" type="application/json" nonce="{{ csp_nonce }}">
-[{% for s in my_students %}{"pk":{{ s.pk }},"name":"{{ s.full_name|escapejs }}","email":"{{ s.email|escapejs }}","phone":"{{ s.phone|escapejs }}","code":"{{ s.student_code|escapejs }}","course":"{{ s.course.name|default:'—'|escapejs }}","counselor":"{{ s.counselor.full_name|default:s.counselor.email|default:'—'|escapejs }}","poc":"{{ s.poc.full_name|default:s.poc.email|default:'—'|escapejs }}","nationality":"{{ s.nationality|escapejs }}","dob":"{{ s.dob|default:''|escapejs }}","gender":"{{ s.gender|escapejs }}","passport":"{{ s.passport_number|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}]
+[{% for s in my_students %}{"pk":{{ s.pk }},"name":"{{ s.full_name|escapejs }}","email":"{{ s.email|escapejs }}","phone":"{{ s.phone|escapejs }}","code":"{{ s.student_code|escapejs }}","course":"{{ s.course.name|default:'—'|escapejs }}","counselor":"{% if s.counselor %}{{ s.counselor.full_name|default:s.counselor.email|escapejs }}{% else %}—{% endif %}","poc":"{% if s.poc %}{{ s.poc.full_name|default:s.poc.email|escapejs }}{% else %}—{% endif %}","nationality":"{{ s.nationality|escapejs }}","dob":"{{ s.dob|default:''|escapejs }}","gender":"{{ s.gender|escapejs }}","passport":"{{ s.passport_number|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}]
 </script>
 <script id="all-students-json" type="application/json" nonce="{{ csp_nonce }}">
-[{% for s in all_students %}{"pk":{{ s.pk }},"name":"{{ s.full_name|escapejs }}","email":"{{ s.email|escapejs }}","phone":"{{ s.phone|escapejs }}","code":"{{ s.student_code|escapejs }}","course":"{{ s.course.name|default:'—'|escapejs }}","counselor":"{{ s.counselor.full_name|default:s.counselor.email|default:'—'|escapejs }}","poc":"{{ s.poc.full_name|default:s.poc.email|default:'—'|escapejs }}","nationality":"{{ s.nationality|escapejs }}","dob":"{{ s.dob|default:''|escapejs }}","gender":"{{ s.gender|escapejs }}","passport":"{{ s.passport_number|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}]
+[{% for s in all_students %}{"pk":{{ s.pk }},"name":"{{ s.full_name|escapejs }}","email":"{{ s.email|escapejs }}","phone":"{{ s.phone|escapejs }}","code":"{{ s.student_code|escapejs }}","course":"{{ s.course.name|default:'—'|escapejs }}","counselor":"{% if s.counselor %}{{ s.counselor.full_name|default:s.counselor.email|escapejs }}{% else %}—{% endif %}","poc":"{% if s.poc %}{{ s.poc.full_name|default:s.poc.email|escapejs }}{% else %}—{% endif %}","nationality":"{{ s.nationality|escapejs }}","dob":"{{ s.dob|default:''|escapejs }}","gender":"{{ s.gender|escapejs }}","passport":"{{ s.passport_number|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}]
 </script>
 <script nonce="{{ csp_nonce }}">
 function toggleSidebar() {
