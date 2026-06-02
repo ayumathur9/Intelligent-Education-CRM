@@ -1000,6 +1000,44 @@ def view_profile_doc(request, doc_id):
     return _redirect(file_url)
 
 
+# ─── Tutorial video (auth gate → Nginx X-Accel-Redirect or Django FileResponse) ──
+
+@login_required(login_url=_LOGIN_URL)
+def tutorial_video_view(request):
+    """
+    Authenticate the student, then serve the tutorial MP4.
+    Production (NGINX_MEDIA_ACCEL=1): returns X-Accel-Redirect so Nginx streams
+    the file zero-copy with full HTTP range-request / seek support.
+    Dev (no Nginx): Django streams via FileResponse which also supports ranges.
+    """
+    from pathlib import Path as _Path
+    from django.http import FileResponse, Http404
+
+    video_path = _Path(django_settings.MEDIA_ROOT) / "tutorials" / "crm_tutorial.mp4"
+    if not video_path.is_file():
+        raise Http404
+
+    if getattr(django_settings, "NGINX_MEDIA_ACCEL", False):
+        response = HttpResponse(content_type="video/mp4")
+        response["X-Accel-Redirect"] = "/protected-tutorial/crm_tutorial.mp4"
+        return response
+
+    return FileResponse(
+        open(video_path, "rb"),
+        content_type="video/mp4",
+        as_attachment=False,
+    )
+
+
+@login_required(login_url=_LOGIN_URL)
+def dismiss_tutorial_view(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "POST required"}, status=405)
+    request.user.tutorial_seen = True
+    request.user.save(update_fields=["tutorial_seen"])
+    return JsonResponse({"ok": True})
+
+
 # ─── Avatar proxy helpers ─────────────────────────────────────────────────────
 
 def _avatar_redirect(avatar_value):

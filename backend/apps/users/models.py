@@ -66,6 +66,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     # verification link. Controlled by EMAIL_VERIFICATION_REQUIRED in settings.
     is_email_verified = models.BooleanField(default=False)
 
+    tutorial_seen = models.BooleanField(default=False)
+
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
 

@@ -46,4 +46,6 @@ urlpatterns = [
     path("my-references/", views.my_references_view, name="my-references"),
     path("reset-password/", views.reset_password_view, name="reset-password"),
     path("accept-invite/", views.accept_invite_view, name="accept-invite"),
+    path("tutorial-video/", views.tutorial_video_view, name="tutorial-video"),
+    path("dismiss-tutorial/", views.dismiss_tutorial_view, name="dismiss-tutorial"),
 ]

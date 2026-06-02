@@ -39,6 +39,9 @@ else:
     print(f"Superuser created: {email}")
 PYEOF
 
+echo "=== Ensuring media directories exist ==="
+mkdir -p media/tutorials
+
 echo "=== Starting Daphne ASGI server on :8000 ==="
 # --proxy-headers: trust X-Forwarded-Proto from Railway's load balancer
 # --access-log  : structured access logging to stdout
