@@ -127,10 +127,8 @@ def media_proxy(request, path: str) -> HttpResponse:
                 return HttpResponse(status=403)
 
             is_owner = student.user_id == user.pk
-            is_assigned_editor = (
-                user.role == Role.EDITOR and student.editor_id == user.pk
-            )
-            if not is_owner and not is_assigned_editor:
+            is_editor = user.role == Role.EDITOR
+            if not is_owner and not is_editor:
                 logger.warning(
                     "media_proxy: user %s (role=%s) denied access to school_doc %s",
                     user.pk, user.role, clean_path,
@@ -157,10 +155,8 @@ def media_proxy(request, path: str) -> HttpResponse:
                 return HttpResponse(status=403)
 
             is_owner = student.user_id == user.pk
-            is_assigned_editor = (
-                user.role == Role.EDITOR and student.editor_id == user.pk
-            )
-            if not is_owner and not is_assigned_editor:
+            is_editor = user.role == Role.EDITOR
+            if not is_owner and not is_editor:
                 logger.warning(
                     "media_proxy: user %s (role=%s) denied access to profile_doc %s",
                     user.pk, user.role, clean_path,
