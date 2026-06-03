@@ -1,13 +1,13 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html class="light" lang="en">
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Students Management | Intelligent Education CRM</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries" nonce="{{ csp_nonce }}"></script>
 <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-<script id="tailwind-config">
+<script id="tailwind-config" nonce="{{ csp_nonce }}">
   tailwind.config = {
     darkMode:"class",
     theme:{extend:{
@@ -18,7 +18,7 @@
     }}
   }
 </script>
-<style>
+<style nonce="{{ csp_nonce }}">
   .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;}
   .custom-scrollbar::-webkit-scrollbar{width:4px;} .custom-scrollbar::-webkit-scrollbar-thumb{background:#e4beba;border-radius:6px;}
   /* ── Responsive sidebar ── */
@@ -57,7 +57,7 @@
       <span class="material-symbols-outlined mr-3">dashboard</span><span class="font-label-bold text-label-bold">Dashboard</span>
     </a>
     <div class="mx-2 my-1">
-      <button onclick="toggleStudentsMenu()"
+      <button id="toggle-students-menu-btn"
               class="w-full flex items-center px-4 py-3 bg-on-primary-fixed-variant text-on-primary rounded-lg">
         <span class="material-symbols-outlined mr-3">group</span>
         <span class="font-label-bold text-label-bold flex-1 text-left">Students</span>
@@ -106,7 +106,7 @@
   <div class="flex items-center gap-3">
     <div class="header-search relative w-full max-w-[16rem]">
       <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
-      <input id="global-search" oninput="handleGlobalSearch(this.value,this)" onfocus="if(this.value.length>=2)handleGlobalSearch(this.value,this)" placeholder="Search students, schools…" class="w-full border border-outline-variant rounded-lg pl-10 pr-3 py-2 font-body-md text-body-md focus:ring-2 focus:ring-secondary focus:outline-none bg-surface-container-low" type="text" autocomplete="off"/>
+      <input id="global-search" placeholder="Search students, schools…" class="w-full border border-outline-variant rounded-lg pl-10 pr-3 py-2 font-body-md text-body-md focus:ring-2 focus:ring-secondary focus:outline-none bg-surface-container-low" type="text" autocomplete="off"/>
     </div>
     {% if user.avatar %}<img src="/my-avatar/" class="w-9 h-9 rounded-full object-cover border border-outline-variant" alt=""/>{% else %}<div class="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-on-primary font-bold text-sm">{{ user.full_name|default:user.email|first|upper }}</div>{% endif %}
   </div>
@@ -122,7 +122,7 @@
       </div>
       <div class="relative">
         <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
-        <input id="student-search" oninput="filterStudents(this.value)" placeholder="Search students…"
+        <input id="student-search" placeholder="Search students…"
           class="w-full pl-9 pr-3 py-2 border border-outline-variant rounded-lg text-body-md focus:ring-2 focus:ring-primary focus:outline-none bg-background" type="text"/>
       </div>
     </div>
@@ -192,6 +192,9 @@
         <div class="flex items-center gap-2 shrink-0">
           <a href="/student-application/{{ selected_student.pk }}/" class="flex items-center gap-1 px-3 py-1.5 bg-primary text-on-primary rounded-lg font-label-bold text-[11px] hover:bg-primary-container transition-colors">
             <span class="material-symbols-outlined text-[14px]">assignment</span>View Application
+          </a>
+          <a href="/student-references/{{ selected_student.pk }}/" class="flex items-center gap-1 px-3 py-1.5 bg-tertiary/10 text-tertiary rounded-lg font-label-bold text-[11px] hover:bg-tertiary/20 transition-colors">
+            <span class="material-symbols-outlined text-[14px]">folder_special</span>References
           </a>
           <a href="/student-profile/{{ selected_student.pk }}/" class="text-secondary font-label-bold text-[12px] hover:underline flex items-center gap-1">
             <span class="material-symbols-outlined text-[14px]">open_in_new</span> Full Profile
@@ -349,7 +352,7 @@
                 <input type="hidden" name="action" value="remove_school"/>
                 <input type="hidden" name="student_id" value="{{ selected_student.pk }}"/>
                 <input type="hidden" name="assignment_id" value="{{ a.pk }}"/>
-                <button type="submit" class="text-[11px] font-label-bold text-error hover:underline flex items-center gap-1" onclick="return confirm('Remove this school assignment?')">
+                <button type="submit" class="remove-school-btn text-[11px] font-label-bold text-error hover:underline flex items-center gap-1">
                   <span class="material-symbols-outlined text-[14px]">delete</span>Remove
                 </button>
               </form>
@@ -371,7 +374,7 @@
             <input type="hidden" name="student_id" value="{{ selected_student.pk }}"/>
             <div>
               <label class="font-label-bold text-label-bold text-on-surface-variant block mb-1">School</label>
-              <select name="school_id" id="school-select" onchange="filterCourses(this.value)" class="w-full border border-outline-variant rounded-lg px-3 py-2 text-body-md focus:ring-2 focus:ring-primary focus:outline-none bg-background" required>
+              <select name="school_id" id="school-select" class="w-full border border-outline-variant rounded-lg px-3 py-2 text-body-md focus:ring-2 focus:ring-primary focus:outline-none bg-background" required>
                 <option value="">— Select a school —</option>
                 {% for sch in schools %}
                 <option value="{{ sch.pk }}" data-school="{{ sch.pk }}">{{ sch.name }} ({{ sch.country }})</option>
@@ -420,7 +423,7 @@
     {% endif %}
   </section>
 </div><!-- end flex -->
-<script>
+<script nonce="{{ csp_nonce }}">
 function toggleSidebar() {
   const sb = document.getElementById('sidebar');
   const ov = document.getElementById('sidebar-overlay');
@@ -511,22 +514,52 @@ function toggleStudentsMenu() {
     if(dd && inp && !dd.contains(e.target) && e.target!==inp) _close();
   });
   document.addEventListener('keydown', e => { if(e.key==='Escape') { _close(); _inp()?.blur(); } });
+  const _si = _inp();
+  if (_si) {
+    _si.addEventListener('input', function() { window.handleGlobalSearch(this.value); });
+    _si.addEventListener('focus', function() { if (this.value.length >= 2) window.handleGlobalSearch(this.value); });
+  }
+})();
+// ── Wire up CSP-safe event listeners ──
+(function() {
+  var so = document.getElementById('sidebar-overlay');
+  if (so) so.addEventListener('click', toggleSidebar);
+  var hb = document.getElementById('hamburger-btn');
+  if (hb) hb.addEventListener('click', toggleSidebar);
+  var tsBtn = document.getElementById('toggle-students-menu-btn');
+  if (tsBtn) tsBtn.addEventListener('click', toggleStudentsMenu);
+  var ss = document.getElementById('student-search');
+  if (ss) ss.addEventListener('input', function() { filterStudents(this.value); });
+  var sc = document.getElementById('school-select');
+  if (sc) sc.addEventListener('change', function() { filterCourses(this.value); });
+  document.querySelectorAll('.remove-school-btn').forEach(function(btn) {
+    btn.closest('form')?.addEventListener('submit', function(e) {
+      if (!confirm('Remove this school assignment?')) e.preventDefault();
+    });
+  });
+  // T&C / PP modal open/close
+  document.addEventListener('click', function(e) {
+    var ob = e.target.closest('[data-open-modal]');
+    if (ob) { document.getElementById(ob.dataset.openModal)?.classList.remove('hidden'); return; }
+    var cb = e.target.closest('[data-close-modal]');
+    if (cb) { document.getElementById(cb.dataset.closeModal)?.classList.add('hidden'); }
+  });
 })();
 </script>
 <!-- ===== FOOTER ===== -->
 <footer id="main-footer" style="margin-left:260px;" class="border-t border-[#e4beba] bg-[#fff0ef] py-4 px-6 text-center text-xs text-[#5b403d]">
   <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-1">
-    <button onclick="document.getElementById('tc-modal').classList.remove('hidden')" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">Terms &amp; Conditions</button>
+    <button data-open-modal="tc-modal" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">Terms &amp; Conditions</button>
     <span class="text-[#e4beba]">|</span>
-    <button onclick="document.getElementById('pp-modal').classList.remove('hidden')" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">Privacy Policy</button>
+    <button data-open-modal="pp-modal" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">Privacy Policy</button>
   </div>
 </footer>
 <!-- T&amp;C Modal -->
-<div id="tc-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-black/40 p-4" onclick="if(event.target===this)this.classList.add('hidden')">
+<div id="tc-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-black/40 p-4">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col">
     <div class="flex items-center justify-between px-6 py-4 border-b border-[#e4beba]">
       <h2 class="text-lg font-semibold text-[#271816]" style="font-family:'Lexend',sans-serif;">Terms &amp; Conditions</h2>
-      <button onclick="document.getElementById('tc-modal').classList.add('hidden')" class="text-[#5b403d] hover:text-[#271816] transition-colors rounded-full p-1 hover:bg-[#ffe9e6]">
+      <button data-close-modal="tc-modal" class="text-[#5b403d] hover:text-[#271816] transition-colors rounded-full p-1 hover:bg-[#ffe9e6]">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
     </div>
@@ -611,11 +644,11 @@ function toggleStudentsMenu() {
   </div>
 </div>
 <!-- Privacy Policy Modal -->
-<div id="pp-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-black/40 p-4" onclick="if(event.target===this)this.classList.add('hidden')">
+<div id="pp-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-black/40 p-4">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col">
     <div class="flex items-center justify-between px-6 py-4 border-b border-[#e4beba]">
       <h2 class="text-lg font-semibold text-[#271816]" style="font-family:'Lexend',sans-serif;">Privacy Policy</h2>
-      <button onclick="document.getElementById('pp-modal').classList.add('hidden')" class="text-[#5b403d] hover:text-[#271816] transition-colors rounded-full p-1 hover:bg-[#ffe9e6]">
+      <button data-close-modal="pp-modal" class="text-[#5b403d] hover:text-[#271816] transition-colors rounded-full p-1 hover:bg-[#ffe9e6]">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
     </div>

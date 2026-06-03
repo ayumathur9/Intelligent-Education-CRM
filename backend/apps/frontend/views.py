@@ -16,7 +16,7 @@ from apps.crm.models import (
     Course, DocumentCategory, EducationHistory,
     Lead, PriorityItemDismissal, Reference, School, Student, StudentActivity,
     StudentAssignedSchool, StudentPreference, StudentProfileDocument,
-    StudentSchoolDocument, WorkExperience,
+    StudentSchoolDocument, StudentReference, WorkExperience,
 )
 
 _LOGIN_URL = "/login/"
@@ -323,7 +323,7 @@ def dashboard(request):
         my_students = Student.objects.filter(
             Q(counselor=request.user) | Q(poc=request.user), is_active=True
         ).select_related("course", "counselor", "poc", "user").order_by("full_name")
-        all_students = Student.objects.filter(is_active=True).select_related("course", "counselor", "poc", "user").order_by("full_name")
+        all_students = Student.objects.filter(is_active=True).select_related("course", "counselor", "poc", "editor", "user").order_by("full_name")
         counselor_users = _User.objects.filter(role__in=("admin", "counselor", "editor"), is_active=True).order_by("role", "full_name")
         all_student_ids = list(all_students.values_list("pk", flat=True))
         context = {
@@ -391,7 +391,7 @@ def employee_dashboard(request):
     # INFRA-003: use cached school list to avoid N+1 on every dashboard load.
     from apps.crm.services.cache_service import get_active_schools
     all_schools = get_active_schools()
-    all_students = Student.objects.filter(is_active=True).select_related("course", "counselor", "poc", "user").order_by("full_name")
+    all_students = Student.objects.filter(is_active=True).select_related("course", "counselor", "poc", "editor", "user").order_by("full_name")
 
     pinned_notes = list(
         StudentActivity.objects.filter(
@@ -581,6 +581,39 @@ def counselor_interaction_log_view(request):
 
     is_admin = request.user.role == "admin"
     is_editor = request.user.role == "editor"
+
+    if request.method == "POST" and request.POST.get("action") == "add_note":
+        sid = request.POST.get("student_id", "").strip()
+        description = request.POST.get("description", "").strip()
+        if sid and description:
+            try:
+                student = Student.objects.select_related("user").get(pk=sid)
+                authorized = (
+                    is_admin or is_editor
+                    or student.counselor_id == request.user.pk
+                    or student.poc_id == request.user.pk
+                )
+                if authorized:
+                    StudentActivity.objects.create(
+                        student=student,
+                        activity_type="note_added",
+                        description=description,
+                        created_by=request.user,
+                    )
+                    if student.user_id:
+                        try:
+                            from apps.notifications.service import notify_sync
+                            notify_sync(
+                                student.user,
+                                title=f"New note from {request.user.full_name or request.user.email}",
+                                message=description[:120],
+                                link="/interaction-log/",
+                            )
+                        except Exception:
+                            pass
+            except Student.DoesNotExist:
+                pass
+        return redirect(f"/counselor-interaction-log/?t=student&id={sid}")
 
     if is_admin or is_editor:
         student_threads = (
@@ -783,12 +816,21 @@ def student_dashboard(request):
         "poc": student.poc if student else None,
         "editor": student.editor if student else None,
         "preferred_schools_count": StudentAssignedSchool.objects.filter(student=student).count() if student else 0,
+        "assigned_schools": list(StudentAssignedSchool.objects.filter(student=student).select_related("school").order_by("school__name")) if student else [],
         "recent_activities": StudentActivity.objects.filter(student=student).order_by("-created_at")[:5] if student else [],
         "unread_messages_count": unread,
         "notif_unread_count": _Notif.objects.filter(user=request.user, read_at__isnull=True).count(),
         "pinned_notes": StudentActivity.objects.filter(
             student=student, activity_type__in=("note", "note_added"), is_pinned=True
         ).select_related("created_by").order_by("-created_at") if student else [],
+        "student_references": StudentReference.objects.filter(
+            student=student, is_active=True
+        ).select_related("added_by").order_by("-created_at") if student else [],
+        "seen_reference_ids": set(
+            StudentReference.objects.filter(
+                student=student, is_active=True, seen_by=request.user
+            ).values_list("pk", flat=True)
+        ) if student else set(),
     }
     return render(request, "student_dashboard/code.html", context)
 
@@ -958,6 +1000,44 @@ def view_profile_doc(request, doc_id):
     return _redirect(file_url)
 
 
+# ─── Tutorial video (auth gate → Nginx X-Accel-Redirect or Django FileResponse) ──
+
+@login_required(login_url=_LOGIN_URL)
+def tutorial_video_view(request):
+    """
+    Authenticate the student, then serve the tutorial MP4.
+    Production (NGINX_MEDIA_ACCEL=1): returns X-Accel-Redirect so Nginx streams
+    the file zero-copy with full HTTP range-request / seek support.
+    Dev (no Nginx): Django streams via FileResponse which also supports ranges.
+    """
+    from pathlib import Path as _Path
+    from django.http import FileResponse, Http404
+
+    video_path = _Path(django_settings.MEDIA_ROOT) / "tutorials" / "crm_tutorial.mp4"
+    if not video_path.is_file():
+        raise Http404
+
+    if getattr(django_settings, "NGINX_MEDIA_ACCEL", False):
+        response = HttpResponse(content_type="video/mp4")
+        response["X-Accel-Redirect"] = "/protected-tutorial/crm_tutorial.mp4"
+        return response
+
+    return FileResponse(
+        open(video_path, "rb"),
+        content_type="video/mp4",
+        as_attachment=False,
+    )
+
+
+@login_required(login_url=_LOGIN_URL)
+def dismiss_tutorial_view(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "POST required"}, status=405)
+    request.user.tutorial_seen = True
+    request.user.save(update_fields=["tutorial_seen"])
+    return JsonResponse({"ok": True})
+
+
 # ─── Avatar proxy helpers ─────────────────────────────────────────────────────
 
 def _avatar_redirect(avatar_value):
@@ -1027,27 +1107,8 @@ def upload_profile_file(request):
         return JsonResponse({"error": "No student profile linked to your account."}, status=400)
 
     try:
-        # Capture existing profile doc so we can email it before overwriting
-        existing_profile_doc = StudentProfileDocument.objects.filter(student=student, category=category, deleted_at__isnull=True).first()
-
         ext = Path(file_obj.name).suffix
         url = _upload_to_local_storage(file_obj, f"profile_docs/{student.pk}", f"{category}{ext}")
-
-        # Email the replaced document before deletion
-        if existing_profile_doc and existing_profile_doc.file_path:
-            try:
-                import requests as _req
-                import mimetypes as _mt
-                resp = _req.get(existing_profile_doc.file_path, timeout=15)
-                if resp.status_code == 200:
-                    old_filename = existing_profile_doc.file_name or f"{category}{Path(existing_profile_doc.file_path).suffix}"
-                    mime = _mt.guess_type(old_filename)[0] or "application/octet-stream"
-                    _send_doc_deleted_email(
-                        student, old_filename, existing_profile_doc.category,
-                        resp.content, old_filename, mime,
-                    )
-            except Exception:
-                pass
 
         # Soft-delete the previous version so its URL is preserved in the DB.
         StudentProfileDocument.objects.filter(
@@ -1555,6 +1616,47 @@ def _build_doc_panels(docs_qs):
     ]
 
 
+def _send_doc_deleted_notification(student, doc_name, doc_category):
+    """Send a plain-text notification email when a document is deleted (no attachment)."""
+    from django.core.mail import send_mail
+
+    if not (
+        getattr(django_settings, "EMAIL_HOST_USER", None)
+        and getattr(django_settings, "EMAIL_HOST_PASSWORD", None)
+    ):
+        return
+
+    recipients = []
+    if student.email:
+        recipients.append(student.email)
+    if student.user_id and student.user and student.user.email and student.user.email not in recipients:
+        recipients.append(student.user.email)
+    if student.counselor_id and student.counselor and student.counselor.email:
+        recipients.append(student.counselor.email)
+    if student.editor_id and student.editor and student.editor.email:
+        recipients.append(student.editor.email)
+    if student.poc_id and student.poc and student.poc.email:
+        recipients.append(student.poc.email)
+
+    if not recipients:
+        return
+
+    student_name = student.full_name or student.email or f"Student #{student.pk}"
+    category_display = doc_category.replace("_", " ").title()
+    subject = f"[IE CRM] Document Deleted – {doc_name} ({student_name})"
+    body = (
+        f"A document has been deleted from the Intelligent Education CRM.\n\n"
+        f"Student : {student_name}\n"
+        f"Document: {doc_name}\n"
+        f"Category: {category_display}\n\n"
+        f"— Intelligent Education CRM"
+    )
+    try:
+        send_mail(subject, body, django_settings.DEFAULT_FROM_EMAIL, list(set(recipients)), fail_silently=True)
+    except Exception:
+        pass
+
+
 def _send_doc_deleted_email(student, doc_name, doc_category, file_bytes, filename, mimetype=None):
     """Email the deleted document as an attachment to student, counselor, editor and POC."""
     from django.core.mail import EmailMessage
@@ -1625,26 +1727,29 @@ def _handle_document_upload(request, student, school):
             if not is_privileged and not is_uploader:
                 return "Permission denied: you may only delete files you uploaded."
 
-            # Email a copy of the file before marking deleted.
+            # Read file from local storage before soft-deleting.
             file_bytes = None
             file_url = doc.file_url or ""
-            if file_url.startswith("http"):
+            if file_url.startswith("/media/"):
+                import os as _os
+                relative = file_url[len("/media/"):]
+                full_path = _os.path.join(django_settings.MEDIA_ROOT, relative)
                 try:
-                    import requests as _req
-                    resp = _req.get(file_url, timeout=15)
-                    if resp.status_code == 200:
-                        file_bytes = resp.content
+                    with open(full_path, "rb") as _f:
+                        file_bytes = _f.read()
                 except Exception:
                     pass
+
+            # Soft-delete: stamp deleted_at, keep DB record and file intact.
+            doc.deleted_at = timezone.now()
+            doc.save(update_fields=["deleted_at"])
 
             if file_bytes:
                 import mimetypes as _mt
                 mime = _mt.guess_type(doc.file_name)[0] or "application/octet-stream"
                 _send_doc_deleted_email(student, doc.file_name, doc.category, file_bytes, doc.file_name, mime)
-
-            # Soft-delete: stamp deleted_at, keep DB record and file intact.
-            doc.deleted_at = timezone.now()
-            doc.save(update_fields=["deleted_at"])
+            else:
+                _send_doc_deleted_notification(student, doc.file_name, doc.category)
             return "Document deleted."
         return None
 
@@ -1689,9 +1794,9 @@ def school_documents_view(request, school_id):
     if not student or not StudentAssignedSchool.objects.filter(student=student, school=school).exists():
         return redirect("/schools/")
 
-    save_message = None
     if request.method == "POST":
-        save_message = _handle_document_upload(request, student, school)
+        _handle_document_upload(request, student, school)
+        return redirect(request.path)
 
     docs = list(StudentSchoolDocument.objects.filter(student=student, school=school, deleted_at__isnull=True).select_related("uploaded_by"))
     doc_panels = _build_doc_panels(docs)
@@ -1701,7 +1806,6 @@ def school_documents_view(request, school_id):
         "doc_panels": doc_panels,
         "additional_student_docs": [d for d in docs if d.category == "additional_student"],
         "additional_counsel_docs": [d for d in docs if d.category == "additional_counsel"],
-        "save_message": save_message,
         "is_counselor_view": False,
         "student": student,
         "back_url": "/schools/",
@@ -1717,9 +1821,9 @@ def counselor_school_documents_view(request, student_id, school_id):
 
     # All internal roles (admin, counselor, editor) can access documents for any student
 
-    save_message = None
     if request.method == "POST":
-        save_message = _handle_document_upload(request, student, school)
+        _handle_document_upload(request, student, school)
+        return redirect(request.path)
 
     docs = list(StudentSchoolDocument.objects.filter(student=student, school=school, deleted_at__isnull=True).select_related("uploaded_by"))
     doc_panels = _build_doc_panels(docs)
@@ -1729,7 +1833,6 @@ def counselor_school_documents_view(request, student_id, school_id):
         "doc_panels": doc_panels,
         "additional_student_docs": [d for d in docs if d.category == "additional_student"],
         "additional_counsel_docs": [d for d in docs if d.category == "additional_counsel"],
-        "save_message": save_message,
         "is_counselor_view": True,
         "student": student,
         "back_url": f"/counselor-schools/?student_id={student_id}",
@@ -1935,5 +2038,359 @@ def dismiss_priority_item(request):
         user=request.user, item_type=item_type, item_id=item_id
     )
     return JsonResponse({"ok": True})
+
+
+# ─── Student References ───────────────────────────────────────────────────────
+
+@login_required(login_url=_LOGIN_URL)
+def student_references_view(request, student_id):
+    """Admin/Counselor: manage references for a specific student."""
+    if request.user.role not in ("admin", "counselor", "editor"):
+        return redirect("/")
+
+    student = get_object_or_404(Student, pk=student_id)
+
+    # Editors can only manage their assigned students
+    if request.user.role == "editor" and student.editor_id != request.user.pk:
+        return redirect("/")
+
+    save_message = None
+    error_message = None
+
+    if request.method == "POST":
+        action = request.POST.get("action")
+
+        if action == "add":
+            title = request.POST.get("title", "").strip()
+            ref_type = request.POST.get("reference_type", "file")
+            note = request.POST.get("note", "").strip()
+            url = request.POST.get("url", "").strip()
+            uploaded_file = request.FILES.get("file")
+
+            if not title:
+                error_message = "Title is required."
+            elif ref_type == "url" and not url:
+                error_message = "URL is required for link references."
+            elif ref_type == "file" and not uploaded_file:
+                error_message = "Please select a file to upload."
+            else:
+                ref = StudentReference(
+                    student=student, title=title, reference_type=ref_type,
+                    note=note, added_by=request.user,
+                )
+                if ref_type == "url":
+                    ref.url = url
+                else:
+                    try:
+                        import base64 as _b64, mimetypes as _mt
+                        file_bytes = uploaded_file.read()
+                        ref.file_name = uploaded_file.name
+                        ref.file_mime = _mt.guess_type(uploaded_file.name)[0] or "application/octet-stream"
+                        ref.file_data = _b64.b64encode(file_bytes).decode("ascii")
+                    except Exception as exc:
+                        error_message = f"Upload failed: {exc}"
+                        ref = None
+                if ref:
+                    ref.save()
+                    save_message = f"Reference '{title}' added."
+
+        elif action == "delete":
+            ref_id = request.POST.get("ref_id")
+            StudentReference.objects.filter(pk=ref_id, student=student).update(is_active=False)
+            save_message = "Reference removed."
+
+        return redirect(f"/student-references/{student_id}/")
+
+    references = StudentReference.objects.filter(
+        student=student, is_active=True
+    ).select_related("added_by").prefetch_related("seen_by").order_by("-created_at")
+
+    return render(request, "student_references/code.html", {
+        "student": student,
+        "references": references,
+        "save_message": save_message,
+        "error_message": error_message,
+    })
+
+
+@login_required(login_url=_LOGIN_URL)
+def mark_reference_seen(request, ref_id):
+    """Student marks a reference as seen (AJAX POST)."""
+    if request.method != "POST":
+        return JsonResponse({"error": "POST required"}, status=405)
+    try:
+        ref = StudentReference.objects.get(pk=ref_id, is_active=True)
+    except StudentReference.DoesNotExist:
+        return JsonResponse({"error": "Not found"}, status=404)
+    # Only the assigned student can mark as seen
+    student = _get_student_for_user(request.user)
+    if not student or ref.student_id != student.pk:
+        return JsonResponse({"error": "Forbidden"}, status=403)
+    ref.seen_by.add(request.user)
+    return JsonResponse({"ok": True})
+
+
+@login_required(login_url=_LOGIN_URL)
+def serve_reference_file(request, ref_id):
+    """Serve a reference file download to the assigned student or staff."""
+    from django.http import HttpResponseForbidden, HttpResponseNotFound
+    try:
+        ref = StudentReference.objects.select_related("student__user").get(
+            pk=ref_id, is_active=True, reference_type="file"
+        )
+    except StudentReference.DoesNotExist:
+        return HttpResponseNotFound("Reference not found.")
+
+    user = request.user
+    student = _get_student_for_user(user)
+    is_owner = student and ref.student_id == student.pk
+    is_staff = getattr(user, "role", None) in ("admin", "counselor", "editor")
+    if not is_owner and not is_staff:
+        return HttpResponseForbidden("Access denied.")
+
+    if not ref.file_data:
+        from django.http import HttpResponseNotFound
+        return HttpResponseNotFound("File data not available.")
+
+    # Mark as seen when student downloads
+    if is_owner:
+        ref.seen_by.add(user)
+
+    import base64 as _b64
+    from django.http import HttpResponse
+    file_bytes = _b64.b64decode(ref.file_data)
+    mime = ref.file_mime or "application/octet-stream"
+    response = HttpResponse(file_bytes, content_type=mime)
+    safe_name = ref.file_name.replace('"', '') if ref.file_name else "reference"
+    response["Content-Disposition"] = f'attachment; filename="{safe_name}"'
+    return response
+
+
+@login_required(login_url=_LOGIN_URL)
+def student_add_reference_view(request):
+    """Allow the student to add their own reference (file or URL) to their profile."""
+    if request.method != "POST":
+        return redirect("/my-references/")
+    student = _get_student_for_user(request.user)
+    if not student:
+        return redirect("/my-references/")
+
+    title = request.POST.get("title", "").strip()
+    ref_type = request.POST.get("reference_type", "file")
+    note = request.POST.get("note", "").strip()
+    url = request.POST.get("url", "").strip()
+    uploaded_file = request.FILES.get("file")
+
+    if not title:
+        return redirect("/my-references/?ref_error=no_title")
+    if ref_type == "url" and not url:
+        return redirect("/my-references/?ref_error=no_url")
+    if ref_type == "file" and not uploaded_file:
+        return redirect("/my-references/?ref_error=no_file")
+
+    ref = StudentReference(
+        student=student, title=title, reference_type=ref_type,
+        note=note, added_by=request.user,
+    )
+    if ref_type == "url":
+        ref.url = url
+    else:
+        try:
+            import base64 as _b64, mimetypes as _mt
+            file_bytes = uploaded_file.read()
+            ref.file_name = uploaded_file.name
+            ref.file_mime = _mt.guess_type(uploaded_file.name)[0] or "application/octet-stream"
+            ref.file_data = _b64.b64encode(file_bytes).decode("ascii")
+        except Exception:
+            return redirect("/my-references/?ref_error=upload_failed")
+    ref.save()
+    return redirect("/my-references/?ref_added=1")
+
+
+@login_required(login_url=_LOGIN_URL)
+def quick_upload_view(request):
+    """Dashboard quick-upload: student uploads a doc for one of their assigned schools."""
+    if request.method != "POST":
+        return redirect("/")
+    student = _get_student_for_user(request.user)
+    if not student:
+        return redirect("/")
+    school_id = request.POST.get("school_id")
+    try:
+        school = School.objects.get(pk=school_id)
+    except (School.DoesNotExist, ValueError, TypeError):
+        return redirect("/?upload_error=invalid_school")
+    if not StudentAssignedSchool.objects.filter(student=student, school=school).exists():
+        return redirect("/my-references/?upload_error=not_assigned")
+    result = _handle_document_upload(request, student, school)
+    if result and "failed" in result.lower():
+        return redirect("/my-references/?upload_error=1")
+    return redirect("/my-references/?uploaded=1")
+
+
+@login_required(login_url=_LOGIN_URL)
+def my_references_view(request):
+    student = _get_student_for_user(request.user)
+    references = []
+    if student:
+        references = list(
+            StudentReference.objects.filter(student=student, is_active=True)
+            .select_related("added_by")
+            .prefetch_related("seen_by")
+            .order_by("-created_at")
+        )
+    assigned_schools = list(
+        StudentAssignedSchool.objects.filter(student=student)
+        .select_related("school").order_by("school__name")
+    ) if student else []
+    return render(request, "my_references/code.html", {
+        "student_obj": student,
+        "references": references,
+        "assigned_schools": assigned_schools,
+    })
+
+
+def reset_password_view(request):
+    """
+    GET  /reset-password/?token=<token>  — show the set-new-password form.
+    POST /reset-password/                — submit new password to the API and redirect.
+    """
+    from apps.users.models import PasswordResetToken
+
+    if request.method == "POST":
+        token_value = request.POST.get("token", "").strip()
+        password = request.POST.get("password", "")
+        confirm = request.POST.get("confirm_password", "")
+
+        if password != confirm:
+            return render(request, "reset_password.html", {
+                "token": token_value,
+                "error": "Passwords do not match.",
+            })
+        if len(password) < 8:
+            return render(request, "reset_password.html", {
+                "token": token_value,
+                "error": "Password must be at least 8 characters.",
+            })
+
+        try:
+            token_obj = PasswordResetToken.objects.select_related("user").get(token=token_value)
+        except PasswordResetToken.DoesNotExist:
+            return render(request, "reset_password.html", {
+                "error": "This reset link is invalid or has already been used.",
+            })
+
+        from django.utils import timezone as _tz
+        if token_obj.used_at or token_obj.expires_at < _tz.now():
+            return render(request, "reset_password.html", {
+                "error": "This reset link has expired. Please request a new one.",
+            })
+
+        token_obj.user.set_password(password)
+        token_obj.user.save(update_fields=["password"])
+        token_obj.used_at = _tz.now()
+        token_obj.save(update_fields=["used_at"])
+
+        return render(request, "reset_password.html", {"success": True})
+
+    token_value = request.GET.get("token", "").strip()
+    if not token_value:
+        return render(request, "reset_password.html", {
+            "error": "No reset token provided. Please use the link from your email.",
+        })
+    return render(request, "reset_password.html", {"token": token_value})
+
+
+def accept_invite_view(request):
+    """
+    GET  /accept-invite/?token=<token>  — show the complete-registration form.
+    POST /accept-invite/                — create the account and redirect to login.
+    """
+    from apps.users.models import StaffInvite, User
+    from django.utils import timezone as _tz
+
+    if request.method == "POST":
+        token_value = request.POST.get("token", "").strip()
+        full_name = request.POST.get("full_name", "").strip()
+        password = request.POST.get("password", "")
+        confirm = request.POST.get("confirm_password", "")
+
+        if password != confirm:
+            return render(request, "accept_invite.html", {
+                "token": token_value,
+                "full_name": full_name,
+                "error": "Passwords do not match.",
+            })
+        if len(password) < 8:
+            return render(request, "accept_invite.html", {
+                "token": token_value,
+                "full_name": full_name,
+                "error": "Password must be at least 8 characters.",
+            })
+
+        try:
+            invite = StaffInvite.objects.select_for_update().get(token=token_value)
+        except StaffInvite.DoesNotExist:
+            return render(request, "accept_invite.html", {
+                "error": "This invite link is invalid or has already been used.",
+            })
+
+        if not invite.is_valid():
+            return render(request, "accept_invite.html", {
+                "error": "This invite has expired or already been used.",
+            })
+
+        if User.objects.filter(email=invite.email).exists():
+            return render(request, "accept_invite.html", {
+                "error": "An account for this email already exists. Please log in.",
+            })
+
+        user = User.objects.create_user(
+            email=invite.email,
+            password=password,
+            full_name=full_name,
+            role=invite.role,
+            is_email_verified=True,
+        )
+        invite.accepted_at = _tz.now()
+        invite.save(update_fields=["accepted_at"])
+
+        try:
+            from apps.users.tasks import send_staff_onboarding_email_task
+            send_staff_onboarding_email_task.delay(user.pk)
+        except Exception:
+            try:
+                from apps.common.email_service import send_staff_onboarding_email
+                send_staff_onboarding_email(user)
+            except Exception:
+                pass
+
+        return redirect("/login/?invite_accepted=1")
+
+    token_value = request.GET.get("token", "").strip()
+    if not token_value:
+        return render(request, "accept_invite.html", {
+            "error": "No invite token provided. Please use the link from your email.",
+        })
+
+    try:
+        invite = StaffInvite.objects.get(token=token_value)
+        if not invite.is_valid():
+            return render(request, "accept_invite.html", {
+                "error": "This invite has expired or already been used.",
+            })
+        invite_email = invite.email
+        invite_role = invite.role
+    except StaffInvite.DoesNotExist:
+        return render(request, "accept_invite.html", {
+            "error": "This invite link is invalid.",
+        })
+
+    role_labels = {"admin": "Admin", "counselor": "Counselor", "editor": "Editor", "student": "Student"}
+    return render(request, "accept_invite.html", {
+        "token": token_value,
+        "invite_email": invite_email,
+        "invite_role": role_labels.get(invite_role, invite_role.title()),
+    })
 
 

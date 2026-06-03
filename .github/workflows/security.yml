@@ -2,16 +2,16 @@ name: Security Scanning
 
 on:
   push:
-    branches: ["responsive-design-test", "main"]
+    branches: ["main"]
   pull_request:
     branches: ["main"]
   schedule:
-    # Run daily at 02:00 UTC even without a push.
+    # Run daily at 02:00 UTC for continuous CVE monitoring.
     - cron: "0 2 * * *"
 
 jobs:
   # ---------------------------------------------------------------------------
-  # CICD-002: Dependency CVE scanning
+  # CICD-002: Dependency CVE scanning — FAILS the build on high-severity CVEs
   # ---------------------------------------------------------------------------
   pip-audit:
     name: Dependency CVE Scan (pip-audit)
@@ -28,14 +28,14 @@ jobs:
       - name: Install pip-audit
         run: pip install pip-audit
 
-      - name: Run pip-audit
+      - name: Run pip-audit (strict — fail on HIGH severity)
         working-directory: backend
         run: |
           pip-audit \
             -r requirements.txt \
             --format json \
-            --output pip-audit-report.json \
-            --ignore-vuln GHSA-jfh8-c2jp-5kg3 || true   # ignore known false positives
+            --output pip-audit-report.json || true
+          # Fail CI if any HIGH or CRITICAL CVEs are present (no || true here)
           pip-audit -r requirements.txt --severity high
 
       - name: Upload pip-audit report
@@ -46,7 +46,7 @@ jobs:
           path: backend/pip-audit-report.json
 
   # ---------------------------------------------------------------------------
-  # CICD-002: Secret detection
+  # CICD-002: Secret detection — FAILS the build when new secrets are found
   # ---------------------------------------------------------------------------
   detect-secrets:
     name: Secret Detection
@@ -54,7 +54,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # full history for secret scanning
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -64,22 +64,26 @@ jobs:
       - name: Install detect-secrets
         run: pip install detect-secrets
 
-      - name: Scan for secrets
+      - name: Scan for secrets (fails on new findings)
         run: |
-          detect-secrets scan \
-            --exclude-files '\.env\.example$' \
-            --exclude-files '.*\.pyc$' \
-            --exclude-files '.*migrations/.*' \
-            --baseline .secrets.baseline 2>/dev/null || \
-          detect-secrets scan \
-            --exclude-files '\.env\.example$' \
-            --exclude-files '.*\.pyc$' \
-            --exclude-files '.*migrations/.*' \
-            > .secrets.baseline
-          detect-secrets audit .secrets.baseline --report || true
+          # If baseline exists, compare against it. New secrets = CI failure.
+          if [ -f .secrets.baseline ]; then
+            detect-secrets-hook --baseline .secrets.baseline $(git diff HEAD~1 --name-only 2>/dev/null || git ls-files) || {
+              echo "::error::New secrets detected! Run 'detect-secrets scan > .secrets.baseline' locally, review, and commit the updated baseline."
+              exit 1
+            }
+          else
+            # No baseline yet — create one and warn (don't fail first time)
+            detect-secrets scan \
+              --exclude-files '\.env\.example$' \
+              --exclude-files '.*migrations/.*' \
+              --exclude-files '.*\.pyc$' \
+              > .secrets.baseline
+            echo "::warning::No .secrets.baseline found. Created one. Review it and commit."
+          fi
 
   # ---------------------------------------------------------------------------
-  # CICD-002: Bandit deep scan (runs on schedule too)
+  # CICD-002: Bandit deep scan — fails on HIGH/HIGH findings
   # ---------------------------------------------------------------------------
   bandit-deep:
     name: Bandit Deep Scan
@@ -93,9 +97,9 @@ jobs:
           python-version: "3.11"
 
       - name: Install bandit
-        run: pip install bandit[toml]
+        run: pip install "bandit[toml]"
 
-      - name: Run bandit (all severities)
+      - name: Run bandit (report all, fail on HIGH+HIGH)
         working-directory: backend
         run: |
           bandit -r apps/ config/ \
@@ -110,10 +114,36 @@ jobs:
           name: bandit-deep-report
           path: backend/bandit-deep-report.json
 
-      - name: Fail on high-severity findings
+      - name: Fail on HIGH severity + HIGH confidence findings
         working-directory: backend
         run: |
           bandit -r apps/ config/ \
             -x apps/*/migrations/ \
             --severity-level high \
             --confidence-level high
+
+  # ---------------------------------------------------------------------------
+  # CICD-NEW: Check for outdated packages with known vulnerabilities
+  # ---------------------------------------------------------------------------
+  safety-check:
+    name: Safety / Trivy Container Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image for scanning
+        run: |
+          docker build \
+            --build-arg DJANGO_ENV=production \
+            -t crm-backend:scan \
+            ./backend
+
+      - name: Run Trivy vulnerability scanner on image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: "crm-backend:scan"
+          format: "table"
+          exit-code: "1"
+          ignore-unfixed: true
+          vuln-type: "os,library"
+          severity: "CRITICAL,HIGH"

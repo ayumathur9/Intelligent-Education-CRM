@@ -1,13 +1,13 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html class="light" lang="en">
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Student Dashboard | Intelligent Education CRM</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries" nonce="{{ csp_nonce }}"></script>
 <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-<script id="tailwind-config">
+<script id="tailwind-config" nonce="{{ csp_nonce }}">
   tailwind.config = {
     darkMode: "class",
     theme: {
@@ -84,7 +84,7 @@
     }
   }
 </script>
-<style>
+<style nonce="{{ csp_nonce }}">
   .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
   body { background-color: #f8f9fa; }
   /* ── Responsive sidebar ── */
@@ -126,30 +126,36 @@
 <a href="/"><h2 class="font-h2 text-h2 font-bold text-on-primary dark:text-on-primary-container">Intelligent Education</h2></a>
     <p class="font-label-bold text-label-bold text-on-primary/60 uppercase tracking-wider">Student Portal</p>
   </div>
-  <nav class="flex-1 px-2 space-y-1 overflow-y-auto">
-    <a class="flex items-center gap-3 px-4 py-3 bg-on-primary-fixed-variant text-on-primary rounded-lg mx-2 my-1 transition-transform scale-95" href="/">
-      <span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
-      <span class="font-label-bold text-label-bold">Dashboard</span>
-    </a>
-    <a class="flex items-center gap-3 px-4 py-3 text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg mx-2 my-1" href="/my-profile/">
-      <span class="material-symbols-outlined" data-icon="person">person</span>
-      <span class="font-label-bold text-label-bold">My Profile</span>
-    </a>
-    <a class="flex items-center gap-3 px-4 py-3 text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg mx-2 my-1" href="/schools/">
-      <span class="material-symbols-outlined" data-icon="school">school</span>
-      <span class="font-label-bold text-label-bold">Schools</span>
-    </a>
-    <a class="flex items-center gap-3 px-4 py-3 text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg mx-2 my-1" href="/interaction-log/">
-      <span class="material-symbols-outlined" data-icon="list_alt">list_alt</span>
-      <span class="font-label-bold text-label-bold">Interaction Log</span>
-    </a>
-    <a class="flex items-center gap-3 px-4 py-3 text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg mx-2 my-1" href="/recent-activity/">
-      <span class="material-symbols-outlined" data-icon="history">history</span>
-      <span class="font-label-bold text-label-bold">Recent Activity</span>
-    </a>
-  </nav>
-  <!-- Counselor / POC Contact Card -->
-  
+  <!-- Nav + References share one scrollable flex-1 column -->
+  <div class="flex-1 flex flex-col overflow-y-auto min-h-0">
+    <nav class="px-2 space-y-1 shrink-0">
+      <a class="flex items-center gap-3 px-4 py-3 bg-on-primary-fixed-variant text-on-primary rounded-lg mx-2 my-1 transition-transform scale-95" href="/">
+        <span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+        <span class="font-label-bold text-label-bold">Dashboard</span>
+      </a>
+      <a class="flex items-center gap-3 px-4 py-3 text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg mx-2 my-1" href="/my-profile/">
+        <span class="material-symbols-outlined" data-icon="person">person</span>
+        <span class="font-label-bold text-label-bold">My Profile</span>
+      </a>
+      <a class="flex items-center gap-3 px-4 py-3 text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg mx-2 my-1" href="/schools/">
+        <span class="material-symbols-outlined" data-icon="school">school</span>
+        <span class="font-label-bold text-label-bold">Schools</span>
+      </a>
+      <a class="flex items-center gap-3 px-4 py-3 text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg mx-2 my-1" href="/interaction-log/">
+        <span class="material-symbols-outlined" data-icon="list_alt">list_alt</span>
+        <span class="font-label-bold text-label-bold">Interaction Log</span>
+      </a>
+      <a class="flex items-center gap-3 px-4 py-3 text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg mx-2 my-1" href="/recent-activity/">
+        <span class="material-symbols-outlined" data-icon="history">history</span>
+        <span class="font-label-bold text-label-bold">Recent Activity</span>
+      </a>
+      <a class="flex items-center gap-3 px-4 py-3 text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg mx-2 my-1" href="/my-references/">
+        <span class="material-symbols-outlined">bookmark</span>
+        <span class="font-label-bold text-label-bold">References</span>
+      </a>
+    </nav>
+
+  </div>
 </aside>
 <!-- Top Navbar -->
 <header id="main-header" class="fixed top-0 right-0 h-[72px] left-[260px] bg-surface-container-lowest shadow-[0px_4px_12px_rgba(0,0,0,0.05)] border-b border-outline-variant flex items-center justify-between px-4 lg:px-gutter z-40">
@@ -159,20 +165,20 @@
 </button>
     <div class="header-search relative w-full max-w-md">
       <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
-      <input class="w-full pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant rounded-lg focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none font-body-md text-body-md" placeholder="Search schools, applications..." type="text"/>
+      <input id="global-search" class="w-full pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant rounded-lg focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none font-body-md text-body-md" placeholder="Search schools, applications..." type="text" autocomplete="off"/>
     </div>
   </div>
   <div class="flex items-center gap-3">
     <!-- Notification bell always visible -->
     <div class="relative" id="notif-wrap">
-      <button id="notif-btn" onclick="toggleNotif()" class="relative p-2 text-on-surface-variant hover:text-primary transition-colors rounded-lg">
+      <button id="notif-btn" class="relative p-2 text-on-surface-variant hover:text-primary transition-colors rounded-lg">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         <span id="notif-badge" class="{% if notif_unread_count %}absolute top-1 right-1 min-w-[18px] h-[18px] bg-error text-on-error text-[10px] font-bold rounded-full flex items-center justify-center{% else %}hidden{% endif %}">{{ notif_unread_count|default:"" }}</span>
       </button>
       <div id="notif-panel" class="hidden absolute right-0 top-full mt-2 w-80 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-xl z-50 overflow-hidden">
         <div class="flex items-center justify-between px-4 py-3 border-b border-outline-variant">
           <span class="font-label-bold text-label-bold text-on-surface">Notifications</span>
-          <button onclick="markAllRead(event)" class="text-xs text-primary hover:underline font-label-sm">Mark all read</button>
+          <button id="mark-all-read-btn" class="text-xs text-primary hover:underline font-label-sm">Mark all read</button>
         </div>
         <div id="notif-list" class="max-h-[320px] overflow-y-auto divide-y divide-outline-variant/50">
           <p class="text-center text-on-surface-variant py-8 text-sm">Loading…</p>
@@ -191,7 +197,7 @@
           {% if student_obj %}ID: {{ student_obj.student_code }}{% else %}Student{% endif %}
         </p>
       </div>
-      <button onclick="openProfileDrawer()" title="View My Profile" class="block rounded-full hover:ring-2 hover:ring-primary transition-all cursor-pointer flex-shrink-0">
+      <button id="open-profile-drawer-btn" title="View My Profile" class="block rounded-full hover:ring-2 hover:ring-primary transition-all cursor-pointer flex-shrink-0">
         {% if user.avatar %}
         <img src="/my-avatar/" class="w-10 h-10 rounded-full object-cover border-2 border-outline-variant" alt="Profile"/>
         {% else %}
@@ -411,7 +417,7 @@
   </div>
 </main>
 <!-- ── Profile Drawer Overlay ── -->
-<div id="profile-drawer-overlay" onclick="closeProfileDrawer()" class="fixed inset-0 bg-black/40 z-50 hidden opacity-0 transition-opacity duration-300"></div>
+<div id="profile-drawer-overlay" class="fixed inset-0 bg-black/40 z-50 hidden opacity-0 transition-opacity duration-300"></div>
 <!-- ── Profile Drawer Panel ── -->
 <aside id="profile-drawer" class="fixed top-0 right-0 h-full w-[400px] bg-surface z-50 shadow-2xl flex flex-col translate-x-full transition-transform duration-300 ease-in-out">
   <!-- Drawer Header -->
@@ -429,7 +435,7 @@
         <p class="font-label-sm text-label-sm text-on-surface-variant">{% if student_obj %}ID: {{ student_obj.student_code }}{% else %}Student{% endif %}</p>
       </div>
     </div>
-    <button onclick="closeProfileDrawer()" class="p-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-colors">
+    <button id="close-profile-drawer-btn" class="p-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-colors">
       <span class="material-symbols-outlined">close</span>
     </button>
   </div>
@@ -513,7 +519,7 @@
     </a>
   </div>
 </aside>
-<script>
+<script nonce="{{ csp_nonce }}">
 function toggleSidebar() {
   const sb = document.getElementById('sidebar');
   const ov = document.getElementById('sidebar-overlay');
@@ -542,6 +548,57 @@ document.addEventListener('keydown', function(e) {
     setTimeout(() => overlay.classList.add('hidden'), 300);
   }
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeProfileDrawer(); });
+// ── Global Search ──────────────────────────────────────────────────────────
+(function () {
+  let _timer = null, _lastQ = '';
+  function _esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function _inp() { return document.getElementById('global-search'); }
+  function _close() { const d = document.getElementById('gs-dropdown'); if (d) d.classList.add('hidden'); }
+  function _render(data) {
+    const inp = _inp(); if (!inp) return;
+    let dd = document.getElementById('gs-dropdown');
+    if (!dd) {
+      dd = document.createElement('div');
+      dd.id = 'gs-dropdown';
+      dd.className = 'absolute left-0 top-full mt-1 w-full bg-surface-container-lowest border border-outline-variant rounded-xl shadow-2xl z-[99] overflow-hidden max-h-[440px] overflow-y-auto';
+      inp.closest('.relative').appendChild(dd);
+    }
+    const { schools = [], courses = [] } = data;
+    if (!schools.length && !courses.length) {
+      dd.innerHTML = '<p class="px-4 py-6 text-center text-on-surface-variant text-sm font-body-md">No results found</p>';
+      dd.classList.remove('hidden'); return;
+    }
+    let h = '';
+    if (schools.length) {
+      h += '<div class="px-4 pt-3 pb-1.5 border-b border-outline-variant/50 bg-surface-container-low"><span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Schools</span></div>';
+      schools.forEach(s => { h += `<a href="${s.url}" class="flex items-center gap-3 px-4 py-3 hover:bg-surface-container-low transition-colors border-b border-outline-variant/20 group"><div class="w-8 h-8 rounded-full bg-tertiary/10 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-[16px] text-tertiary">school</span></div><div class="min-w-0 flex-1"><p class="font-bold text-[13px] text-on-surface group-hover:text-primary transition-colors truncate">${_esc(s.name)}</p><p class="text-[11px] text-on-surface-variant">${_esc(s.country)}</p></div><span class="material-symbols-outlined text-[16px] text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity shrink-0">chevron_right</span></a>`; });
+    }
+    if (courses.length) {
+      h += '<div class="px-4 pt-3 pb-1.5 border-b border-outline-variant/50 bg-surface-container-low"><span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Courses</span></div>';
+      courses.forEach(c => { h += `<div class="flex items-center gap-3 px-4 py-3 border-b border-outline-variant/20"><div class="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-[16px] text-secondary">menu_book</span></div><div class="min-w-0 flex-1"><p class="font-bold text-[13px] text-on-surface truncate">${_esc(c.name)}</p><p class="text-[11px] text-on-surface-variant truncate">${c.code ? _esc(c.code) + ' · ' : ''}${_esc(c.school)}</p></div></div>`; });
+    }
+    dd.innerHTML = h;
+    dd.classList.remove('hidden');
+  }
+  function handleGlobalSearch(q) {
+    clearTimeout(_timer);
+    if (!q || q.length < 2) { _close(); return; }
+    if (q === _lastQ) { document.getElementById('gs-dropdown')?.classList.remove('hidden'); return; }
+    _timer = setTimeout(async () => {
+      try { const r = await fetch('/search/?q=' + encodeURIComponent(q)); if (!r.ok) return; _lastQ = q; _render(await r.json()); } catch (_) {}
+    }, 280);
+  }
+  document.addEventListener('click', e => {
+    const inp = _inp(), dd = document.getElementById('gs-dropdown');
+    if (dd && inp && !dd.contains(e.target) && e.target !== inp) _close();
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') { _close(); _inp()?.blur(); } });
+  const _si = _inp();
+  if (_si) {
+    _si.addEventListener('input', function() { handleGlobalSearch(this.value); });
+    _si.addEventListener('focus', function() { if (this.value.length >= 2) handleGlobalSearch(this.value); });
+  }
+})();
 // ── Notifications ──────────────────────────────────────────────────────────
 (function () {
   let _open = false;
@@ -568,7 +625,7 @@ document.addEventListener('keydown', function(e) {
     const el = document.getElementById('notif-list');
     if (!notifs.length) { el.innerHTML = '<p class="text-center text-on-surface-variant py-8 text-sm">No notifications yet</p>'; return; }
     el.innerHTML = notifs.map(n => `
-      <div data-nid="${n.id}" onclick="_nRead(${n.id},this)" class="flex items-start gap-3 px-4 py-3 hover:bg-surface-container-low cursor-pointer transition-colors${n.read ? ' opacity-60' : ''}">
+      <div data-nid="${n.id}" class="notif-item flex items-start gap-3 px-4 py-3 hover:bg-surface-container-low cursor-pointer transition-colors${n.read ? ' opacity-60' : ''}">
         <span class="material-symbols-outlined ${n.read ? 'text-on-surface-variant' : 'text-primary'} mt-0.5 text-[18px] flex-shrink-0">${_icon(n.title)}</span>
         <div class="flex-1 min-w-0">
           <p class="font-label-bold text-label-bold text-on-surface text-sm">${_esc(n.title)}</p>
@@ -577,6 +634,9 @@ document.addEventListener('keydown', function(e) {
         </div>
         ${!n.read ? '<span class="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-2"></span>' : ''}
       </div>`).join('');
+    el.querySelectorAll('.notif-item').forEach(function(item) {
+      item.addEventListener('click', function() { window._nRead(parseInt(item.dataset.nid), item); });
+    });
   }
   async function _load() {
     try {
@@ -627,24 +687,76 @@ document.addEventListener('keydown', function(e) {
       document.getElementById('notif-panel')?.classList.add('hidden');
     }
   });
+  document.getElementById('notif-btn').addEventListener('click', function() { window.toggleNotif(); });
+  document.getElementById('mark-all-read-btn').addEventListener('click', function(e) { window.markAllRead(e); });
   _wsConnect();
   _load();
+})();
+// ── References: mark as seen ──
+(function() {
+  function _csrf() { var m = document.cookie.match(/csrftoken=([^;]+)/); return m ? m[1] : ''; }
+  function markSeen(refId) {
+    fetch('/api/references/' + refId + '/seen/', {method:'POST', headers:{'X-CSRFToken':_csrf()}})
+      .then(function(r) { if (!r.ok) return; })
+      .catch(function() {});
+    // Update UI: hide yellow dot and "Mark seen" button for this ref
+    var item = document.querySelector('.ref-item[data-ref-id="' + refId + '"]');
+    if (item) {
+      item.querySelectorAll('.ref-unseen-dot, .mark-seen-btn').forEach(function(el) { el.remove(); });
+      item.dataset.seen = '1';
+    }
+    // Update sidebar badge count
+    var unseen = document.querySelectorAll('.ref-unseen-dot').length;
+    var badge = document.getElementById('ref-unseen-badge');
+    if (badge) { if (unseen > 0) badge.textContent = unseen; else badge.remove(); }
+  }
+  // Mark seen when "Mark seen" button is clicked
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('.mark-seen-btn');
+    if (btn) markSeen(btn.dataset.refId);
+  });
+  // Auto-mark seen when download/open link is clicked
+  document.addEventListener('click', function(e) {
+    var a = e.target.closest('.ref-open-btn');
+    if (a && a.dataset.refId) markSeen(a.dataset.refId);
+  });
+})();
+// ── Wire up profile drawer + sidebar ──
+(function() {
+  var so = document.getElementById('sidebar-overlay');
+  if (so) so.addEventListener('click', toggleSidebar);
+  var hb = document.getElementById('hamburger-btn');
+  if (hb) hb.addEventListener('click', toggleSidebar);
+  var opd = document.getElementById('open-profile-drawer-btn');
+  if (opd) opd.addEventListener('click', openProfileDrawer);
+  var cpd = document.getElementById('close-profile-drawer-btn');
+  if (cpd) cpd.addEventListener('click', closeProfileDrawer);
+  var pdo = document.getElementById('profile-drawer-overlay');
+  if (pdo) pdo.addEventListener('click', closeProfileDrawer);
+
+  // T&C / PP modal click-outside-to-close
+  document.addEventListener('click', function(e) {
+    ['tc-modal','pp-modal'].forEach(function(id) {
+      var m = document.getElementById(id);
+      if (m && !m.classList.contains('hidden') && e.target === m) m.classList.add('hidden');
+    });
+  });
 })();
 </script>
 <!-- ===== FOOTER ===== -->
 <footer id="main-footer" style="margin-left:260px;" class="border-t border-[#e4beba] bg-[#fff0ef] py-4 px-6 text-center text-xs text-[#5b403d]">
   <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-1">
-    <button onclick="document.getElementById('tc-modal').classList.remove('hidden')" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">Terms &amp; Conditions</button>
+    <button data-open-modal="tc-modal" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">Terms &amp; Conditions</button>
     <span class="text-[#e4beba]">|</span>
-    <button onclick="document.getElementById('pp-modal').classList.remove('hidden')" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">Privacy Policy</button>
+    <button data-open-modal="pp-modal" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">Privacy Policy</button>
   </div>
 </footer>
 <!-- T&amp;C Modal -->
-<div id="tc-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-black/40 p-4" onclick="if(event.target===this)this.classList.add('hidden')">
+<div id="tc-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-black/40 p-4">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col">
     <div class="flex items-center justify-between px-6 py-4 border-b border-[#e4beba]">
       <h2 class="text-lg font-semibold text-[#271816]" style="font-family:'Lexend',sans-serif;">Terms &amp; Conditions</h2>
-      <button onclick="document.getElementById('tc-modal').classList.add('hidden')" class="text-[#5b403d] hover:text-[#271816] transition-colors rounded-full p-1 hover:bg-[#ffe9e6]">
+      <button data-close-modal="tc-modal" class="text-[#5b403d] hover:text-[#271816] transition-colors rounded-full p-1 hover:bg-[#ffe9e6]">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
     </div>
@@ -729,11 +841,11 @@ document.addEventListener('keydown', function(e) {
   </div>
 </div>
 <!-- Privacy Policy Modal -->
-<div id="pp-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-black/40 p-4" onclick="if(event.target===this)this.classList.add('hidden')">
+<div id="pp-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-black/40 p-4">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col">
     <div class="flex items-center justify-between px-6 py-4 border-b border-[#e4beba]">
       <h2 class="text-lg font-semibold text-[#271816]" style="font-family:'Lexend',sans-serif;">Privacy Policy</h2>
-      <button onclick="document.getElementById('pp-modal').classList.add('hidden')" class="text-[#5b403d] hover:text-[#271816] transition-colors rounded-full p-1 hover:bg-[#ffe9e6]">
+      <button data-close-modal="pp-modal" class="text-[#5b403d] hover:text-[#271816] transition-colors rounded-full p-1 hover:bg-[#ffe9e6]">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
     </div>
@@ -781,5 +893,81 @@ document.addEventListener('keydown', function(e) {
   </div>
 </div>
 <!-- ===== /FOOTER ===== -->
+
+{% if not request.user.tutorial_seen %}
+<!-- Tutorial Video Modal -->
+<div id="tutorial-modal" class="fixed inset-0 z-[400] flex items-center justify-center bg-black/60 p-4">
+  <div class="relative bg-[#1a1a1a] rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden">
+    <!-- Header -->
+    <div class="flex items-center justify-between px-6 py-4 border-b border-white/10">
+      <div>
+        <h2 class="text-white font-semibold text-lg" style="font-family:'Lexend',sans-serif;">Welcome to Intelligent Education</h2>
+        <p class="text-white/50 text-sm mt-0.5">Watch this quick tutorial to get started</p>
+      </div>
+      <button id="close-tutorial-btn"
+              class="text-white/60 hover:text-white hover:bg-white/10 rounded-full p-2 transition-colors"
+              title="Close">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    <!-- Video -->
+    <div class="px-6 py-5">
+      <video id="tutorial-video"
+             class="w-full rounded-lg bg-black"
+             controls
+             preload="metadata"
+             style="max-height:60vh;">
+        <source src="/tutorial-video/" type="video/mp4">
+        Your browser does not support HTML5 video.
+      </video>
+      <!-- Shown only if video fails to load -->
+      <div id="tutorial-video-error" class="hidden mt-3 text-center text-sm text-red-400">
+        Video could not be loaded. Please contact your counselor.
+      </div>
+    </div>
+    <!-- Footer hint -->
+    <div class="px-6 pb-5 text-center">
+      <p class="text-white/40 text-xs">You can close this at any time — it won&rsquo;t show again</p>
+    </div>
+  </div>
+</div>
+<script nonce="{{ csp_nonce }}">
+(function () {
+  function dismissTutorial() {
+    var modal = document.getElementById('tutorial-modal');
+    if (!modal) return;
+    var vid = document.getElementById('tutorial-video');
+    if (vid) vid.pause();
+    modal.remove();
+    fetch('/dismiss-tutorial/', {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}',
+        'Content-Type': 'application/json'
+      }
+    }).catch(function () {});
+  }
+
+  document.getElementById('close-tutorial-btn').addEventListener('click', dismissTutorial);
+
+  // Click outside the card also dismisses
+  document.getElementById('tutorial-modal').addEventListener('click', function (e) {
+    if (e.target === this) dismissTutorial();
+  });
+
+  // Show friendly error if video fails to load (e.g. file not yet uploaded)
+  var vid = document.getElementById('tutorial-video');
+  if (vid) {
+    vid.addEventListener('error', function () {
+      var err = document.getElementById('tutorial-video-error');
+      if (err) err.classList.remove('hidden');
+    });
+  }
+})();
+</script>
+{% endif %}
+
 </body>
 </html>

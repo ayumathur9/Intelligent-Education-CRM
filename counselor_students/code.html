@@ -1,13 +1,13 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html class="light" lang="en">
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Students - Counselor | Intelligent Education</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries" nonce="{{ csp_nonce }}"></script>
 <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-<script id="tailwind-config">
+<script id="tailwind-config" nonce="{{ csp_nonce }}">
   tailwind.config = {
     darkMode:"class",
     theme:{extend:{
@@ -18,7 +18,7 @@
     }}
   }
 </script>
-<style>
+<style nonce="{{ csp_nonce }}">
   .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;}
   /* ── Responsive sidebar ── */
   #sidebar { transition: transform 0.3s ease; z-index: 500; }
@@ -52,7 +52,7 @@
       <span class="material-symbols-outlined mr-3">dashboard</span><span class="font-label-bold text-label-bold">Dashboard</span>
     </a>
     <div class="mx-2 my-1">
-      <button onclick="toggleStudentsMenu()"
+      <button id="toggle-students-menu-btn"
               class="w-full flex items-center px-4 py-3 bg-on-primary-fixed-variant text-on-primary rounded-lg">
         <span class="material-symbols-outlined mr-3">group</span>
         <span class="font-label-bold text-label-bold flex-1 text-left">Students</span>
@@ -96,7 +96,7 @@
   <div class="flex items-center gap-3">
     <div class="relative w-full max-w-xs sm:w-72">
       <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
-      <input id="search-input" oninput="filterRows();handleGlobalSearch(this.value,this)" onfocus="if(this.value.length>=2)handleGlobalSearch(this.value,this)" placeholder="Search students, schools…" class="w-full border border-outline-variant rounded-lg pl-10 pr-3 py-2 font-body-md text-body-md focus:ring-2 focus:ring-secondary focus:outline-none" type="text" autocomplete="off"/>
+      <input id="search-input" placeholder="Search students, schools…" class="w-full border border-outline-variant rounded-lg pl-10 pr-3 py-2 font-body-md text-body-md focus:ring-2 focus:ring-secondary focus:outline-none" type="text" autocomplete="off"/>
     </div>
     <a href="/logout/" title="Sign out" class="p-2 text-on-surface-variant hover:text-primary transition-colors rounded-lg">
       <span class="material-symbols-outlined text-[22px]">logout</span>
@@ -107,8 +107,8 @@
 <main id="main-content" class="main-content ml-[260px] mt-[72px] p-gutter min-h-screen">
   <!-- Tabs -->
   <div class="flex gap-2 mb-6 border-b border-outline-variant">
-    <button id="tab-mine" onclick="switchTab('mine')" class="px-5 py-3 font-label-bold text-label-bold text-primary border-b-2 border-primary -mb-px">My Students <span class="ml-1 px-2 py-0.5 bg-primary text-on-primary rounded-full text-[10px]">{{ my_students|length }}</span></button>
-    <button id="tab-all" onclick="switchTab('all')" class="px-5 py-3 font-label-bold text-label-bold text-on-surface-variant border-b-2 border-transparent -mb-px hover:text-primary transition-colors">All Students <span class="ml-1 px-2 py-0.5 bg-surface-container text-on-surface rounded-full text-[10px]">{{ all_students|length }}</span></button>
+    <button id="tab-mine" class="px-5 py-3 font-label-bold text-label-bold text-primary border-b-2 border-primary -mb-px">My Students <span class="ml-1 px-2 py-0.5 bg-primary text-on-primary rounded-full text-[10px]">{{ my_students|length }}</span></button>
+    <button id="tab-all" class="px-5 py-3 font-label-bold text-label-bold text-on-surface-variant border-b-2 border-transparent -mb-px hover:text-primary transition-colors">All Students <span class="ml-1 px-2 py-0.5 bg-surface-container text-on-surface rounded-full text-[10px]">{{ all_students|length }}</span></button>
   </div>
   <!-- My Students -->
   <div id="panel-mine">
@@ -125,7 +125,7 @@
           </thead>
           <tbody class="divide-y divide-outline-variant">
             {% for s in my_students %}
-            <tr class="hover:bg-surface-container-low transition-colors student-row cursor-pointer" onclick="window.location='/student-application/{{ s.pk }}/'">
+            <tr class="hover:bg-surface-container-low transition-colors student-row cursor-pointer" data-url="/student-application/{{ s.pk }}/">
               <td class="px-5 py-4">
                 <div class="flex items-center gap-3">
                   {% if s.user and s.user.avatar %}<img src="/user-avatar/{{ s.user.pk }}/" class="h-9 w-9 rounded-full object-cover shrink-0" alt=""/>{% else %}<div class="h-9 w-9 rounded-full bg-primary flex items-center justify-center text-on-primary font-bold text-sm shrink-0">{{ s.full_name|first|upper }}</div>{% endif %}
@@ -167,7 +167,7 @@
           </thead>
           <tbody class="divide-y divide-outline-variant">
             {% for s in all_students %}
-            <tr class="hover:bg-surface-container-low transition-colors student-row cursor-pointer" onclick="window.location='/student-application/{{ s.pk }}/'">
+            <tr class="hover:bg-surface-container-low transition-colors student-row cursor-pointer" data-url="/student-application/{{ s.pk }}/">
               <td class="px-5 py-4">
                 <div class="flex items-center gap-3">
                   {% if s.user and s.user.avatar %}<img src="/user-avatar/{{ s.user.pk }}/" class="h-9 w-9 rounded-full object-cover shrink-0" alt=""/>{% else %}<div class="h-9 w-9 rounded-full bg-secondary-fixed text-on-secondary-fixed-variant flex items-center justify-center font-bold text-sm shrink-0">{{ s.full_name|first|upper }}</div>{% endif %}
@@ -189,7 +189,7 @@
     </div>
   </div>
 </main>
-<script>
+<script nonce="{{ csp_nonce }}">
 function toggleSidebar() {
   const sb = document.getElementById('sidebar');
   const ov = document.getElementById('sidebar-overlay');
@@ -277,22 +277,50 @@ function filterRows() {
     if(dd && inp && !dd.contains(e.target) && e.target!==inp) _close();
   });
   document.addEventListener('keydown', e => { if(e.key==='Escape') { _close(); _inp()?.blur(); } });
+  const _si = _inp();
+  if (_si) {
+    _si.addEventListener('input', function() { filterRows(); window.handleGlobalSearch(this.value); });
+    _si.addEventListener('focus', function() { if (this.value.length >= 2) window.handleGlobalSearch(this.value); });
+  }
 })();
+// ── Wire up CSP-safe event listeners ──────────────────────────────────────
+(function() {
+  // Tab buttons
+  var tabMine = document.getElementById('tab-mine');
+  var tabAll = document.getElementById('tab-all');
+  if (tabMine) tabMine.addEventListener('click', function() { switchTab('mine'); });
+  if (tabAll) tabAll.addEventListener('click', function() { switchTab('all'); });
+  // Student row clicks — navigate to application page
+  document.addEventListener('click', function(e) {
+    var row = e.target.closest('tr.student-row[data-url]');
+    if (row) window.location = row.dataset.url;
+  });
+  // Sidebar students accordion
+  var tsBtn = document.getElementById('toggle-students-menu-btn');
+  if (tsBtn) tsBtn.addEventListener('click', toggleStudentsMenu);
+
+  // T&C / PP modal click-outside-to-close
+  document.addEventListener('click', function(e) {
+    ['tc-modal','pp-modal'].forEach(function(id) {
+      var m = document.getElementById(id);
+      if (m && !m.classList.contains('hidden') && e.target === m) m.classList.add('hidden');
+    });
+  });})();
 </script>
 <!-- ===== FOOTER ===== -->
 <footer id="main-footer" style="margin-left:260px;" class="border-t border-[#e4beba] bg-[#fff0ef] py-4 px-6 text-center text-xs text-[#5b403d]">
   <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-1">
-    <button onclick="document.getElementById('tc-modal').classList.remove('hidden')" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">Terms &amp; Conditions</button>
+    <button data-open-modal="tc-modal" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">Terms &amp; Conditions</button>
     <span class="text-[#e4beba]">|</span>
-    <button onclick="document.getElementById('pp-modal').classList.remove('hidden')" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">Privacy Policy</button>
+    <button data-open-modal="pp-modal" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">Privacy Policy</button>
   </div>
 </footer>
 <!-- T&amp;C Modal -->
-<div id="tc-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-black/40 p-4" onclick="if(event.target===this)this.classList.add('hidden')">
+<div id="tc-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-black/40 p-4">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col">
     <div class="flex items-center justify-between px-6 py-4 border-b border-[#e4beba]">
       <h2 class="text-lg font-semibold text-[#271816]" style="font-family:'Lexend',sans-serif;">Terms &amp; Conditions</h2>
-      <button onclick="document.getElementById('tc-modal').classList.add('hidden')" class="text-[#5b403d] hover:text-[#271816] transition-colors rounded-full p-1 hover:bg-[#ffe9e6]">
+      <button data-close-modal="tc-modal" class="text-[#5b403d] hover:text-[#271816] transition-colors rounded-full p-1 hover:bg-[#ffe9e6]">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
     </div>
@@ -377,11 +405,11 @@ function filterRows() {
   </div>
 </div>
 <!-- Privacy Policy Modal -->
-<div id="pp-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-black/40 p-4" onclick="if(event.target===this)this.classList.add('hidden')">
+<div id="pp-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-black/40 p-4">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col">
     <div class="flex items-center justify-between px-6 py-4 border-b border-[#e4beba]">
       <h2 class="text-lg font-semibold text-[#271816]" style="font-family:'Lexend',sans-serif;">Privacy Policy</h2>
-      <button onclick="document.getElementById('pp-modal').classList.add('hidden')" class="text-[#5b403d] hover:text-[#271816] transition-colors rounded-full p-1 hover:bg-[#ffe9e6]">
+      <button data-close-modal="pp-modal" class="text-[#5b403d] hover:text-[#271816] transition-colors rounded-full p-1 hover:bg-[#ffe9e6]">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
     </div>

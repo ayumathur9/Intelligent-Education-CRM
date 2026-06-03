@@ -7,15 +7,6 @@ from rest_framework.permissions import IsAdminUser
 from apps.common.health import health_check
 from apps.common.views import media_proxy
 
-# HIGH-1: Replace the default Django admin site with one that requires
-# OTP verification (django-otp OTPAdminSite).  Staff users who have not
-# enrolled a TOTP device are redirected to enrol before they can log in.
-try:
-    from django_otp.admin import OTPAdminSite as _OTPAdminSite
-    admin.site.__class__ = _OTPAdminSite
-except ImportError:
-    pass  # django-otp not installed — falls back to default admin (dev only)
-
 # In production, only Django admins can reach the schema/docs endpoints.
 _docs_perms = [] if settings.DEBUG else [IsAdminUser]
 
@@ -24,7 +15,6 @@ urlpatterns = [
     path("api/health/", health_check, name="health-check"),
     # Frontend (session-auth HTML pages)
     path("", include("apps.frontend.urls")),
-    # Django built-in admin — HIGH-1: requires OTP verification
     path("admin/", admin.site.urls),
     # REST API (JWT-auth)
     path("api/schema/", SpectacularAPIView.as_view(permission_classes=_docs_perms), name="schema"),

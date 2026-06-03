@@ -100,6 +100,12 @@ def backup_database(self) -> dict:
         logger.error("backup_database FAILED: %s", exc)
         if out_path.exists():
             out_path.unlink(missing_ok=True)
+        # Alert admins of backup failure.
+        try:
+            from apps.common.email_service import send_backup_failure_alert
+            send_backup_failure_alert(str(exc))
+        except Exception:
+            pass
         return {"status": "error", "reason": str(exc)}
 
 
@@ -132,6 +138,51 @@ def prune_old_backups(self) -> None:
             logger.warning("prune_old_backups: could not process %s — %s", f, exc)
 
     logger.info("prune_old_backups: pruned %d old backup files", pruned)
+
+
+@shared_task(
+    bind=True,
+    name="apps.common.tasks.send_weekly_profile_reminders",
+    ignore_result=True,
+    soft_time_limit=600,
+    time_limit=900,
+)
+def send_weekly_profile_reminders(self) -> None:
+    """
+    Weekly Celery task: send profile-completion reminder emails to all active students
+    who have incomplete required sections. Runs every 7 days via beat schedule.
+    Skips students whose profiles are fully complete (N/A fields count as filled).
+    """
+    from apps.common.management.commands.send_profile_reminders import (
+        _missing_sections,
+        _send_reminder,
+    )
+    from apps.crm.models import Student
+
+    students = (
+        Student.objects.filter(is_active=True)
+        .exclude(email="")
+        .prefetch_related("education_history")
+        .select_related("course")
+    )
+
+    sent = skipped = errors = 0
+    for student in students:
+        missing = _missing_sections(student)
+        if not missing:
+            skipped += 1
+            continue
+        try:
+            _send_reminder(student, missing, dry_run=False)
+            sent += 1
+        except Exception as exc:
+            errors += 1
+            logger.warning("send_weekly_profile_reminders: failed for %s — %s", student.student_code, exc)
+
+    logger.info(
+        "send_weekly_profile_reminders: sent=%d skipped=%d errors=%d",
+        sent, skipped, errors,
+    )
 
 
 def _extract_pg_password(db_url: str) -> str:

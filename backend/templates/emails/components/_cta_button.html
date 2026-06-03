@@ -1,0 +1,14 @@
+{# CTA BUTTON — Outlook-safe table approach.
+   Variables: cta_url, cta_label
+   Optional: cta_bgcolor (default #1a56db), cta_radius (default 8px)
+   Usage: {% include "emails/components/_cta_button.html" with cta_url=url cta_label="Log In" %}
+#}
+<table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0" style="margin:8px auto 4px;">
+<tr>
+  <td align="center" bgcolor="{{ cta_bgcolor|default:'#1a56db' }}"
+      style="border-radius:{{ cta_radius|default:'8px' }};background-color:{{ cta_bgcolor|default:'#1a56db' }};">
+    <a href="{{ cta_url }}"
+       style="display:inline-block;background-color:{{ cta_bgcolor|default:'#1a56db' }};border-radius:{{ cta_radius|default:'8px' }};color:#ffffff;font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:700;line-height:1;padding:14px 36px;text-decoration:none;text-align:center;-webkit-text-size-adjust:none;mso-hide:none;">{{ cta_label }}</a>
+  </td>
+</tr>
+</table>

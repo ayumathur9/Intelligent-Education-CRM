@@ -1,0 +1,106 @@
+{% extends "emails/base_email.html" %}
+
+{% block title %}Welcome to the team — Intelligent Education{% endblock %}
+{% block preview_text %}Your staff account is ready. Log in to access your dashboard.{% endblock %}
+
+{% block header_bgcolor %}#059669{% endblock %}
+{% block header_gradient %}linear-gradient(135deg,#059669 0%,#065f46 100%){% endblock %}
+{% block header_title %}Welcome to the team!{% endblock %}
+{% block header_subtitle %}Your staff account is ready{% endblock %}
+
+{% block body %}
+<p style="margin:0 0 12px 0;font-size:17px;font-weight:600;color:#1a202c;font-family:Arial,Helvetica,sans-serif;" class="dm-heading">Hi {{ full_name }},</p>
+<p style="margin:0 0 8px 0;font-size:14px;color:#4a5568;line-height:1.8;font-family:Arial,Helvetica,sans-serif;" class="dm-text">
+  Your account has been set up at <strong>Intelligent Education CRM</strong>. You have been assigned the role of
+</p>
+<p style="margin:0 0 24px 0;">
+  <span style="display:inline-block;background-color:#d1fae5;color:#065f46;font-size:13px;font-weight:700;padding:4px 14px;border-radius:999px;font-family:Arial,Helvetica,sans-serif;">{{ role_label }}</span>
+</p>
+
+<!-- Getting started steps -->
+<p style="margin:0 0 12px 0;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;font-family:Arial,Helvetica,sans-serif;">Getting started</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 28px 0;">
+  <tr><td style="padding:10px 0;border-bottom:1px solid #f1f5f9;" class="dm-row-sep">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+      <td style="width:36px;vertical-align:top;"><div style="width:24px;height:24px;border-radius:50%;background-color:#059669;color:#ffffff;font-size:12px;font-weight:700;text-align:center;line-height:24px;font-family:Arial,Helvetica,sans-serif;">1</div></td>
+      <td style="padding-left:12px;font-size:14px;color:#4a5568;line-height:1.6;font-family:Arial,Helvetica,sans-serif;" class="dm-text"><strong>Log in</strong> &mdash; use your email <strong>{{ email }}</strong> and the password you set during account creation.</td>
+    </tr></table>
+  </td></tr>
+  <tr><td style="padding:10px 0;border-bottom:1px solid #f1f5f9;" class="dm-row-sep">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+      <td style="width:36px;vertical-align:top;"><div style="width:24px;height:24px;border-radius:50%;background-color:#059669;color:#ffffff;font-size:12px;font-weight:700;text-align:center;line-height:24px;font-family:Arial,Helvetica,sans-serif;">2</div></td>
+      <td style="padding-left:12px;font-size:14px;color:#4a5568;line-height:1.6;font-family:Arial,Helvetica,sans-serif;" class="dm-text"><strong>Complete your profile</strong> &mdash; add your full name and contact details so students can reach you.</td>
+    </tr></table>
+  </td></tr>
+  <tr><td style="padding:10px 0;border-bottom:1px solid #f1f5f9;" class="dm-row-sep">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+      <td style="width:36px;vertical-align:top;"><div style="width:24px;height:24px;border-radius:50%;background-color:#059669;color:#ffffff;font-size:12px;font-weight:700;text-align:center;line-height:24px;font-family:Arial,Helvetica,sans-serif;">3</div></td>
+      <td style="padding-left:12px;font-size:14px;color:#4a5568;line-height:1.6;font-family:Arial,Helvetica,sans-serif;" class="dm-text"><strong>Review your assigned students</strong> &mdash; your student list is available immediately from the dashboard.</td>
+    </tr></table>
+  </td></tr>
+  <tr><td style="padding:10px 0;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+      <td style="width:36px;vertical-align:top;"><div style="width:24px;height:24px;border-radius:50%;background-color:#059669;color:#ffffff;font-size:12px;font-weight:700;text-align:center;line-height:24px;font-family:Arial,Helvetica,sans-serif;">4</div></td>
+      <td style="padding-left:12px;font-size:14px;color:#4a5568;line-height:1.6;font-family:Arial,Helvetica,sans-serif;" class="dm-text"><strong>Enable two-factor authentication (2FA)</strong> &mdash; go to Account Settings &rarr; Security to set up TOTP for extra protection.</td>
+    </tr></table>
+  </td></tr>
+</table>
+
+<!-- Permissions box -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #a7f3d0;border-radius:8px;margin:0 0 28px 0;">
+<tr><td style="background-color:#ecfdf5;border-radius:8px;padding:16px 20px;">
+  <p style="margin:0 0 10px 0;font-size:13px;font-weight:700;color:#065f46;font-family:Arial,Helvetica,sans-serif;">&#128274;&nbsp; Your permissions as {{ role_label }}</p>
+  {% if role == "counselor" %}
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 2px;"><tr><td style="width:16px;vertical-align:top;padding-top:3px;font-size:13px;color:#064e3b;">&bull;</td><td style="padding-left:6px;font-size:13px;color:#064e3b;line-height:1.7;font-family:Arial,Helvetica,sans-serif;">View and manage your assigned students</td></tr></table>
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 2px;"><tr><td style="width:16px;vertical-align:top;padding-top:3px;font-size:13px;color:#064e3b;">&bull;</td><td style="padding-left:6px;font-size:13px;color:#064e3b;line-height:1.7;font-family:Arial,Helvetica,sans-serif;">Add interaction logs and follow-up notes</td></tr></table>
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 2px;"><tr><td style="width:16px;vertical-align:top;padding-top:3px;font-size:13px;color:#064e3b;">&bull;</td><td style="padding-left:6px;font-size:13px;color:#064e3b;line-height:1.7;font-family:Arial,Helvetica,sans-serif;">Upload and review school application documents</td></tr></table>
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 2px;"><tr><td style="width:16px;vertical-align:top;padding-top:3px;font-size:13px;color:#064e3b;">&bull;</td><td style="padding-left:6px;font-size:13px;color:#064e3b;line-height:1.7;font-family:Arial,Helvetica,sans-serif;">Access school and course information</td></tr></table>
+  {% elif role == "editor" %}
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 2px;"><tr><td style="width:16px;vertical-align:top;padding-top:3px;font-size:13px;color:#064e3b;">&bull;</td><td style="padding-left:6px;font-size:13px;color:#064e3b;line-height:1.7;font-family:Arial,Helvetica,sans-serif;">Review and edit student application documents</td></tr></table>
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 2px;"><tr><td style="width:16px;vertical-align:top;padding-top:3px;font-size:13px;color:#064e3b;">&bull;</td><td style="padding-left:6px;font-size:13px;color:#064e3b;line-height:1.7;font-family:Arial,Helvetica,sans-serif;">Upload revised documents on behalf of students</td></tr></table>
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 2px;"><tr><td style="width:16px;vertical-align:top;padding-top:3px;font-size:13px;color:#064e3b;">&bull;</td><td style="padding-left:6px;font-size:13px;color:#064e3b;line-height:1.7;font-family:Arial,Helvetica,sans-serif;">View assigned student profiles (read-only)</td></tr></table>
+  {% elif role == "admin" %}
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 2px;"><tr><td style="width:16px;vertical-align:top;padding-top:3px;font-size:13px;color:#064e3b;">&bull;</td><td style="padding-left:6px;font-size:13px;color:#064e3b;line-height:1.7;font-family:Arial,Helvetica,sans-serif;">Full access to all students, staff, and settings</td></tr></table>
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 2px;"><tr><td style="width:16px;vertical-align:top;padding-top:3px;font-size:13px;color:#064e3b;">&bull;</td><td style="padding-left:6px;font-size:13px;color:#064e3b;line-height:1.7;font-family:Arial,Helvetica,sans-serif;">Invite and manage team members</td></tr></table>
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 2px;"><tr><td style="width:16px;vertical-align:top;padding-top:3px;font-size:13px;color:#064e3b;">&bull;</td><td style="padding-left:6px;font-size:13px;color:#064e3b;line-height:1.7;font-family:Arial,Helvetica,sans-serif;">View platform analytics and audit logs</td></tr></table>
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 2px;"><tr><td style="width:16px;vertical-align:top;padding-top:3px;font-size:13px;color:#064e3b;">&bull;</td><td style="padding-left:6px;font-size:13px;color:#064e3b;line-height:1.7;font-family:Arial,Helvetica,sans-serif;">Configure system settings and permissions</td></tr></table>
+  {% else %}
+  <p style="margin:0;font-size:13px;color:#064e3b;font-family:Arial,Helvetica,sans-serif;">Access granted as per your assigned role.</p>
+  {% endif %}
+</td></tr>
+</table>
+
+<!-- Security box -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #fde68a;border-radius:8px;margin:0 0 28px;" class="dm-warn-box">
+<tr><td style="background-color:#fefce8;border-radius:8px;padding:16px 20px;" class="dm-warn-box">
+  <p style="margin:0 0 10px 0;font-size:13px;font-weight:700;color:#92400e;font-family:Arial,Helvetica,sans-serif;" class="dm-warn-text">&#128274;&nbsp; Security tips</p>
+  {% for tip in security_tips %}
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 2px;">
+  <tr><td style="width:16px;vertical-align:top;padding-top:3px;font-size:13px;color:#78350f;" class="dm-warn-text">&bull;</td><td style="padding-left:6px;font-size:13px;color:#78350f;line-height:1.7;font-family:Arial,Helvetica,sans-serif;" class="dm-warn-text">{{ tip }}</td></tr>
+  </table>
+  {% endfor %}
+</td></tr>
+</table>
+
+<!-- Support box -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #bbf7d0;border-radius:8px;margin:0 0 28px;" class="dm-ok-box">
+<tr><td style="background-color:#f0fdf4;border-radius:8px;padding:16px 20px;" class="dm-ok-box">
+  <p style="margin:0;font-size:14px;color:#166534;line-height:1.7;font-family:Arial,Helvetica,sans-serif;" class="dm-ok-text">
+    &#128222;&nbsp; Need help getting started?<br>
+    Contact your admin or email us at <a href="mailto:contact.intelligenteducation@gmail.com" style="color:#15803d;font-weight:600;text-decoration:none;">contact.intelligenteducation@gmail.com</a>.
+  </p>
+</td></tr>
+</table>
+
+<!-- CTA -->
+<table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0" style="margin:8px auto 4px;">
+<tr><td align="center" bgcolor="#059669" style="border-radius:8px;background-color:#059669;">
+  <a href="{{ login_url }}" style="display:inline-block;background-color:#059669;border-radius:8px;color:#ffffff;font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:700;line-height:1;padding:14px 36px;text-decoration:none;text-align:center;">Log In to Your Dashboard</a>
+</td></tr>
+</table>
+{% endblock %}
+
+{% block footer_content %}
+You received this because a staff account was created for you at <strong>Intelligent Education</strong>.<br>
+Questions? <a href="mailto:contact.intelligenteducation@gmail.com" style="color:#1a56db;text-decoration:none;">contact.intelligenteducation@gmail.com</a>
+{% endblock %}

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import base64
 import logging
+import os
 import re
 import threading
 import uuid
@@ -60,22 +62,42 @@ class RequestCorrelationMiddleware:
         return response
 
 
+def _generate_nonce() -> str:
+    """Return a 16-byte URL-safe base64 nonce for use in CSP headers."""
+    return base64.b64encode(os.urandom(16)).decode("ascii")
+
+
 class SecurityHeadersMiddleware:
-    """Adds CSP and Permissions-Policy headers to every response."""
+    """
+    Adds CSP with per-request nonce and other security headers.
+
+    The nonce is stored on request.csp_nonce so views and context processors
+    can inject it into templates:  <script nonce="{{ csp_nonce }}">
+    """
 
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
+        # Generate nonce before the view runs so template context processors
+        # can read it from request.csp_nonce.
+        nonce = _generate_nonce()
+        request.csp_nonce = nonce
+
         response = self.get_response(request)
 
         if "Content-Security-Policy" not in response:
+            # script-src is nonce-protected (inline scripts must carry the nonce).
+            # style-src uses 'unsafe-inline' because Tailwind CDN injects <style>
+            # tags at runtime without a nonce — removing unsafe-inline breaks all
+            # Tailwind utility classes (confirmed by revert 9271d186).
             response["Content-Security-Policy"] = (
                 "default-src 'self'; "
-                "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net; "
+                f"script-src 'self' 'nonce-{nonce}' https://cdn.tailwindcss.com https://cdn.jsdelivr.net; "
                 "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
                 "img-src 'self' data: blob:; "
                 "font-src 'self' https://fonts.gstatic.com; "
+                "media-src 'self'; "
                 "connect-src 'self' ws: wss:; "
                 "frame-ancestors 'none'; "
                 "base-uri 'self'; "
@@ -83,14 +105,14 @@ class SecurityHeadersMiddleware:
             )
 
         response["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
-
-        # SEC-001: COOP prevents cross-origin window references (popups, iframes).
-        # CORP limits which origins can embed our resources in no-cors requests.
-        # COEP is intentionally omitted: require-corp would block Tailwind CDN and Google Fonts
-        # (neither ship a Cross-Origin-Resource-Policy header). Safe to add once all CDN resources
-        # are replaced with self-hosted equivalents.
         response.setdefault("Cross-Origin-Opener-Policy", "same-origin")
         response.setdefault("Cross-Origin-Resource-Policy", "same-origin")
+
+        # Prevent browsers and proxies from caching API responses that may
+        # contain PII or authentication tokens.
+        if request.path.startswith("/api/"):
+            response["Cache-Control"] = "no-store, no-cache, must-revalidate, private"
+            response["Pragma"] = "no-cache"
 
         return response
 
@@ -178,3 +200,38 @@ class SecurityEventLoggingMiddleware:
             pass
         xff = request.META.get("HTTP_X_FORWARDED_FOR", "")
         return xff.split(",")[0].strip() if xff else request.META.get("REMOTE_ADDR", "")
+
+
+class ServerErrorAlertMiddleware:
+    """
+    Catch unhandled 500-level exceptions and notify admins via email.
+    Only fires in production (DEBUG=False) to avoid alert storms during development.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        return self.get_response(request)
+
+    def process_exception(self, request, exception):
+        import traceback
+        from django.conf import settings as _s
+
+        if _s.DEBUG:
+            return None  # Let Django's debug page handle it.
+
+        try:
+            stack = traceback.format_exc()
+            incident_id = getattr(request, "request_id", str(uuid.uuid4()))
+            exc_type = type(exception).__name__
+            from apps.common.email_service import send_server_error_alert
+            send_server_error_alert(
+                exception_type=exc_type,
+                stack_trace=stack,
+                incident_id=incident_id,
+                path=request.path_info,
+            )
+        except Exception:
+            pass  # Never let alert email break the error response.
+        return None  # Let Django's default 500 handling continue.

@@ -1,13 +1,13 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html class="light" lang="en"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Intelligent Education CRM - Admin Dashboard</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries" nonce="{{ csp_nonce }}"></script>
 <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700&amp;family=Manrope:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<script id="tailwind-config">
+<script id="tailwind-config" nonce="{{ csp_nonce }}">
         tailwind.config = {
             darkMode: "class",
             theme: {
@@ -97,7 +97,7 @@
             }
         }
     </script>
-<style>
+<style nonce="{{ csp_nonce }}">
         .material-symbols-outlined {
             font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
         }
@@ -148,7 +148,7 @@
 </a>
 <!-- Students accordion -->
 <div class="mx-2 my-1">
-  <button onclick="toggleStudentsMenu()"
+  <button id="toggle-students-menu-btn"
           class="w-full flex items-center px-4 py-3 text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 transition-colors rounded-lg">
     <span class="material-symbols-outlined mr-3">group</span>
     <span class="font-label-bold text-label-bold flex-1 text-left">Students</span>
@@ -188,20 +188,20 @@
 </button>
 <div class="header-search relative w-full">
 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" data-icon="search">search</span>
-<input id="global-search" oninput="filterAll(this.value);handleGlobalSearch(this.value,this)" onfocus="if(this.value.length>=2)handleGlobalSearch(this.value,this)" class="w-full pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant rounded-lg focus:ring-2 focus:ring-secondary focus:outline-none font-body-md text-body-md" placeholder="Search students, schools, courses…" type="text" autocomplete="off"/>
+<input id="global-search" class="w-full pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant rounded-lg focus:ring-2 focus:ring-secondary focus:outline-none font-body-md text-body-md" placeholder="Search students, schools, courses…" type="text" autocomplete="off"/>
 </div>
 </div>
 <div class="flex items-center space-x-6">
 <div class="flex items-center space-x-4">
 <div class="relative" id="notif-wrap">
-  <button id="notif-btn" onclick="toggleNotif()" class="relative p-2 text-on-surface-variant hover:text-primary transition-colors rounded-lg">
+  <button id="notif-btn" class="relative p-2 text-on-surface-variant hover:text-primary transition-colors rounded-lg">
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
     <span id="notif-badge" class="{% if notif_unread_count %}absolute top-1 right-1 min-w-[18px] h-[18px] bg-error text-on-error text-[10px] font-bold rounded-full flex items-center justify-center{% else %}hidden{% endif %}">{{ notif_unread_count|default:"" }}</span>
   </button>
   <div id="notif-panel" class="hidden absolute right-0 top-full mt-2 w-80 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-xl z-50 overflow-hidden">
     <div class="flex items-center justify-between px-4 py-3 border-b border-outline-variant">
       <span class="font-label-bold text-label-bold text-on-surface">Notifications</span>
-      <button onclick="markAllRead(event)" class="text-xs text-primary hover:underline font-label-sm">Mark all read</button>
+      <button id="mark-all-read-btn" class="text-xs text-primary hover:underline font-label-sm">Mark all read</button>
     </div>
     <div id="notif-list" class="max-h-[320px] overflow-y-auto divide-y divide-outline-variant/50">
       <p class="text-center text-on-surface-variant py-8 text-sm">Loading…</p>
@@ -290,11 +290,11 @@
     <div class="flex items-center gap-3">
       <!-- Tab switcher -->
       <div class="flex items-center gap-1 bg-surface-container-low rounded-lg p-1" id="admin-student-tab-bar">
-        <button onclick="adminSwitchTab('my')" id="admin-tab-my"
+        <button id="admin-tab-my" data-tab="my"
                 class="px-3 py-1.5 rounded-md font-label-bold text-[11px] bg-surface-container-lowest text-on-surface shadow-sm transition-all">
           My Students
         </button>
-        <button onclick="adminSwitchTab('all')" id="admin-tab-all"
+        <button id="admin-tab-all" data-tab="all"
                 class="px-3 py-1.5 rounded-md font-label-bold text-[11px] text-on-surface-variant hover:text-on-surface transition-all">
           All Students
         </button>
@@ -302,7 +302,7 @@
       <a href="/student-profile/" class="flex items-center gap-1 px-3 py-2 bg-primary text-on-primary rounded-lg font-label-bold text-[11px] hover:bg-on-primary-fixed-variant transition-colors active:scale-95">
         <span class="material-symbols-outlined text-[14px]">add</span>Add Student
       </a>
-      <button onclick="adminToggleStudents()" title="Collapse/Expand" class="p-1.5 text-on-surface-variant hover:text-primary transition-colors rounded-lg hover:bg-surface-container-low">
+      <button id="admin-toggle-students-btn" title="Collapse/Expand" class="p-1.5 text-on-surface-variant hover:text-primary transition-colors rounded-lg hover:bg-surface-container-low">
         <span class="material-symbols-outlined text-[20px]" id="admin-students-toggle-icon">expand_less</span>
       </button>
     </div>
@@ -314,7 +314,7 @@
       <div class="px-gutter pt-4 pb-2">
         <div class="relative max-w-sm">
           <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
-          <input oninput="adminFilterRows(this,'my')" placeholder="Filter my students…"
+          <input id="admin-filter-my" data-panel="my" placeholder="Filter my students…"
                  class="w-full pl-9 pr-4 py-2 bg-background border border-outline-variant rounded-lg font-body-md text-body-md focus:ring-2 focus:ring-secondary focus:outline-none"/>
         </div>
       </div>
@@ -347,9 +347,14 @@
                 </span>
               </td>
               <td class="px-5 py-3.5 text-right">
-                <a href="/student-application/{{ s.pk }}/" class="inline-flex items-center gap-1 px-2.5 py-1 bg-primary text-on-primary rounded-lg font-label-bold text-[10px] hover:bg-primary-container transition-colors">
-                  <span class="material-symbols-outlined text-[12px]">open_in_new</span>View
-                </a>
+                <div class="inline-flex items-center gap-1.5">
+                  <a href="/student-application/{{ s.pk }}/" class="inline-flex items-center gap-1 px-2.5 py-1 bg-primary text-on-primary rounded-lg font-label-bold text-[10px] hover:bg-primary-container transition-colors">
+                    <span class="material-symbols-outlined text-[12px]">open_in_new</span>View
+                  </a>
+                  <a href="/student-references/{{ s.pk }}/" class="inline-flex items-center gap-1 px-2.5 py-1 bg-tertiary/10 text-tertiary rounded-lg font-label-bold text-[10px] hover:bg-tertiary/20 transition-colors">
+                    <span class="material-symbols-outlined text-[12px]">folder_special</span>Refs
+                  </a>
+                </div>
               </td>
             </tr>
             {% empty %}
@@ -364,7 +369,7 @@
       <div class="px-gutter pt-4 pb-2">
         <div class="relative max-w-sm">
           <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
-          <input oninput="adminFilterRows(this,'all')" placeholder="Search all students…"
+          <input id="admin-filter-all" data-panel="all" placeholder="Search all students…"
                  class="w-full pl-9 pr-4 py-2 bg-background border border-outline-variant rounded-lg font-body-md text-body-md focus:ring-2 focus:ring-secondary focus:outline-none"/>
         </div>
       </div>
@@ -397,9 +402,14 @@
                 </span>
               </td>
               <td class="px-5 py-3.5 text-right">
-                <a href="/student-application/{{ s.pk }}/" class="inline-flex items-center gap-1 px-2.5 py-1 bg-primary text-on-primary rounded-lg font-label-bold text-[10px] hover:bg-primary-container transition-colors">
-                  <span class="material-symbols-outlined text-[12px]">open_in_new</span>View
-                </a>
+                <div class="inline-flex items-center gap-1.5">
+                  <a href="/student-application/{{ s.pk }}/" class="inline-flex items-center gap-1 px-2.5 py-1 bg-primary text-on-primary rounded-lg font-label-bold text-[10px] hover:bg-primary-container transition-colors">
+                    <span class="material-symbols-outlined text-[12px]">open_in_new</span>View
+                  </a>
+                  <a href="/student-references/{{ s.pk }}/" class="inline-flex items-center gap-1 px-2.5 py-1 bg-tertiary/10 text-tertiary rounded-lg font-label-bold text-[10px] hover:bg-tertiary/20 transition-colors">
+                    <span class="material-symbols-outlined text-[12px]">folder_special</span>Refs
+                  </a>
+                </div>
               </td>
             </tr>
             {% empty %}
@@ -425,7 +435,7 @@
         <p class="font-body-md text-body-md text-on-surface-variant">Action items sorted by urgency</p>
       </div>
     </div>
-    <button onclick="adminTogglePriority()" title="Collapse/Expand" class="p-1.5 text-on-surface-variant hover:text-primary transition-colors rounded-lg hover:bg-surface-container-low">
+    <button id="admin-priority-toggle-btn" title="Collapse/Expand" class="p-1.5 text-on-surface-variant hover:text-primary transition-colors rounded-lg hover:bg-surface-container-low">
       <span class="material-symbols-outlined text-[20px]" id="admin-priority-toggle-icon">expand_less</span>
     </button>
   </div>
@@ -446,8 +456,8 @@
             <p class="font-label-sm text-label-sm text-on-surface-variant text-[11px] truncate">{{ item.subtitle }}</p>
           </div>
           <a href="/student-application/{{ item.student_pk }}/" class="shrink-0 px-2.5 py-1 bg-surface-container-low text-on-surface rounded-lg font-label-bold text-[10px] hover:bg-outline-variant transition-colors">View</a>
-          <button onclick="dismissPriorityItem('{{ item.type }}', {{ item.item_id }}, 'pi-admin-{{ item.type }}-{{ item.item_id }}', 'admin-red-count', 'admin-red-items')"
-                  class="shrink-0 px-2.5 py-1 bg-red-100 text-red-700 rounded-lg font-label-bold text-[10px] hover:bg-red-200 transition-colors active:scale-95">Done</button>
+          <button class="dismiss-btn shrink-0 px-2.5 py-1 bg-red-100 text-red-700 rounded-lg font-label-bold text-[10px] hover:bg-red-200 transition-colors active:scale-95"
+                  data-item-type="{{ item.type }}" data-item-id="{{ item.item_id }}" data-element-id="pi-admin-{{ item.type }}-{{ item.item_id }}" data-count-id="admin-red-count" data-container-id="admin-red-items">Done</button>
         </div>
         {% empty %}
         <p class="px-gutter py-4 text-on-surface-variant font-label-sm text-[11px] italic">No high-priority items.</p>
@@ -470,7 +480,8 @@
             <p class="font-label-sm text-label-sm text-on-surface-variant text-[11px] truncate">{{ item.subtitle }}</p>
           </div>
           <a href="/student-application/{{ item.student_pk }}/" class="shrink-0 px-2.5 py-1 bg-surface-container-low text-on-surface rounded-lg font-label-bold text-[10px] hover:bg-outline-variant transition-colors">View</a>
-          <button onclick="dismissPriorityItem('{{ item.type }}', {{ item.item_id }}, 'pi-admin-{{ item.type }}-{{ item.item_id }}', 'admin-yellow-count', 'admin-yellow-items')"
+          <button class="dismiss-btn"
+                  data-item-type="{{ item.type }}" data-item-id="{{ item.item_id }}" data-element-id="pi-admin-{{ item.type }}-{{ item.item_id }}" data-count-id="admin-yellow-count" data-container-id="admin-yellow-items"
                   class="shrink-0 px-2.5 py-1 bg-yellow-100 text-yellow-700 rounded-lg font-label-bold text-[10px] hover:bg-yellow-200 transition-colors active:scale-95">Done</button>
         </div>
         {% empty %}
@@ -494,7 +505,8 @@
             <p class="font-label-sm text-label-sm text-on-surface-variant text-[11px] truncate">{{ item.subtitle }}</p>
           </div>
           <a href="/student-application/{{ item.student_pk }}/" class="shrink-0 px-2.5 py-1 bg-surface-container-low text-on-surface rounded-lg font-label-bold text-[10px] hover:bg-outline-variant transition-colors">View</a>
-          <button onclick="dismissPriorityItem('{{ item.type }}', {{ item.item_id }}, 'pi-admin-{{ item.type }}-{{ item.item_id }}', 'admin-green-count', 'admin-green-items')"
+          <button class="dismiss-btn"
+                  data-item-type="{{ item.type }}" data-item-id="{{ item.item_id }}" data-element-id="pi-admin-{{ item.type }}-{{ item.item_id }}" data-count-id="admin-green-count" data-container-id="admin-green-items"
                   class="shrink-0 px-2.5 py-1 bg-green-100 text-green-700 rounded-lg font-label-bold text-[10px] hover:bg-green-200 transition-colors active:scale-95">Done</button>
         </div>
         {% empty %}
@@ -514,7 +526,7 @@
 <div class="flex items-center space-x-4">
 <div class="relative min-w-[280px]">
 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" data-icon="search">search</span>
-<input id="counselor-filter" oninput="filterCounselorCards(this.value)" class="w-full pl-10 pr-4 py-2 bg-background border border-outline-variant rounded-lg focus:ring-2 focus:ring-secondary focus:outline-none font-body-md text-body-md" placeholder="Search counselors..." type="text"/>
+<input id="counselor-filter" class="w-full pl-10 pr-4 py-2 bg-background border border-outline-variant rounded-lg focus:ring-2 focus:ring-secondary focus:outline-none font-body-md text-body-md" placeholder="Search counselors..." type="text"/>
 </div>
 <button class="border border-secondary text-secondary px-4 py-2 rounded-lg font-label-bold hover:bg-secondary/5 transition-colors active:scale-95">
                             Directory Export
@@ -570,7 +582,7 @@
   <div class="flex items-center gap-3">
     <div class="relative min-w-[240px]">
       <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
-      <input id="school-filter" oninput="filterSchoolRows(this.value)" placeholder="Search schools…"
+      <input id="school-filter" placeholder="Search schools…"
              class="w-full pl-10 pr-4 py-2 bg-background border border-outline-variant rounded-lg focus:ring-2 focus:ring-secondary focus:outline-none font-body-md text-body-md"/>
     </div>
     <a href="/admin-schools/" class="bg-primary text-on-primary px-4 py-2 rounded-lg font-label-bold flex items-center gap-2 hover:bg-on-primary-fixed-variant transition-colors active:scale-95 text-[12px]">
@@ -656,7 +668,7 @@
 {% endif %}
 </div>
 </main>
-<script>
+<script nonce="{{ csp_nonce }}">
 function toggleSidebar() {
   const sb = document.getElementById('sidebar');
   const ov = document.getElementById('sidebar-overlay');
@@ -756,7 +768,7 @@ function filterSchoolRows(q) {
     const el = document.getElementById('notif-list');
     if (!notifs.length) { el.innerHTML = '<p class="text-center text-on-surface-variant py-8 text-sm">No notifications yet</p>'; return; }
     el.innerHTML = notifs.map(n => `
-      <div data-nid="${n.id}" onclick="_nRead(${n.id},this)" class="flex items-start gap-3 px-4 py-3 hover:bg-surface-container-low cursor-pointer transition-colors${n.read ? ' opacity-60' : ''}">
+      <div data-nid="${n.id}" class="notif-item flex items-start gap-3 px-4 py-3 hover:bg-surface-container-low cursor-pointer transition-colors${n.read ? ' opacity-60' : ''}">
         <span class="material-symbols-outlined ${n.read ? 'text-on-surface-variant' : 'text-primary'} mt-0.5 text-[18px] flex-shrink-0">${_icon(n.title)}</span>
         <div class="flex-1 min-w-0">
           <p class="font-label-bold text-label-bold text-on-surface text-sm">${_esc(n.title)}</p>
@@ -765,6 +777,9 @@ function filterSchoolRows(q) {
         </div>
         ${!n.read ? '<span class="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-2"></span>' : ''}
       </div>`).join('');
+    el.querySelectorAll('.notif-item').forEach(function(item) {
+      item.addEventListener('click', function() { window._nRead(parseInt(item.dataset.nid), item); });
+    });
   }
   async function _load() {
     try {
@@ -815,8 +830,50 @@ function filterSchoolRows(q) {
       document.getElementById('notif-panel')?.classList.add('hidden');
     }
   });
+  document.getElementById('notif-btn').addEventListener('click', function() { window.toggleNotif(); });
+  document.getElementById('mark-all-read-btn').addEventListener('click', function(e) { window.markAllRead(e); });
   _wsConnect();
   _load();
+})();
+// ── Wire up all CSP-safe event listeners ───────────────────────────────────
+(function() {
+  // Sidebar students accordion
+  var tsBtn = document.getElementById('toggle-students-menu-btn');
+  if (tsBtn) tsBtn.addEventListener('click', toggleStudentsMenu);
+  // Student tab switcher
+  var tabBar = document.getElementById('admin-student-tab-bar');
+  if (tabBar) {
+    tabBar.addEventListener('click', function(e) {
+      var btn = e.target.closest('[data-tab]');
+      if (btn) adminSwitchTab(btn.dataset.tab);
+    });
+  }
+  // Collapse/expand students section
+  var atBtn = document.getElementById('admin-toggle-students-btn');
+  if (atBtn) atBtn.addEventListener('click', adminToggleStudents);
+  // Student filter inputs
+  var fMy = document.getElementById('admin-filter-my');
+  if (fMy) fMy.addEventListener('input', function() { adminFilterRows(this, 'my'); });
+  var fAll = document.getElementById('admin-filter-all');
+  if (fAll) fAll.addEventListener('input', function() { adminFilterRows(this, 'all'); });
+  // Priority list dismiss buttons
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('.dismiss-btn');
+    if (btn) dismissPriorityItem(btn.dataset.itemType, btn.dataset.itemId, btn.dataset.elementId, btn.dataset.countId, btn.dataset.containerId);
+  });
+  // Priority collapse
+  var aptBtn = document.getElementById('admin-priority-toggle-btn');
+  if (aptBtn) aptBtn.addEventListener('click', adminTogglePriority);
+  // Filter inputs
+  var cfInput = document.getElementById('counselor-filter');
+  if (cfInput) cfInput.addEventListener('input', function() { filterCounselorCards(this.value); });
+  var sfInput = document.getElementById('school-filter');
+  if (sfInput) sfInput.addEventListener('input', function() { filterSchoolRows(this.value); });
+  // Sidebar
+  var so = document.getElementById('sidebar-overlay');
+  if (so) so.addEventListener('click', toggleSidebar);
+  var hb = document.getElementById('hamburger-btn');
+  if (hb) hb.addEventListener('click', toggleSidebar);
 })();
 // ── Global Search Dropdown ────────────────────────────────────────────────────
 (function () {
@@ -867,6 +924,11 @@ function filterSchoolRows(q) {
     if(dd && inp && !dd.contains(e.target) && e.target!==inp) _close();
   });
   document.addEventListener('keydown', e => { if(e.key==='Escape') { _close(); _inp()?.blur(); } });
+  const _si = _inp();
+  if (_si) {
+    _si.addEventListener('input', function() { if (typeof filterAll === 'function') filterAll(this.value); window.handleGlobalSearch(this.value); });
+    _si.addEventListener('focus', function() { if (this.value.length >= 2) window.handleGlobalSearch(this.value); });
+  }
 })();
 // ── Priority List ─────────────────────────────────────────────────────────────
 function adminTogglePriority() {
@@ -879,6 +941,15 @@ async function dismissPriorityItem(itemType, itemId, elementId, countId, contain
   const el = document.getElementById(elementId);
   const countEl = document.getElementById(countId);
   if (!el) return;
+  const csrf = document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '';
+  try {
+    const r = await fetch('/dismiss-priority-item/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': csrf },
+      body: 'item_type=' + encodeURIComponent(itemType) + '&item_id=' + encodeURIComponent(itemId),
+    });
+    if (!r.ok) return;
+  } catch (_) { return; }
   el.style.transition = 'opacity 0.3s, max-height 0.3s';
   el.style.opacity = '0';
   el.style.overflow = 'hidden';
@@ -889,14 +960,6 @@ async function dismissPriorityItem(itemType, itemId, elementId, countId, contain
     const current = parseInt((countEl.textContent || '(0)').replace(/\D/g,'')) || 0;
     countEl.textContent = '(' + Math.max(0, current - 1) + ')';
   }
-  const csrf = document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '';
-  try {
-    await fetch('/dismiss-priority-item/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': csrf },
-      body: 'item_type=' + encodeURIComponent(itemType) + '&item_id=' + encodeURIComponent(itemId),
-    });
-  } catch (_) {}
 }
 </script>
 <!-- ===== FOOTER ===== -->

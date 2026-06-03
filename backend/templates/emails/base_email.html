@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="x-apple-disable-message-reformatting">
+<meta name="format-detection" content="telephone=no,address=no,email=no,date=no,url=no">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>{% block title %}Intelligent Education{% endblock %}</title>
+<!--[if mso]><noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript><![endif]-->
+<style>
+/* CLIENT RESETS — applied before inline styles */
+*, *::before, *::after { box-sizing: border-box; }
+body, table, td, p, a, li { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+img { border: 0; display: block; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; max-width: 100%; }
+a { mso-line-height-rule: exactly; }
+
+/* DARK MODE — media query only (cannot be inlined) */
+@media (prefers-color-scheme: dark) {
+  .dm-bg        { background-color: #0f172a !important; }
+  .dm-card      { background-color: #1e293b !important; }
+  .dm-footer    { background-color: #111827 !important; border-top-color: #374151 !important; }
+  .dm-text      { color: #e2e8f0 !important; }
+  .dm-muted     { color: #94a3b8 !important; }
+  .dm-heading   { color: #f1f5f9 !important; }
+  .dm-row-sep   { border-bottom-color: #374151 !important; }
+  .dm-lbl       { color: #64748b !important; }
+  .dm-info-box  { background-color: #1e3a5f !important; border-color: #3b82f6 !important; }
+  .dm-info-text { color: #93c5fd !important; }
+  .dm-warn-box  { background-color: #431407 !important; border-color: #b45309 !important; }
+  .dm-warn-text { color: #fcd34d !important; }
+  .dm-ok-box    { background-color: #052e16 !important; border-color: #16a34a !important; }
+  .dm-ok-text   { color: #86efac !important; }
+  .dm-card-hdr  { background-color: #0f172a !important; color: #475569 !important; }
+  .dm-pre       { background-color: #0f172a !important; color: #94a3b8 !important; }
+}
+
+/* MOBILE */
+@media screen and (max-width: 620px) {
+  .outer-td   { padding: 0 !important; }
+  .email-card { border-radius: 0 !important; }
+  .hdr-td     { padding: 28px 20px 22px !important; }
+  .body-td    { padding: 28px 20px 20px !important; }
+  .footer-td  { padding: 16px 20px !important; }
+  .card-lbl   { width: 90px !important; font-size: 11px !important; }
+  .post-note  { display: none !important; }
+}
+</style>
+</head>
+<body style="margin:0;padding:0;background-color:#f0f4f8;" class="dm-bg">
+
+<!-- PREVIEW TEXT: hidden 1px div pulled by Gmail / Apple Mail into notification -->
+<div style="display:none;font-size:1px;color:#f0f4f8;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;" aria-hidden="true">{% block preview_text %}{% endblock %}&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;</div>
+
+<!-- OUTER TABLE: sets page background, centers card -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f0f4f8;" class="dm-bg">
+<tr>
+<td align="center" valign="top" style="padding:32px 16px;" class="outer-td">
+
+  <!-- EMAIL CARD: max-width 600px, white background, rounded corners -->
+  <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0"
+         style="max-width:600px;width:100%;background-color:#ffffff;border-radius:12px;"
+         class="email-card dm-card">
+
+    <!-- ========================================================
+         HEADER — override header_bgcolor + header_gradient
+         in child templates for accent emails.
+         bgcolor attr = Outlook fallback (flat colour).
+         style background = gradient for modern clients.
+         ======================================================== -->
+    {% block header %}
+    <tr>
+      <td bgcolor="{% block header_bgcolor %}#1a56db{% endblock %}"
+          class="hdr-td"
+          style="padding:40px 40px 32px;text-align:center;background:{% block header_gradient %}linear-gradient(135deg,#1a56db 0%,#1e40af 100%){% endblock %};">
+        <p style="margin:0 0 8px 0;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.7);font-family:Arial,Helvetica,sans-serif;">Intelligent Education</p>
+        <h1 style="margin:0 0 6px 0;color:#ffffff;font-size:{% block header_title_size %}26px{% endblock %};font-weight:700;font-family:Arial,Helvetica,sans-serif;line-height:1.25;mso-line-height-rule:exactly;">{% block header_title %}{% endblock %}</h1>
+        <p style="margin:0;color:rgba(255,255,255,0.85);font-size:14px;font-family:Arial,Helvetica,sans-serif;line-height:1.5;mso-line-height-rule:exactly;">{% block header_subtitle %}{% endblock %}</p>
+      </td>
+    </tr>
+    {% endblock %}
+
+    <!-- ========================================================
+         BODY — child templates fill the body block.
+         All content styles must be inline here.
+         ======================================================== -->
+    <tr>
+      <td bgcolor="#ffffff" class="body-td dm-card"
+          style="padding:40px 40px 32px;background-color:#ffffff;">
+        {% block body %}{% endblock %}
+      </td>
+    </tr>
+
+    <!-- ========================================================
+         FOOTER — override footer_content block for custom text.
+         ======================================================== -->
+    {% block footer %}
+    <tr>
+      <td bgcolor="#f8fafc" class="footer-td dm-footer"
+          style="background-color:#f8fafc;border-top:1px solid #e2e8f0;padding:22px 40px;text-align:center;">
+        <p style="margin:0;font-size:12px;color:#94a3b8;line-height:1.7;font-family:Arial,Helvetica,sans-serif;" class="dm-muted">
+          {% block footer_content %}
+          You received this from <strong style="color:#64748b;">Intelligent Education</strong>.<br>
+          Questions? <a href="mailto:contact.intelligenteducation@gmail.com" style="color:#1a56db;text-decoration:none;">contact.intelligenteducation@gmail.com</a>
+          {% if unsubscribe_url %}
+          &nbsp;&middot;&nbsp;
+          <a href="{{ unsubscribe_url }}" style="color:#94a3b8;text-decoration:none;font-size:11px;">Unsubscribe</a>
+          {% endif %}
+          {% endblock %}
+        </p>
+      </td>
+    </tr>
+    {% endblock %}
+
+  </table>
+  <!-- END EMAIL CARD -->
+
+  <!-- POST-CARD NOTE: rendered in Gmail/Apple but hidden on mobile -->
+  <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0"
+         style="max-width:600px;width:100%;" class="post-note">
+  <tr>
+    <td style="padding:14px 0 0;text-align:center;">
+      <p style="margin:0;font-size:11px;color:#94a3b8;font-family:Arial,Helvetica,sans-serif;">
+        &copy; {% now "Y" %} Intelligent Education &mdash; Empowering Global Education
+      </p>
+    </td>
+  </tr>
+  </table>
+
+</td>
+</tr>
+</table>
+<!-- END OUTER TABLE -->
+
+</body>
+</html>

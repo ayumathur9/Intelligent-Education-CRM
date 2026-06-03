@@ -6,7 +6,7 @@ from django.dispatch import receiver
 
 from apps.audit.services import log_activity
 
-from .models import Course, Enquiry, FollowUp, Lead, School, Student
+from .models import Course, Enquiry, FollowUp, Lead, School, Student, StudentAssignedSchool, StudentSchoolDocument
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
@@ -24,6 +24,19 @@ def auto_create_student_profile(sender, instance, created: bool, **kwargs):
         full_name=instance.full_name or instance.email,
         email=instance.email,
     )
+    # Send welcome email for admin-created students who are already verified.
+    # Self-registered students are handled by RegisterView (no-verify path) or
+    # EmailVerifyView (verification-required path).
+    if getattr(instance, "is_email_verified", False):
+        try:
+            from apps.users.tasks import send_welcome_email_task
+            send_welcome_email_task.delay(instance.pk)
+        except Exception:
+            try:
+                from apps.common.email_service import send_welcome_email
+                send_welcome_email(instance)
+            except Exception:
+                pass
 
 
 def _actor_from_instance(instance):
@@ -65,7 +78,7 @@ def student_saved(sender, instance: Student, created: bool, **kwargs):
 
 
 def _send_assignment_emails(instance: Student) -> None:
-    from apps.common.email_service import send_assignment_email
+    from apps.common.email_service import send_assignment_email, send_student_staff_assignment_email
 
     checks = [
         ("counselor", instance.counselor, getattr(instance, "_pre_counselor_id", None), "Counselor"),
@@ -74,7 +87,10 @@ def _send_assignment_emails(instance: Student) -> None:
     ]
     for _field, staff_user, old_id, label in checks:
         if staff_user and staff_user.pk != old_id:
+            # Notify the staff member of the new assignment.
             send_assignment_email(staff_user, instance, label)
+            # Notify the student that someone has been assigned to them.
+            send_student_staff_assignment_email(instance, staff_user, label)
 
 
 # ── Other model signals ──────────────────────────────────────────────────────
@@ -120,6 +136,62 @@ def enquiry_saved(sender, instance: Enquiry, created: bool, **kwargs):
         action="enquiry.created" if created else "enquiry.updated",
         instance=instance,
     )
+
+
+@receiver(post_save, sender=StudentSchoolDocument)
+def school_document_saved(sender, instance: StudentSchoolDocument, created: bool, **kwargs):
+    """Fire document upload notification emails on new (non-deleted) uploads only."""
+    if not created:
+        return
+    if instance.deleted_at is not None:
+        return
+
+    uploader = instance.uploaded_by
+    uploader_role = getattr(uploader, "role", "") if uploader else ""
+
+    # Determine if uploaded by student or staff
+    is_student_upload = (uploader_role == "student") or (
+        uploader is None and instance.category in ("additional_student",)
+    )
+
+    from apps.crm.tasks import notify_editor_doc_uploaded, notify_student_doc_uploaded
+
+    if is_student_upload:
+        # Immediate notification to editor/counselor
+        notify_editor_doc_uploaded.delay(instance.pk, is_reminder=False, hours_elapsed=0)
+        # 24-hour follow-up
+        notify_editor_doc_uploaded.apply_async(
+            args=[instance.pk, True, 24],
+            countdown=24 * 3600,
+        )
+        # 48-hour follow-up
+        notify_editor_doc_uploaded.apply_async(
+            args=[instance.pk, True, 48],
+            countdown=48 * 3600,
+        )
+    else:
+        # Staff uploaded — notify student + POC
+        role_labels = {"counselor": "Counselor", "editor": "Editor", "admin": "Admin"}
+        role_label = role_labels.get(uploader_role, uploader_role.title() if uploader_role else "Staff")
+        uploader_id = uploader.pk if uploader else 0
+        notify_student_doc_uploaded.delay(instance.pk, uploader_id, role_label)
+
+
+@receiver(post_save, sender=StudentAssignedSchool)
+def school_assigned_to_student(sender, instance: StudentAssignedSchool, created: bool, **kwargs):
+    """Notify the student when a school is assigned to their application."""
+    if not created:
+        return
+    try:
+        from apps.common.email_service import send_school_assigned_email
+        send_school_assigned_email(
+            student=instance.student,
+            school=instance.school,
+            assigned_by=instance.assigned_by,
+            course=instance.course,
+        )
+    except Exception:
+        pass
 
 
 @receiver(post_save, sender=FollowUp)

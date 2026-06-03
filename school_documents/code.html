@@ -1,13 +1,13 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html class="light" lang="en">
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Documents — {{ school.name }} | Intelligent Education</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries" nonce="{{ csp_nonce }}"></script>
 <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-<script id="tailwind-config">
+<script id="tailwind-config" nonce="{{ csp_nonce }}">
   tailwind.config = {
     darkMode: "class",
     theme: {
@@ -38,7 +38,7 @@
     }
   }
 </script>
-<style>
+<style nonce="{{ csp_nonce }}">
   .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;}
   .custom-scrollbar::-webkit-scrollbar{width:4px;}
   .custom-scrollbar::-webkit-scrollbar-thumb{background:#e4beba;border-radius:6px;}
@@ -108,6 +108,9 @@
     </a>
     <a class="flex items-center gap-3 px-4 py-3 text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 transition-colors rounded-lg mx-2 my-1" href="/recent-activity/">
       <span class="material-symbols-outlined">history</span><span class="font-label-bold text-label-bold">Recent Activity</span>
+    </a>
+    <a class="flex items-center gap-3 px-4 py-3 text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 transition-colors rounded-lg mx-2 my-1" href="/my-references/">
+      <span class="material-symbols-outlined">bookmark</span><span class="font-label-bold text-label-bold">References</span>
     </a>
     {% endif %}
   </nav>
@@ -217,7 +220,7 @@
             <a href="{{ doc.file_url }}" target="_blank" class="p-1 rounded-lg hover:bg-green-100 transition-colors" title="Download">
               <span class="material-symbols-outlined text-[15px] text-secondary">download</span>
             </a>
-            <form method="post" onsubmit="return confirm('Delete {{ doc.file_name }}?')">
+            <form method="post" data-confirm="{{ doc.file_name }}">
               {% csrf_token %}
               <input type="hidden" name="action" value="delete">
               <input type="hidden" name="doc_id" value="{{ doc.pk }}">
@@ -241,7 +244,7 @@
             <a href="{{ doc.file_url }}" target="_blank" class="p-1 rounded-lg hover:bg-yellow-100 transition-colors" title="Download">
               <span class="material-symbols-outlined text-[15px] text-secondary">download</span>
             </a>
-            <form method="post" onsubmit="return confirm('Delete {{ doc.file_name }}?')">
+            <form method="post" data-confirm="{{ doc.file_name }}">
               {% csrf_token %}
               <input type="hidden" name="action" value="delete">
               <input type="hidden" name="doc_id" value="{{ doc.pk }}">
@@ -265,7 +268,7 @@
             <a href="{{ doc.file_url }}" target="_blank" class="p-1 rounded-lg hover:bg-blue-100 transition-colors" title="Download">
               <span class="material-symbols-outlined text-[15px] text-secondary">download</span>
             </a>
-            <form method="post" onsubmit="return confirm('Delete {{ doc.file_name }}?')">
+            <form method="post" data-confirm="{{ doc.file_name }}">
               {% csrf_token %}
               <input type="hidden" name="action" value="delete">
               <input type="hidden" name="doc_id" value="{{ doc.pk }}">
@@ -284,17 +287,13 @@
           {% csrf_token %}
           <input type="hidden" name="category" value="{{ panel.key }}">
           <label class="drop-zone rounded-xl px-4 py-5 cursor-pointer flex flex-col items-center gap-1.5 text-center"
-                 id="zone-{{ panel.key }}"
-                 ondragover="this.classList.add('dragover');event.preventDefault()"
-                 ondragleave="this.classList.remove('dragover')"
-                 ondrop="handleDrop(event,'{{ panel.key }}')">
+                 id="zone-{{ panel.key }}">
             <span class="material-symbols-outlined text-on-surface-variant text-[26px]">cloud_upload</span>
             <span class="font-label-bold text-label-bold text-on-surface-variant text-[11px]" id="label-{{ panel.key }}">
               Drop file or click to browse
             </span>
             <input type="file" name="file" id="file-{{ panel.key }}" class="hidden"
-                   accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
-                   onchange="onFileSelect('{{ panel.key }}', this)">
+                   accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png">
           </label>
           <button type="submit" id="btn-{{ panel.key }}"
                   class="mt-3 w-full py-2 bg-primary text-on-primary font-label-bold text-label-bold rounded-lg hover:bg-primary-container transition-colors text-[12px] flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
@@ -346,7 +345,7 @@
               <a href="{{ doc.file_url }}" target="_blank" class="p-1 rounded-lg hover:bg-green-100 transition-colors">
                 <span class="material-symbols-outlined text-[15px] text-secondary">download</span>
               </a>
-              <form method="post" onsubmit="return confirm('Delete {{ doc.file_name }}?')">
+              <form method="post" data-confirm="{{ doc.file_name }}">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="delete">
                 <input type="hidden" name="doc_id" value="{{ doc.pk }}">
@@ -362,15 +361,11 @@
           {% csrf_token %}
           <input type="hidden" name="category" value="additional_student">
           <label class="drop-zone rounded-xl px-4 py-4 cursor-pointer flex flex-col items-center gap-1 text-center"
-                 id="zone-additional_student"
-                 ondragover="this.classList.add('dragover');event.preventDefault()"
-                 ondragleave="this.classList.remove('dragover')"
-                 ondrop="handleDrop(event,'additional_student')">
+                 id="zone-additional_student">
             <span class="material-symbols-outlined text-on-surface-variant text-[22px]">cloud_upload</span>
             <span class="font-label-bold text-label-bold text-on-surface-variant text-[10px]" id="label-additional_student">Drop or click to browse</span>
             <input type="file" name="file" id="file-additional_student" class="hidden"
-                   accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
-                   onchange="onFileSelect('additional_student', this)">
+                   accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png">
           </label>
           <button type="submit" id="btn-additional_student"
                   class="mt-2 w-full py-1.5 bg-primary text-on-primary font-label-bold text-label-bold rounded-lg hover:bg-primary-container transition-colors text-[11px] flex items-center justify-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed"
@@ -405,7 +400,7 @@
               <a href="{{ doc.file_url }}" target="_blank" class="p-1 rounded-lg hover:bg-blue-100 transition-colors">
                 <span class="material-symbols-outlined text-[15px] text-secondary">download</span>
               </a>
-              <form method="post" onsubmit="return confirm('Delete {{ doc.file_name }}?')">
+              <form method="post" data-confirm="{{ doc.file_name }}">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="delete">
                 <input type="hidden" name="doc_id" value="{{ doc.pk }}">
@@ -421,15 +416,11 @@
           {% csrf_token %}
           <input type="hidden" name="category" value="additional_counsel">
           <label class="drop-zone rounded-xl px-4 py-4 cursor-pointer flex flex-col items-center gap-1 text-center"
-                 id="zone-additional_counsel"
-                 ondragover="this.classList.add('dragover');event.preventDefault()"
-                 ondragleave="this.classList.remove('dragover')"
-                 ondrop="handleDrop(event,'additional_counsel')">
+                 id="zone-additional_counsel">
             <span class="material-symbols-outlined text-on-surface-variant text-[22px]">cloud_upload</span>
             <span class="font-label-bold text-label-bold text-on-surface-variant text-[10px]" id="label-additional_counsel">Drop or click to browse</span>
             <input type="file" name="file" id="file-additional_counsel" class="hidden"
-                   accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
-                   onchange="onFileSelect('additional_counsel', this)">
+                   accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png">
           </label>
           <button type="submit" id="btn-additional_counsel"
                   class="mt-2 w-full py-1.5 bg-secondary text-on-secondary font-label-bold text-label-bold rounded-lg hover:bg-secondary/80 transition-colors text-[11px] flex items-center justify-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed"
@@ -441,7 +432,7 @@
     </div>
   </div>
 </main>
-<script>
+<script nonce="{{ csp_nonce }}">
 function toggleSidebar() {
   const sb = document.getElementById('sidebar');
   const ov = document.getElementById('sidebar-overlay');
@@ -476,21 +467,52 @@ document.addEventListener('keydown', function(e) {
       onFileSelect(key, input);
     }
   }
-</script>
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('input[type="file"][id^="file-"]').forEach(function(inp) {
+      var key = inp.id.slice(5);
+      inp.addEventListener('change', function() { onFileSelect(key, this); });
+    });
+    document.querySelectorAll('label[id^="zone-"]').forEach(function(zone) {
+      var key = zone.id.slice(5);
+      zone.addEventListener('dragover', function(e) { this.classList.add('dragover'); e.preventDefault(); });
+      zone.addEventListener('dragleave', function() { this.classList.remove('dragover'); });
+      zone.addEventListener('drop', function(e) { handleDrop(e, key); });
+    });
+    document.querySelectorAll('form[data-confirm]').forEach(function(form) {
+      form.addEventListener('submit', function(e) {
+        if (!confirm('Delete ' + this.dataset.confirm + '?')) e.preventDefault();
+      });
+    });
+  });
+
+(function() {
+  // T&C / PP modal open/close via data attributes
+  document.addEventListener('click', function(e) {
+    var ob = e.target.closest('[data-open-modal]');
+    if (ob) { document.getElementById(ob.dataset.openModal)?.classList.remove('hidden'); return; }
+    var cb = e.target.closest('[data-close-modal]');
+    if (cb) { document.getElementById(cb.dataset.closeModal)?.classList.add('hidden'); }
+  });
+  // Sidebar
+  var so = document.getElementById('sidebar-overlay');
+  if (so) so.addEventListener('click', toggleSidebar);
+  var hb = document.getElementById('hamburger-btn');
+  if (hb) hb.addEventListener('click', toggleSidebar);
+})();</script>
 <!-- ===== FOOTER ===== -->
 <footer id="main-footer" style="margin-left:260px;" class="border-t border-[#e4beba] bg-[#fff0ef] py-4 px-6 text-center text-xs text-[#5b403d]">
   <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-1">
-    <button onclick="document.getElementById('tc-modal').classList.remove('hidden')" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">Terms &amp; Conditions</button>
+    <button data-open-modal="tc-modal" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">Terms &amp; Conditions</button>
     <span class="text-[#e4beba]">|</span>
-    <button onclick="document.getElementById('pp-modal').classList.remove('hidden')" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">Privacy Policy</button>
+    <button data-open-modal="pp-modal" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">Privacy Policy</button>
   </div>
 </footer>
 <!-- T&amp;C Modal -->
-<div id="tc-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-black/40 p-4" onclick="if(event.target===this)this.classList.add('hidden')">
+<div id="tc-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-black/40 p-4">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col">
     <div class="flex items-center justify-between px-6 py-4 border-b border-[#e4beba]">
       <h2 class="text-lg font-semibold text-[#271816]" style="font-family:'Lexend',sans-serif;">Terms &amp; Conditions</h2>
-      <button onclick="document.getElementById('tc-modal').classList.add('hidden')" class="text-[#5b403d] hover:text-[#271816] transition-colors rounded-full p-1 hover:bg-[#ffe9e6]">
+      <button data-close-modal="tc-modal" class="text-[#5b403d] hover:text-[#271816] transition-colors rounded-full p-1 hover:bg-[#ffe9e6]">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
     </div>
@@ -575,11 +597,11 @@ document.addEventListener('keydown', function(e) {
   </div>
 </div>
 <!-- Privacy Policy Modal -->
-<div id="pp-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-black/40 p-4" onclick="if(event.target===this)this.classList.add('hidden')">
+<div id="pp-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-black/40 p-4">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col">
     <div class="flex items-center justify-between px-6 py-4 border-b border-[#e4beba]">
       <h2 class="text-lg font-semibold text-[#271816]" style="font-family:'Lexend',sans-serif;">Privacy Policy</h2>
-      <button onclick="document.getElementById('pp-modal').classList.add('hidden')" class="text-[#5b403d] hover:text-[#271816] transition-colors rounded-full p-1 hover:bg-[#ffe9e6]">
+      <button data-close-modal="pp-modal" class="text-[#5b403d] hover:text-[#271816] transition-colors rounded-full p-1 hover:bg-[#ffe9e6]">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
     </div>

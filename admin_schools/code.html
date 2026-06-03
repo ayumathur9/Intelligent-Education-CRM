@@ -1,13 +1,13 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html class="light" lang="en">
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Schools Management | Intelligent Education CRM</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries" nonce="{{ csp_nonce }}"></script>
 <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-<script id="tailwind-config">
+<script id="tailwind-config" nonce="{{ csp_nonce }}">
   tailwind.config = {
     darkMode:"class",
     theme:{extend:{
@@ -18,7 +18,7 @@
     }}
   }
 </script>
-<style>
+<style nonce="{{ csp_nonce }}">
   .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;}
   .custom-scrollbar::-webkit-scrollbar{width:4px;} .custom-scrollbar::-webkit-scrollbar-thumb{background:#e4beba;border-radius:6px;}
   /* ── Responsive sidebar ── */
@@ -87,7 +87,7 @@
     </nav>
   </div>
   <div class="flex items-center gap-3">
-    <button onclick="document.getElementById('modal-add-school').classList.remove('hidden')"
+    <button id="btn-open-add-school"
       class="bg-primary text-on-primary px-4 py-2 rounded-lg font-label-bold flex items-center gap-2 hover:bg-on-primary-fixed-variant transition-colors active:scale-95">
       <span class="material-symbols-outlined text-[18px]">add</span> Add School
     </button>
@@ -104,7 +104,7 @@
       </div>
       <div class="relative">
         <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
-        <input id="school-search" oninput="filterSchools(this.value)" placeholder="Search schools…"
+        <input id="school-search" placeholder="Search schools…"
           class="w-full pl-9 pr-3 py-2 border border-outline-variant rounded-lg text-body-md focus:ring-2 focus:ring-primary focus:outline-none bg-background" type="text"/>
       </div>
     </div>
@@ -172,7 +172,7 @@
           {% endif %}
         </div>
         <div class="flex items-center gap-2 shrink-0">
-          <button onclick="openEditSchool()" class="flex items-center gap-1 text-secondary font-label-bold text-[12px] hover:underline">
+          <button id="btn-open-edit-school" class="flex items-center gap-1 text-secondary font-label-bold text-[12px] hover:underline">
             <span class="material-symbols-outlined text-[16px]">edit</span> Edit
           </button>
           <form method="post" action="/admin-schools/" class="inline">
@@ -195,7 +195,7 @@
           <span class="material-symbols-outlined text-secondary">menu_book</span>
           Courses ({{ selected_school.courses.count }})
         </h3>
-        <button onclick="document.getElementById('modal-add-course').classList.remove('hidden')"
+        <button id="btn-open-add-course"
           class="flex items-center gap-1 bg-secondary text-on-secondary px-3 py-1.5 rounded-lg font-label-bold text-[12px] hover:opacity-90 transition-opacity active:scale-95">
           <span class="material-symbols-outlined text-[16px]">add</span> Add Course
         </button>
@@ -240,12 +240,12 @@
     </div>
     <!-- Edit School Modal (hidden by default) -->
     <div id="modal-edit-school" class="hidden fixed inset-0 z-[100]">
-      <div class="absolute inset-0 bg-on-surface/40 backdrop-blur-sm" onclick="closeEditSchool()"></div>
+      <div class="absolute inset-0 bg-on-surface/40 backdrop-blur-sm" id="edit-school-backdrop"></div>
       <div class="absolute inset-0 flex items-center justify-center p-4">
         <div class="bg-surface-container-lowest w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden">
           <div class="p-5 border-b border-outline-variant flex items-center justify-between">
             <h3 class="font-h3 text-h3 text-on-surface">Edit School</h3>
-            <button onclick="closeEditSchool()" class="w-9 h-9 flex items-center justify-center rounded-full hover:bg-surface-container text-on-surface-variant">
+            <button id="btn-close-edit-school" class="w-9 h-9 flex items-center justify-center rounded-full hover:bg-surface-container text-on-surface-variant">
               <span class="material-symbols-outlined">close</span>
             </button>
           </div>
@@ -277,7 +277,7 @@
               </div>
             </div>
             <div class="flex gap-3 pt-2">
-              <button type="button" onclick="closeEditSchool()" class="flex-1 border border-outline-variant text-on-surface-variant py-2.5 rounded-lg font-label-bold hover:bg-surface-container transition-colors">Cancel</button>
+              <button type="button" class="close-edit-school-btn flex-1 border border-outline-variant text-on-surface-variant py-2.5 rounded-lg font-label-bold hover:bg-surface-container transition-colors">Cancel</button>
               <button type="submit" class="flex-1 bg-primary text-on-primary py-2.5 rounded-lg font-label-bold hover:bg-on-primary-fixed-variant transition-colors">Save Changes</button>
             </div>
           </form>
@@ -286,12 +286,12 @@
     </div>
     <!-- Add Course Modal -->
     <div id="modal-add-course" class="hidden fixed inset-0 z-[100]">
-      <div class="absolute inset-0 bg-on-surface/40 backdrop-blur-sm" onclick="document.getElementById('modal-add-course').classList.add('hidden')"></div>
+      <div class="absolute inset-0 bg-on-surface/40 backdrop-blur-sm" data-close-modal="modal-add-course"></div>
       <div class="absolute inset-0 flex items-center justify-center p-4">
         <div class="bg-surface-container-lowest w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden">
           <div class="p-5 border-b border-outline-variant flex items-center justify-between">
             <h3 class="font-h3 text-h3 text-on-surface">Add Course to {{ selected_school.name }}</h3>
-            <button onclick="document.getElementById('modal-add-course').classList.add('hidden')" class="w-9 h-9 flex items-center justify-center rounded-full hover:bg-surface-container text-on-surface-variant">
+            <button data-close-modal="modal-add-course" class="w-9 h-9 flex items-center justify-center rounded-full hover:bg-surface-container text-on-surface-variant">
               <span class="material-symbols-outlined">close</span>
             </button>
           </div>
@@ -325,7 +325,7 @@
               <input type="text" name="intake_months" placeholder="e.g. January, May, September" class="w-full border border-outline-variant rounded-lg px-3 py-2 text-body-md focus:ring-2 focus:ring-primary focus:outline-none bg-background"/>
             </div>
             <div class="flex gap-3 pt-2">
-              <button type="button" onclick="document.getElementById('modal-add-course').classList.add('hidden')" class="flex-1 border border-outline-variant text-on-surface-variant py-2.5 rounded-lg font-label-bold hover:bg-surface-container transition-colors">Cancel</button>
+              <button type="button" data-close-modal="modal-add-course" class="flex-1 border border-outline-variant text-on-surface-variant py-2.5 rounded-lg font-label-bold hover:bg-surface-container transition-colors">Cancel</button>
               <button type="submit" class="flex-1 bg-secondary text-on-secondary py-2.5 rounded-lg font-label-bold hover:opacity-90 transition-opacity">Add Course</button>
             </div>
           </form>
@@ -342,7 +342,7 @@
       <p class="font-body-md text-body-md text-on-surface-variant max-w-sm mb-6">
         Choose a school from the list to view and manage its details and courses, or click "Add School" to create a new one.
       </p>
-      <button onclick="document.getElementById('modal-add-school').classList.remove('hidden')"
+      <button data-open-modal="modal-add-school"
         class="bg-primary text-on-primary px-6 py-2.5 rounded-lg font-label-bold flex items-center gap-2 hover:bg-on-primary-fixed-variant transition-colors">
         <span class="material-symbols-outlined text-[18px]">add</span> Add First School
       </button>
@@ -352,12 +352,12 @@
 </div>
 <!-- Add School Modal (global, always available) -->
 <div id="modal-add-school" class="hidden fixed inset-0 z-[100]">
-  <div class="absolute inset-0 bg-on-surface/40 backdrop-blur-sm" onclick="document.getElementById('modal-add-school').classList.add('hidden')"></div>
+  <div class="absolute inset-0 bg-on-surface/40 backdrop-blur-sm" data-close-modal="modal-add-school"></div>
   <div class="absolute inset-0 flex items-center justify-center p-4">
     <div class="bg-surface-container-lowest w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden">
       <div class="p-5 border-b border-outline-variant flex items-center justify-between">
         <h3 class="font-h3 text-h3 text-on-surface">Add New School</h3>
-        <button onclick="document.getElementById('modal-add-school').classList.add('hidden')" class="w-9 h-9 flex items-center justify-center rounded-full hover:bg-surface-container text-on-surface-variant">
+        <button data-close-modal="modal-add-school" class="w-9 h-9 flex items-center justify-center rounded-full hover:bg-surface-container text-on-surface-variant">
           <span class="material-symbols-outlined">close</span>
         </button>
       </div>
@@ -387,14 +387,14 @@
           </div>
         </div>
         <div class="flex gap-3 pt-2">
-          <button type="button" onclick="document.getElementById('modal-add-school').classList.add('hidden')" class="flex-1 border border-outline-variant text-on-surface-variant py-2.5 rounded-lg font-label-bold hover:bg-surface-container transition-colors">Cancel</button>
+          <button type="button" data-close-modal="modal-add-school" class="flex-1 border border-outline-variant text-on-surface-variant py-2.5 rounded-lg font-label-bold hover:bg-surface-container transition-colors">Cancel</button>
           <button type="submit" class="flex-1 bg-primary text-on-primary py-2.5 rounded-lg font-label-bold hover:bg-on-primary-fixed-variant transition-colors">Add School</button>
         </div>
       </form>
     </div>
   </div>
 </div>
-<script>
+<script nonce="{{ csp_nonce }}">
 function toggleSidebar() {
   const sb = document.getElementById('sidebar');
   const ov = document.getElementById('sidebar-overlay');
@@ -418,21 +418,59 @@ function openEditSchool() {
 function closeEditSchool() {
   document.getElementById("modal-edit-school").classList.add("hidden");
 }
+// ── Wire up CSP-safe event listeners ──
+(function() {
+  var so = document.getElementById('sidebar-overlay');
+  if (so) so.addEventListener('click', toggleSidebar);
+  var hb = document.getElementById('hamburger-btn');
+  if (hb) hb.addEventListener('click', toggleSidebar);
+  // School search
+  var ss = document.getElementById('school-search');
+  if (ss) ss.addEventListener('input', function() { filterSchools(this.value); });
+  // Open add-school modal
+  var bas = document.getElementById('btn-open-add-school');
+  if (bas) bas.addEventListener('click', function() { document.getElementById('modal-add-school').classList.remove('hidden'); });
+  // Open add-course modal
+  var bac = document.getElementById('btn-open-add-course');
+  if (bac) bac.addEventListener('click', function() { document.getElementById('modal-add-course').classList.remove('hidden'); });
+  // Open/close edit school modal
+  var oes = document.getElementById('btn-open-edit-school');
+  if (oes) oes.addEventListener('click', openEditSchool);
+  var ces = document.getElementById('btn-close-edit-school');
+  if (ces) ces.addEventListener('click', closeEditSchool);
+  var esb = document.getElementById('edit-school-backdrop');
+  if (esb) esb.addEventListener('click', closeEditSchool);
+  document.querySelectorAll('.close-edit-school-btn').forEach(function(b) { b.addEventListener('click', closeEditSchool); });
+  // Generic data-open-modal / data-close-modal delegation
+  document.addEventListener('click', function(e) {
+    var ob = e.target.closest('[data-open-modal]');
+    if (ob) { document.getElementById(ob.dataset.openModal)?.classList.remove('hidden'); return; }
+    var cb = e.target.closest('[data-close-modal]');
+    if (cb) { document.getElementById(cb.dataset.closeModal)?.classList.add('hidden'); }
+  });
+  // T&C / PP modal open/close
+  document.addEventListener('click', function(e) {
+    var ob = e.target.closest('[data-open-modal]');
+    if (ob) { document.getElementById(ob.dataset.openModal)?.classList.remove('hidden'); return; }
+    var cb = e.target.closest('[data-close-modal]');
+    if (cb) { document.getElementById(cb.dataset.closeModal)?.classList.add('hidden'); }
+  });
+})();
 </script>
 <!-- ===== FOOTER ===== -->
 <footer id="main-footer" style="margin-left:260px;" class="border-t border-[#e4beba] bg-[#fff0ef] py-4 px-6 text-center text-xs text-[#5b403d]">
   <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-1">
-    <button onclick="document.getElementById('tc-modal').classList.remove('hidden')" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">Terms &amp; Conditions</button>
+    <button data-open-modal="tc-modal" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">Terms &amp; Conditions</button>
     <span class="text-[#e4beba]">|</span>
-    <button onclick="document.getElementById('pp-modal').classList.remove('hidden')" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">Privacy Policy</button>
+    <button data-open-modal="pp-modal" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">Privacy Policy</button>
   </div>
 </footer>
 <!-- T&amp;C Modal -->
-<div id="tc-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-black/40 p-4" onclick="if(event.target===this)this.classList.add('hidden')">
+<div id="tc-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-black/40 p-4">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col">
     <div class="flex items-center justify-between px-6 py-4 border-b border-[#e4beba]">
       <h2 class="text-lg font-semibold text-[#271816]" style="font-family:'Lexend',sans-serif;">Terms &amp; Conditions</h2>
-      <button onclick="document.getElementById('tc-modal').classList.add('hidden')" class="text-[#5b403d] hover:text-[#271816] transition-colors rounded-full p-1 hover:bg-[#ffe9e6]">
+      <button data-close-modal="tc-modal" class="text-[#5b403d] hover:text-[#271816] transition-colors rounded-full p-1 hover:bg-[#ffe9e6]">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
     </div>
@@ -517,11 +555,11 @@ function closeEditSchool() {
   </div>
 </div>
 <!-- Privacy Policy Modal -->
-<div id="pp-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-black/40 p-4" onclick="if(event.target===this)this.classList.add('hidden')">
+<div id="pp-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-black/40 p-4">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col">
     <div class="flex items-center justify-between px-6 py-4 border-b border-[#e4beba]">
       <h2 class="text-lg font-semibold text-[#271816]" style="font-family:'Lexend',sans-serif;">Privacy Policy</h2>
-      <button onclick="document.getElementById('pp-modal').classList.add('hidden')" class="text-[#5b403d] hover:text-[#271816] transition-colors rounded-full p-1 hover:bg-[#ffe9e6]">
+      <button data-close-modal="pp-modal" class="text-[#5b403d] hover:text-[#271816] transition-colors rounded-full p-1 hover:bg-[#ffe9e6]">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
     </div>

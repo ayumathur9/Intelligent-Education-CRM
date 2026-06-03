@@ -66,6 +66,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     # verification link. Controlled by EMAIL_VERIFICATION_REQUIRED in settings.
     is_email_verified = models.BooleanField(default=False)
 
+    tutorial_seen = models.BooleanField(default=False)
+
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
 
@@ -79,6 +81,39 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self) -> str:
         return self.email
+
+
+class StaffInvite(models.Model):
+    """Admin-generated invite token for counselors, editors, and admins."""
+    email = models.EmailField(db_index=True)
+    role = models.CharField(max_length=20, choices=Role.choices, default=Role.COUNSELOR)
+    token = models.CharField(max_length=64, unique=True, db_index=True)
+    invited_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="sent_invites",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(db_index=True)
+    accepted_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        indexes = [models.Index(fields=["email", "expires_at"])]
+
+    @classmethod
+    def mint(cls, email: str, role: str, invited_by, ttl_hours: int = 72) -> "StaffInvite":
+        return cls.objects.create(
+            email=email,
+            role=role,
+            token=secrets.token_urlsafe(32),
+            invited_by=invited_by,
+            expires_at=timezone.now() + timedelta(hours=ttl_hours),
+        )
+
+    def is_valid(self) -> bool:
+        return self.accepted_at is None and self.expires_at > timezone.now()
+
+    def __str__(self) -> str:
+        return f"Invite<{self.email} / {self.role}>"
 
 
 class PasswordResetToken(models.Model):

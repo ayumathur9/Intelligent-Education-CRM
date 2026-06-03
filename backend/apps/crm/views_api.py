@@ -39,6 +39,8 @@ class SchoolViewSet(viewsets.ModelViewSet):
         return [IsCounselorOrAdmin()]
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return School.objects.none()
         qs = School.objects.prefetch_related("courses").order_by("country", "name")
         if self.request.user.role == Role.STUDENT:
             return qs.filter(is_active=True)
@@ -60,6 +62,8 @@ class CourseViewSet(viewsets.ModelViewSet):
         return [IsCounselorOrAdmin()]
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return Course.objects.none()
         qs = Course.objects.select_related("school").order_by("-created_at")
         if self.request.user.role == Role.STUDENT:
             return qs.filter(is_active=True)
@@ -212,6 +216,8 @@ class StudentPreferenceViewSet(viewsets.ModelViewSet):
         return [permissions.IsAuthenticated()]
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return StudentPreference.objects.none()
         user = self.request.user
         if user.role == Role.STUDENT:
             student = Student.objects.filter(user=user).first()
@@ -259,6 +265,8 @@ class StudentActivityViewSet(viewsets.ReadOnlyModelViewSet):
         return [permissions.IsAuthenticated()]
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return StudentActivity.objects.none()
         user = self.request.user
         if user.role == Role.STUDENT:
             student = Student.objects.filter(user=user).first()

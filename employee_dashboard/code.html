@@ -1,13 +1,13 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html class="light" lang="en">
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Counselor Dashboard — Intelligent Education</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries" nonce="{{ csp_nonce }}"></script>
 <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-<script id="tailwind-config">
+<script id="tailwind-config" nonce="{{ csp_nonce }}">
   tailwind.config={darkMode:"class",theme:{extend:{colors:{
     "primary-fixed":"#ffdad6","on-surface-variant":"#5b403d","tertiary-fixed-dim":"#88ceff",
     "surface-bright":"#fff8f7","on-primary":"#ffffff","surface-container-highest":"#f9dcd9",
@@ -32,7 +32,7 @@
     "body-md":["14px",{lineHeight:"1.5",fontWeight:"400"}],
   }}}}
 </script>
-<style>
+<style nonce="{{ csp_nonce }}">
   .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;}
   .slide-panel{transition:transform .3s ease;}
   .custom-scrollbar::-webkit-scrollbar{width:4px;}
@@ -73,7 +73,7 @@
     </a>
     <!-- Students accordion -->
     <div class="mx-2 my-1">
-      <button onclick="toggleStudentsMenu()"
+      <button id="toggle-students-menu-btn"
               class="w-full flex items-center px-4 py-3 text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 transition-colors rounded-lg">
         <span class="material-symbols-outlined mr-3">group</span>
         <span class="font-label-bold text-label-bold flex-1 text-left">Students</span>
@@ -112,19 +112,19 @@
 </button>
     <div class="header-search relative w-full">
       <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
-      <input id="global-search" oninput="filterStudents(this.value);handleGlobalSearch(this.value,this)" onfocus="if(this.value.length>=2)handleGlobalSearch(this.value,this)" class="w-full bg-surface-container-low border border-outline-variant rounded-full py-2 pl-10 pr-4 font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary" placeholder="Search students, schools, courses…" type="text" autocomplete="off"/>
+      <input id="global-search" class="w-full bg-surface-container-low border border-outline-variant rounded-full py-2 pl-10 pr-4 font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary" placeholder="Search students, schools, courses…" type="text" autocomplete="off"/>
     </div>
   </div>
   <div class="flex items-center gap-3 ml-4">
     <div class="relative" id="notif-wrap">
-      <button id="notif-btn" onclick="toggleNotif()" class="relative p-2 text-on-surface-variant hover:text-primary transition-colors rounded-lg">
+      <button id="notif-btn" class="relative p-2 text-on-surface-variant hover:text-primary transition-colors rounded-lg">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         <span id="notif-badge" class="{% if notif_unread_count %}absolute top-1 right-1 min-w-[18px] h-[18px] bg-error text-on-error text-[10px] font-bold rounded-full flex items-center justify-center{% else %}hidden{% endif %}">{{ notif_unread_count|default:"" }}</span>
       </button>
       <div id="notif-panel" class="hidden absolute right-0 top-full mt-2 w-80 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-xl z-50 overflow-hidden">
         <div class="flex items-center justify-between px-4 py-3 border-b border-outline-variant">
           <span class="font-label-bold text-label-bold text-on-surface">Notifications</span>
-          <button onclick="markAllRead(event)" class="text-xs text-primary hover:underline font-label-sm">Mark all read</button>
+          <button id="mark-all-read-btn" class="text-xs text-primary hover:underline font-label-sm">Mark all read</button>
         </div>
         <div id="notif-list" class="max-h-[320px] overflow-y-auto divide-y divide-outline-variant/50">
           <p class="text-center text-on-surface-variant py-8 text-sm">Loading…</p>
@@ -135,7 +135,7 @@
       <span class="material-symbols-outlined text-[22px]">logout</span>
     </a>
     <div class="h-8 w-px bg-outline-variant mx-1"></div>
-    <button onclick="toggleProfile()" class="flex items-center gap-3 hover:opacity-80 transition-opacity">
+    <button id="toggle-profile-btn" class="flex items-center gap-3 hover:opacity-80 transition-opacity">
       <div class="text-right hidden lg:block">
         <p class="font-label-bold text-label-bold text-on-surface">{{ user.full_name|default:user.email }}</p>
         <p class="font-label-sm text-label-sm text-on-surface-variant">{{ user.role|title }}</p>
@@ -167,12 +167,12 @@
     <div class="pt-2"><button type="submit" class="w-full bg-primary text-on-primary font-label-bold text-label-bold py-3 rounded-lg hover:brightness-110 transition-all">Save Changes</button></div>
   </form>
 </div>
-<div id="profile-overlay" onclick="toggleProfile()" class="fixed inset-0 bg-black/30 z-[55] hidden"></div>
+<div id="profile-overlay" class="fixed inset-0 bg-black/30 z-[55] hidden"></div>
 <!-- ── Student detail slide panel ─────────────────────────────── -->
 <div id="student-panel" class="slide-panel fixed top-0 right-0 h-full w-[420px] bg-surface-container-lowest border-l border-outline-variant shadow-2xl z-[60] flex flex-col translate-x-full">
   <div class="flex items-center justify-between px-6 py-5 border-b border-outline-variant shrink-0">
     <h3 class="font-h3 text-h3 text-on-surface" id="sp-name">Student Profile</h3>
-    <button onclick="closeStudentPanel()" class="p-1 text-on-surface-variant hover:text-primary"><span class="material-symbols-outlined">close</span></button>
+    <button id="close-student-panel-btn" class="p-1 text-on-surface-variant hover:text-primary"><span class="material-symbols-outlined">close</span></button>
   </div>
   <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-5" id="sp-body">
     <!-- populated by JS -->
@@ -181,7 +181,7 @@
     <!-- populated by JS -->
   </div>
 </div>
-<div id="student-overlay" onclick="closeStudentPanel()" class="fixed inset-0 bg-black/30 z-[55] hidden"></div>
+<div id="student-overlay" class="fixed inset-0 bg-black/30 z-[55] hidden"></div>
 <!-- ── Main content ───────────────────────────────────────────── -->
 <main id="main-content" class="main-content ml-[260px] mt-[72px] p-gutter min-h-screen">
   <div class="mb-6">
@@ -226,16 +226,16 @@
       <div class="flex items-center gap-2">
         <!-- Tab switcher -->
         <div class="flex items-center gap-1 bg-surface-container-low rounded-lg p-1">
-          <button onclick="counselorSwitchTab('my')" id="counselor-tab-my"
+          <button id="counselor-tab-my" data-tab="my"
                   class="px-3 py-1.5 rounded-md font-label-bold text-[11px] bg-surface-container-lowest text-on-surface shadow-sm transition-all">
             My Students <span class="ml-1 text-[10px] text-on-surface-variant">({{ my_students_count }})</span>
           </button>
-          <button onclick="counselorSwitchTab('all')" id="counselor-tab-all"
+          <button id="counselor-tab-all" data-tab="all"
                   class="px-3 py-1.5 rounded-md font-label-bold text-[11px] text-on-surface-variant hover:text-on-surface transition-all">
             All Students <span class="ml-1 text-[10px] text-on-surface-variant">({{ all_students_count }})</span>
           </button>
         </div>
-        <button onclick="counselorToggleStudents()" title="Collapse/Expand" class="p-1.5 text-on-surface-variant hover:text-primary transition-colors rounded-lg hover:bg-surface-container-low">
+        <button id="counselor-toggle-students-btn" title="Collapse/Expand" class="p-1.5 text-on-surface-variant hover:text-primary transition-colors rounded-lg hover:bg-surface-container-low">
           <span class="material-symbols-outlined text-[20px]" id="counselor-students-toggle-icon">expand_less</span>
         </button>
       </div>
@@ -260,11 +260,10 @@
                   data-email="{{ s.email|escapejs }}"
                   data-phone="{{ s.phone|escapejs }}"
                   data-course="{{ s.course.name|default:'—'|escapejs }}"
-                  data-counselor="{{ s.counselor.full_name|default:s.counselor.email|default:'—'|escapejs }}"
-                  data-poc="{{ s.poc.full_name|default:s.poc.email|default:'—'|escapejs }}"
+                  data-counselor="{% if s.counselor %}{{ s.counselor.full_name|default:s.counselor.email|escapejs }}{% else %}—{% endif %}"
+                  data-poc="{% if s.poc %}{{ s.poc.full_name|default:s.poc.email|escapejs }}{% else %}—{% endif %}"
                   data-code="{{ s.student_code|escapejs }}"
-                  data-pk="{{ s.pk }}"
-                  onclick="openStudentPanel(this)">
+                  data-pk="{{ s.pk }}">
                 <td class="px-5 py-3.5">
                   <div class="flex items-center gap-3">
                     {% if s.user and s.user.avatar %}<img src="/user-avatar/{{ s.user.pk }}/" class="h-9 w-9 rounded-full object-cover shrink-0" alt=""/>{% else %}<div class="h-9 w-9 rounded-full bg-secondary-fixed text-[#00468c] flex items-center justify-center font-bold text-sm shrink-0">{{ s.full_name|first|upper }}</div>{% endif %}
@@ -282,10 +281,13 @@
                   <span class="px-2 py-0.5 bg-secondary-fixed text-[#00468c] rounded-full font-label-bold text-[10px]">POC</span>
                   {% endif %}
                 </td>
-                <td class="px-5 py-3.5" onclick="event.stopPropagation()">
+                <td class="px-5 py-3.5 actions-cell">
                   <div class="flex items-center gap-1.5 flex-wrap">
                     <a href="/student-application/{{ s.pk }}/" class="flex items-center gap-1 px-2.5 py-1 bg-primary text-on-primary rounded-lg font-label-bold text-[10px] hover:bg-primary-container transition-colors">
                       <span class="material-symbols-outlined text-[12px]">open_in_new</span>View
+                    </a>
+                    <a href="/student-references/{{ s.pk }}/" class="flex items-center gap-1 px-2.5 py-1 bg-tertiary/10 text-tertiary rounded-lg font-label-bold text-[10px] hover:bg-tertiary/20 transition-colors">
+                      <span class="material-symbols-outlined text-[12px]">folder_special</span>Refs
                     </a>
                     <a href="/counselor-interaction-log/?t=student&id={{ s.pk }}" class="flex items-center gap-1 px-2.5 py-1 bg-secondary/10 text-secondary rounded-lg font-label-bold text-[10px] hover:bg-secondary/20 transition-colors">
                       <span class="material-symbols-outlined text-[12px]">list_alt</span>Log
@@ -313,7 +315,7 @@
         <div class="px-gutter pt-4 pb-2">
           <div class="relative max-w-sm">
             <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
-            <input oninput="counselorFilterAll(this.value)" placeholder="Search all students…"
+            <input id="all-students-search" placeholder="Search all students…"
                    class="w-full pl-9 pr-4 py-2 bg-background border border-outline-variant rounded-lg font-body-md text-body-md focus:ring-2 focus:ring-secondary focus:outline-none"/>
           </div>
         </div>
@@ -322,29 +324,41 @@
             <thead class="bg-surface-container-low">
               <tr>
                 <th class="px-5 py-3 font-label-bold text-label-bold text-on-surface-variant uppercase tracking-wider text-[11px]">Student</th>
-                <th class="px-5 py-3 font-label-bold text-label-bold text-on-surface-variant uppercase tracking-wider text-[11px]">Course</th>
+                <th class="px-5 py-3 font-label-bold text-label-bold text-on-surface-variant uppercase tracking-wider text-[11px]">Editor</th>
                 <th class="px-5 py-3 font-label-bold text-label-bold text-on-surface-variant uppercase tracking-wider text-[11px]">Counselor</th>
                 <th class="px-5 py-3 font-label-bold text-label-bold text-on-surface-variant uppercase tracking-wider text-[11px]">Actions</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-outline-variant" id="all-students-tbody">
               {% for s in all_students %}
-              <tr class="hover:bg-surface-container-low transition-colors counselor-row-all">
+              <tr class="hover:bg-surface-container-low transition-colors cursor-pointer counselor-row-all"
+                  data-pk="{{ s.pk }}"
+                  data-name="{{ s.full_name|escapejs }}"
+                  data-email="{{ s.email|escapejs }}"
+                  data-phone="{{ s.phone|escapejs }}"
+                  data-code="{{ s.student_code|escapejs }}"
+                  data-course="{{ s.course.name|default:'—'|escapejs }}"
+                  data-counselor="{% if s.counselor %}{{ s.counselor.full_name|default:s.counselor.email|escapejs }}{% else %}—{% endif %}"
+                  data-poc="{% if s.poc %}{{ s.poc.full_name|default:s.poc.email|escapejs }}{% else %}—{% endif %}">
                 <td class="px-5 py-3.5">
                   <div class="flex items-center gap-3">
                     {% if s.user and s.user.avatar %}<img src="/user-avatar/{{ s.user.pk }}/" class="h-9 w-9 rounded-full object-cover shrink-0" alt=""/>{% else %}<div class="h-9 w-9 rounded-full bg-primary-fixed text-on-primary-fixed-variant flex items-center justify-center font-bold text-sm shrink-0">{{ s.full_name|first|upper }}</div>{% endif %}
                     <div>
                       <p class="font-label-bold text-label-bold text-on-surface">{{ s.full_name }}</p>
                       <p class="font-label-sm text-label-sm text-on-surface-variant">{{ s.email }}</p>
+                      <p class="font-label-sm text-label-sm text-on-surface-variant">ID: {{ s.student_code|default:"—" }}</p>
                     </div>
                   </div>
                 </td>
-                <td class="px-5 py-3.5 font-body-md text-on-surface-variant text-[12px]">{{ s.course.name|default:"—" }}</td>
+                <td class="px-5 py-3.5 font-body-md text-on-surface-variant text-[12px]">{{ s.editor.full_name|default:"—" }}</td>
                 <td class="px-5 py-3.5 font-body-md text-on-surface-variant text-[12px]">{{ s.counselor.full_name|default:"—" }}</td>
-                <td class="px-5 py-3.5">
+                <td class="px-5 py-3.5 actions-cell">
                   <div class="flex items-center gap-1.5 flex-wrap">
                     <a href="/student-application/{{ s.pk }}/" class="flex items-center gap-1 px-2.5 py-1 bg-primary text-on-primary rounded-lg font-label-bold text-[10px] hover:bg-primary-container transition-colors">
                       <span class="material-symbols-outlined text-[12px]">open_in_new</span>View
+                    </a>
+                    <a href="/student-references/{{ s.pk }}/" class="flex items-center gap-1 px-2.5 py-1 bg-tertiary/10 text-tertiary rounded-lg font-label-bold text-[10px] hover:bg-tertiary/20 transition-colors">
+                      <span class="material-symbols-outlined text-[12px]">folder_special</span>Refs
                     </a>
                     <a href="/counselor-interaction-log/?t=student&id={{ s.pk }}" class="flex items-center gap-1 px-2.5 py-1 bg-secondary/10 text-secondary rounded-lg font-label-bold text-[10px] hover:bg-secondary/20 transition-colors">
                       <span class="material-symbols-outlined text-[12px]">list_alt</span>Log
@@ -375,7 +389,7 @@
           <p class="font-label-sm text-label-sm text-on-surface-variant mt-0.5">Action items sorted by urgency</p>
         </div>
       </div>
-      <button onclick="empTogglePriority()" title="Collapse/Expand" class="p-1.5 text-on-surface-variant hover:text-primary transition-colors rounded-lg hover:bg-surface-container-low">
+      <button id="emp-priority-toggle-btn" title="Collapse/Expand" class="p-1.5 text-on-surface-variant hover:text-primary transition-colors rounded-lg hover:bg-surface-container-low">
         <span class="material-symbols-outlined text-[20px]" id="emp-priority-toggle-icon">expand_less</span>
       </button>
     </div>
@@ -396,8 +410,8 @@
               <p class="font-label-sm text-label-sm text-on-surface-variant text-[11px] truncate">{{ item.subtitle }}</p>
             </div>
             <a href="/student-application/{{ item.student_pk }}/" class="shrink-0 px-2.5 py-1 bg-surface-container-low text-on-surface rounded-lg font-label-bold text-[10px] hover:bg-outline-variant transition-colors">View</a>
-            <button onclick="dismissPriorityItem('{{ item.type }}', {{ item.item_id }}, 'pi-emp-{{ item.type }}-{{ item.item_id }}', 'emp-red-count', 'emp-red-items')"
-                    class="shrink-0 px-2.5 py-1 bg-red-100 text-red-700 rounded-lg font-label-bold text-[10px] hover:bg-red-200 transition-colors active:scale-95">Done</button>
+            <button class="dismiss-btn shrink-0 px-2.5 py-1 bg-red-100 text-red-700 rounded-lg font-label-bold text-[10px] hover:bg-red-200 transition-colors active:scale-95"
+                    data-item-type="{{ item.type }}" data-item-id="{{ item.item_id }}" data-element-id="pi-emp-{{ item.type }}-{{ item.item_id }}" data-count-id="emp-red-count" data-container-id="emp-red-items">Done</button>
           </div>
           {% empty %}
           <p class="px-gutter py-4 text-on-surface-variant font-label-sm text-[11px] italic">No high-priority items.</p>
@@ -420,7 +434,8 @@
               <p class="font-label-sm text-label-sm text-on-surface-variant text-[11px] truncate">{{ item.subtitle }}</p>
             </div>
             <a href="/student-application/{{ item.student_pk }}/" class="shrink-0 px-2.5 py-1 bg-surface-container-low text-on-surface rounded-lg font-label-bold text-[10px] hover:bg-outline-variant transition-colors">View</a>
-            <button onclick="dismissPriorityItem('{{ item.type }}', {{ item.item_id }}, 'pi-emp-{{ item.type }}-{{ item.item_id }}', 'emp-yellow-count', 'emp-yellow-items')"
+            <button class="dismiss-btn"
+                    data-item-type="{{ item.type }}" data-item-id="{{ item.item_id }}" data-element-id="pi-emp-{{ item.type }}-{{ item.item_id }}" data-count-id="emp-yellow-count" data-container-id="emp-yellow-items"
                     class="shrink-0 px-2.5 py-1 bg-yellow-100 text-yellow-700 rounded-lg font-label-bold text-[10px] hover:bg-yellow-200 transition-colors active:scale-95">Done</button>
           </div>
           {% empty %}
@@ -444,7 +459,8 @@
               <p class="font-label-sm text-label-sm text-on-surface-variant text-[11px] truncate">{{ item.subtitle }}</p>
             </div>
             <a href="/student-application/{{ item.student_pk }}/" class="shrink-0 px-2.5 py-1 bg-surface-container-low text-on-surface rounded-lg font-label-bold text-[10px] hover:bg-outline-variant transition-colors">View</a>
-            <button onclick="dismissPriorityItem('{{ item.type }}', {{ item.item_id }}, 'pi-emp-{{ item.type }}-{{ item.item_id }}', 'emp-green-count', 'emp-green-items')"
+            <button class="dismiss-btn"
+                    data-item-type="{{ item.type }}" data-item-id="{{ item.item_id }}" data-element-id="pi-emp-{{ item.type }}-{{ item.item_id }}" data-count-id="emp-green-count" data-container-id="emp-green-items"
                     class="shrink-0 px-2.5 py-1 bg-green-100 text-green-700 rounded-lg font-label-bold text-[10px] hover:bg-green-200 transition-colors active:scale-95">Done</button>
           </div>
           {% empty %}
@@ -462,7 +478,7 @@
         <p class="font-label-sm text-label-sm text-on-surface-variant mt-0.5">{% if is_editor %}Browse available schools{% else %}Browse or add a new school{% endif %}</p>
       </div>
       {% if not is_editor %}
-      <button onclick="toggleAddSchool()" id="add-school-btn"
+      <button id="add-school-btn"
               class="flex items-center gap-1.5 px-4 py-2 bg-primary text-on-primary font-label-bold text-label-bold rounded-lg hover:bg-primary-container transition-colors text-[12px]">
         <span class="material-symbols-outlined text-[16px]">add</span>Add School
       </button>
@@ -511,7 +527,7 @@
                     class="mt-1 w-full border border-outline-variant rounded-lg px-3 py-2 font-body-md text-on-surface focus:ring-2 focus:ring-primary focus:border-primary outline-none bg-white resize-none"></textarea>
         </div>
         <div class="col-span-2 flex gap-3 justify-end">
-          <button type="button" onclick="toggleAddSchool()" class="px-4 py-2 border border-outline-variant rounded-lg font-label-bold text-label-bold text-on-surface hover:bg-surface-container transition-colors text-[12px]">Cancel</button>
+          <button type="button" id="cancel-school-btn" class="px-4 py-2 border border-outline-variant rounded-lg font-label-bold text-label-bold text-on-surface hover:bg-surface-container transition-colors text-[12px]">Cancel</button>
           <button type="submit" class="px-5 py-2 bg-primary text-on-primary rounded-lg font-label-bold text-label-bold hover:bg-primary-container transition-colors text-[12px] flex items-center gap-1">
             <span class="material-symbols-outlined text-[14px]">add</span>Add School
           </button>
@@ -523,7 +539,7 @@
     <div class="px-gutter pt-4 pb-3">
       <div class="relative max-w-sm">
         <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
-        <input id="school-search" oninput="filterSchools(this.value)" placeholder="Search schools…" type="text"
+        <input id="school-search" placeholder="Search schools…" type="text"
                class="w-full pl-9 pr-4 py-2 border border-outline-variant rounded-lg font-body-md text-body-md focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none bg-surface-container-low"/>
       </div>
     </div>
@@ -601,10 +617,13 @@
   {% endif %}
 </main>
 <!-- ── Student data for JS panel ─────────────────────────────── -->
-<script id="students-json" type="application/json">
-[{% for s in my_students %}{"pk":{{ s.pk }},"name":"{{ s.full_name|escapejs }}","email":"{{ s.email|escapejs }}","phone":"{{ s.phone|escapejs }}","code":"{{ s.student_code|escapejs }}","course":"{{ s.course.name|default:'—'|escapejs }}","counselor":"{{ s.counselor.full_name|default:s.counselor.email|default:'—'|escapejs }}","poc":"{{ s.poc.full_name|default:s.poc.email|default:'—'|escapejs }}","nationality":"{{ s.nationality|escapejs }}","dob":"{{ s.dob|default:''|escapejs }}","gender":"{{ s.gender|escapejs }}","passport":"{{ s.passport_number|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}]
+<script id="students-json" type="application/json" nonce="{{ csp_nonce }}">
+[{% for s in my_students %}{"pk":{{ s.pk }},"name":"{{ s.full_name|escapejs }}","email":"{{ s.email|escapejs }}","phone":"{{ s.phone|escapejs }}","code":"{{ s.student_code|escapejs }}","course":"{{ s.course.name|default:'—'|escapejs }}","counselor":"{% if s.counselor %}{{ s.counselor.full_name|default:s.counselor.email|escapejs }}{% else %}—{% endif %}","poc":"{% if s.poc %}{{ s.poc.full_name|default:s.poc.email|escapejs }}{% else %}—{% endif %}","nationality":"{{ s.nationality|escapejs }}","dob":"{{ s.dob|default:''|escapejs }}","gender":"{{ s.gender|escapejs }}","passport":"{{ s.passport_number|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}]
 </script>
-<script>
+<script id="all-students-json" type="application/json" nonce="{{ csp_nonce }}">
+[{% for s in all_students %}{"pk":{{ s.pk }},"name":"{{ s.full_name|escapejs }}","email":"{{ s.email|escapejs }}","phone":"{{ s.phone|escapejs }}","code":"{{ s.student_code|escapejs }}","course":"{{ s.course.name|default:'—'|escapejs }}","counselor":"{% if s.counselor %}{{ s.counselor.full_name|default:s.counselor.email|escapejs }}{% else %}—{% endif %}","poc":"{% if s.poc %}{{ s.poc.full_name|default:s.poc.email|escapejs }}{% else %}—{% endif %}","nationality":"{{ s.nationality|escapejs }}","dob":"{{ s.dob|default:''|escapejs }}","gender":"{{ s.gender|escapejs }}","passport":"{{ s.passport_number|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}]
+</script>
+<script nonce="{{ csp_nonce }}">
 function toggleSidebar() {
   const sb = document.getElementById('sidebar');
   const ov = document.getElementById('sidebar-overlay');
@@ -626,9 +645,10 @@ function toggleProfile() {
 }
 /* ── student panel ── */
 const studentData = JSON.parse(document.getElementById("students-json").textContent);
+const allStudentData = JSON.parse(document.getElementById("all-students-json").textContent);
 function openStudentPanel(row) {
   const pk = parseInt(row.dataset.pk);
-  const s = studentData.find(x => x.pk === pk);
+  const s = studentData.find(x => x.pk === pk) || allStudentData.find(x => x.pk === pk);
   if (!s) return;
   document.getElementById("sp-name").textContent = s.name;
   const rows = [
@@ -748,10 +768,77 @@ function filterStudents(q) {
 /* ── schools search filter ── */
 function filterSchools(q) {
   const val = q.toLowerCase();
-  document.querySelectorAll("#schools-table .school-row").forEach(row => {
+  document.querySelectorAll("#schools-body .school-row").forEach(row => {
     row.style.display = row.textContent.toLowerCase().includes(val) ? "" : "none";
   });
 }
+// ── Wire up all CSP-safe event listeners ───────────────────────────────────
+(function() {
+  // Sidebar students accordion
+  var tsBtn = document.getElementById('toggle-students-menu-btn');
+  if (tsBtn) tsBtn.addEventListener('click', toggleStudentsMenu);
+  // Student tab switcher
+  var tabContainer = document.querySelector('.flex.items-center.gap-1.bg-surface-container-low.rounded-lg.p-1');
+  if (tabContainer) {
+    tabContainer.addEventListener('click', function(e) {
+      var btn = e.target.closest('[data-tab]');
+      if (btn) counselorSwitchTab(btn.dataset.tab);
+    });
+  }
+  // Collapse/expand students section
+  var ctBtn = document.getElementById('counselor-toggle-students-btn');
+  if (ctBtn) ctBtn.addEventListener('click', counselorToggleStudents);
+  // My students rows — open panel on row click, stop propagation on actions cell
+  var studentsTable = document.getElementById('students-table');
+  if (studentsTable) {
+    studentsTable.addEventListener('click', function(e) {
+      if (e.target.closest('.actions-cell')) { e.stopPropagation(); return; }
+      var row = e.target.closest('tr.student-row');
+      if (row) openStudentPanel(row);
+    });
+  }
+  // All students rows — same panel, uses allStudentData lookup
+  var allStudentsTbody = document.getElementById('all-students-tbody');
+  if (allStudentsTbody) {
+    allStudentsTbody.addEventListener('click', function(e) {
+      if (e.target.closest('.actions-cell')) { e.stopPropagation(); return; }
+      var row = e.target.closest('tr.counselor-row-all');
+      if (row) openStudentPanel(row);
+    });
+  }
+  // Close student panel
+  var closeSpBtn = document.getElementById('close-student-panel-btn');
+  if (closeSpBtn) closeSpBtn.addEventListener('click', closeStudentPanel);
+  var spOverlay = document.getElementById('student-overlay');
+  if (spOverlay) spOverlay.addEventListener('click', closeStudentPanel);
+  // All students search
+  var allSearch = document.getElementById('all-students-search');
+  if (allSearch) allSearch.addEventListener('input', function() { counselorFilterAll(this.value); });
+  // Schools search
+  var schoolSearch = document.getElementById('school-search');
+  if (schoolSearch) schoolSearch.addEventListener('input', function() { filterSchools(this.value); });
+  // Add school toggle
+  var addSchoolBtn = document.getElementById('add-school-btn');
+  if (addSchoolBtn) addSchoolBtn.addEventListener('click', toggleAddSchool);
+  var cancelSchoolBtn = document.getElementById('cancel-school-btn');
+  if (cancelSchoolBtn) cancelSchoolBtn.addEventListener('click', toggleAddSchool);
+  // Priority list dismiss buttons
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('.dismiss-btn');
+    if (btn) dismissPriorityItem(btn.dataset.itemType, btn.dataset.itemId, btn.dataset.elementId, btn.dataset.countId, btn.dataset.containerId);
+  });
+  // Priority collapse + profile panel
+  var eptBtn = document.getElementById('emp-priority-toggle-btn');
+  if (eptBtn) eptBtn.addEventListener('click', empTogglePriority);
+  document.querySelectorAll('#toggle-profile-btn').forEach(function(b) { b.addEventListener('click', toggleProfile); });
+  var po = document.getElementById('profile-overlay');
+  if (po) po.addEventListener('click', toggleProfile);
+  // Sidebar
+  var so = document.getElementById('sidebar-overlay');
+  if (so) so.addEventListener('click', toggleSidebar);
+  var hb = document.getElementById('hamburger-btn');
+  if (hb) hb.addEventListener('click', toggleSidebar);
+})();
 // ── Notifications ──────────────────────────────────────────────────────────
 (function () {
   let _open = false;
@@ -778,7 +865,7 @@ function filterSchools(q) {
     const el = document.getElementById('notif-list');
     if (!notifs.length) { el.innerHTML = '<p class="text-center text-on-surface-variant py-8 text-sm">No notifications yet</p>'; return; }
     el.innerHTML = notifs.map(n => `
-      <div data-nid="${n.id}" onclick="_nRead(${n.id},this)" class="flex items-start gap-3 px-4 py-3 hover:bg-surface-container-low cursor-pointer transition-colors${n.read ? ' opacity-60' : ''}">
+      <div data-nid="${n.id}" class="notif-item flex items-start gap-3 px-4 py-3 hover:bg-surface-container-low cursor-pointer transition-colors${n.read ? ' opacity-60' : ''}">
         <span class="material-symbols-outlined ${n.read ? 'text-on-surface-variant' : 'text-primary'} mt-0.5 text-[18px] flex-shrink-0">${_icon(n.title)}</span>
         <div class="flex-1 min-w-0">
           <p class="font-label-bold text-label-bold text-on-surface text-sm">${_esc(n.title)}</p>
@@ -787,6 +874,9 @@ function filterSchools(q) {
         </div>
         ${!n.read ? '<span class="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-2"></span>' : ''}
       </div>`).join('');
+    el.querySelectorAll('.notif-item').forEach(function(item) {
+      item.addEventListener('click', function() { window._nRead(parseInt(item.dataset.nid), item); });
+    });
   }
   async function _load() {
     try {
@@ -837,6 +927,8 @@ function filterSchools(q) {
       document.getElementById('notif-panel')?.classList.add('hidden');
     }
   });
+  document.getElementById('notif-btn').addEventListener('click', function() { window.toggleNotif(); });
+  document.getElementById('mark-all-read-btn').addEventListener('click', function(e) { window.markAllRead(e); });
   _wsConnect();
   _load();
 })();
@@ -889,6 +981,11 @@ function filterSchools(q) {
     if(dd && inp && !dd.contains(e.target) && e.target!==inp) _close();
   });
   document.addEventListener('keydown', e => { if(e.key==='Escape') { _close(); _inp()?.blur(); } });
+  const _si = _inp();
+  if (_si) {
+    _si.addEventListener('input', function() { if (typeof filterStudents === 'function') filterStudents(this.value); window.handleGlobalSearch(this.value); });
+    _si.addEventListener('focus', function() { if (this.value.length >= 2) window.handleGlobalSearch(this.value); });
+  }
 })();
 // ── Priority List ─────────────────────────────────────────────────────────────
 function empTogglePriority() {
@@ -901,6 +998,15 @@ async function dismissPriorityItem(itemType, itemId, elementId, countId, contain
   const el = document.getElementById(elementId);
   const countEl = document.getElementById(countId);
   if (!el) return;
+  const csrf = document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '';
+  try {
+    const r = await fetch('/dismiss-priority-item/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': csrf },
+      body: 'item_type=' + encodeURIComponent(itemType) + '&item_id=' + encodeURIComponent(itemId),
+    });
+    if (!r.ok) return;
+  } catch (_) { return; }
   el.style.transition = 'opacity 0.3s, max-height 0.3s';
   el.style.opacity = '0';
   el.style.overflow = 'hidden';
@@ -911,14 +1017,6 @@ async function dismissPriorityItem(itemType, itemId, elementId, countId, contain
     const current = parseInt((countEl.textContent || '(0)').replace(/\D/g,'')) || 0;
     countEl.textContent = '(' + Math.max(0, current - 1) + ')';
   }
-  const csrf = document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '';
-  try {
-    await fetch('/dismiss-priority-item/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': csrf },
-      body: 'item_type=' + encodeURIComponent(itemType) + '&item_id=' + encodeURIComponent(itemId),
-    });
-  } catch (_) {}
 }
 </script>
 <!-- ===== FOOTER ===== -->

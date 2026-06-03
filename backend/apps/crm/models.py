@@ -532,6 +532,36 @@ class PriorityItemDismissal(models.Model):
         return f"{self.user} dismissed {self.item_type}:{self.item_id}"
 
 
+class StudentReference(models.Model):
+    TYPE_FILE = "file"
+    TYPE_URL = "url"
+    TYPE_CHOICES = [("file", "File / Document"), ("url", "URL / Link")]
+
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="reference_items")
+    title = models.CharField(max_length=255)
+    reference_type = models.CharField(max_length=10, choices=TYPE_CHOICES, default="file")
+    file_name = models.CharField(max_length=255, blank=True, default="")
+    file_data = models.TextField(blank=True, default="")   # base64-encoded file content
+    file_mime = models.CharField(max_length=100, blank=True, default="")
+    url = models.URLField(max_length=2000, blank=True, default="")
+    note = models.TextField(blank=True, default="")
+    added_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="added_references"
+    )
+    seen_by = models.ManyToManyField(
+        settings.AUTH_USER_MODEL, blank=True, related_name="seen_references"
+    )
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.title} → {self.student.full_name}"
+
+
 class FollowUp(models.Model):
     status = models.CharField(max_length=20, choices=FollowUpStatus.choices, default=FollowUpStatus.PENDING, db_index=True)
     scheduled_at = models.DateTimeField(db_index=True)

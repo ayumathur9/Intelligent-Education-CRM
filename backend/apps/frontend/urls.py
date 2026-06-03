@@ -37,4 +37,15 @@ urlpatterns = [
     path("toggle-pin-note/<int:pk>/", views.toggle_pin_note, name="toggle-pin-note"),
     path("search/", views.global_search, name="global-search"),
     path("dismiss-priority-item/", views.dismiss_priority_item, name="dismiss-priority-item"),
+    # Student References
+    path("student-references/<int:student_id>/", views.student_references_view, name="student-references"),
+    path("api/references/<int:ref_id>/seen/", views.mark_reference_seen, name="mark-reference-seen"),
+    path("reference-file/<int:ref_id>/", views.serve_reference_file, name="serve-reference-file"),
+    path("quick-upload/", views.quick_upload_view, name="quick-upload"),
+    path("my-references/add/", views.student_add_reference_view, name="student-add-reference"),
+    path("my-references/", views.my_references_view, name="my-references"),
+    path("reset-password/", views.reset_password_view, name="reset-password"),
+    path("accept-invite/", views.accept_invite_view, name="accept-invite"),
+    path("tutorial-video/", views.tutorial_video_view, name="tutorial-video"),
+    path("dismiss-tutorial/", views.dismiss_tutorial_view, name="dismiss-tutorial"),
 ]

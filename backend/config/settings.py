@@ -67,9 +67,6 @@ INSTALLED_APPS = [
     "drf_spectacular",
     # HIGH-005: field-level PII encryption
     "encrypted_model_fields",
-    # LOW-009: TOTP / MFA
-    "django_otp",
-    "django_otp.plugins.otp_totp",
     # Local apps
     "apps.common",
     "apps.users",
@@ -124,13 +121,13 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    # HIGH-1: Verify OTP device state after session auth (enables MFA on Django admin).
-    "django_otp.middleware.OTPMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "apps.common.middleware.SecurityHeadersMiddleware",
     # OBS-003: log 401/403/429 security events after authentication is resolved.
     "apps.common.middleware.SecurityEventLoggingMiddleware",
+    # Alert admins on unhandled 500-level exceptions (production only).
+    "apps.common.middleware.ServerErrorAlertMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -146,6 +143,8 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                # SEC-CSP: expose per-request nonce to all templates
+                "apps.common.context_processors.csp_nonce",
             ],
         },
     }
@@ -280,6 +279,8 @@ REST_FRAMEWORK = {
         # RL-001: additional scopes
         "upload": os.getenv("DRF_UPLOAD_RATE", "30/min"),
         "burst": os.getenv("DRF_BURST_RATE", "100/min"),
+        # RL-002: registration — 10 new accounts per hour per IP
+        "register": os.getenv("DRF_REGISTER_RATE", "10/hour"),
     },
     # Never expose Python stack traces in API error responses.
     "EXCEPTION_HANDLER": "rest_framework.views.exception_handler",
@@ -297,6 +298,19 @@ SPECTACULAR_SETTINGS = {
         }
     },
 }
+
+# Silence expected system-check warnings that are either intentional or handled
+# at the infrastructure layer (Railway terminates SSL, drf_spectacular schema
+# warnings are non-functional and affect only API docs generation).
+SILENCED_SYSTEM_CHECKS = [
+    # drf_spectacular cannot auto-detect serializers on plain APIView subclasses.
+    # These are OpenAPI schema warnings only — runtime behaviour is unaffected.
+    "drf_spectacular.W001",
+    "drf_spectacular.W002",
+    # Railway's load balancer handles SSL termination and redirects HTTP→HTTPS.
+    # The app itself does not need SECURE_SSL_REDIRECT=True.
+    "security.W008",
+]
 
 # ---------------------------------------------------------------------------
 # JWT — HIGH-004
@@ -323,13 +337,28 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
 EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
 EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "1") == "1"
+EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", "0") == "1"
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
 EMAIL_TIMEOUT = 10  # seconds — prevents infinite hang on SMTP failure
 DEFAULT_FROM_EMAIL = os.getenv(
     "DEFAULT_FROM_EMAIL", "Intelligent Education <no-reply@example.com>"
 )
-FRONTEND_BASE_URL = os.getenv("FRONTEND_BASE_URL", "http://localhost:5500")
+
+# ---------------------------------------------------------------------------
+# EMAIL DELIVERABILITY — rate limiting + provider notes
+# ---------------------------------------------------------------------------
+# Per-address hourly rate limit.  Protects against accidental spam spikes.
+# Brute-force welcome/reset emails to the same address are blocked after 10/hr.
+EMAIL_RATE_LIMIT_PER_HOUR = int(os.getenv("EMAIL_RATE_LIMIT_PER_HOUR", "10"))
+
+# When EMAIL_BACKEND_PROVIDER=resend, override HOST/PORT/CREDENTIALS automatically.
+# Supported: "gmail" (default), "resend", "postmark", "sendgrid", "mailgun"
+# To migrate to Resend: set EMAIL_HOST=smtp.resend.com EMAIL_PORT=465
+#   EMAIL_USE_SSL=1 EMAIL_USE_TLS=0
+#   EMAIL_HOST_USER=resend EMAIL_HOST_PASSWORD=<Resend API key>
+#   DEFAULT_FROM_EMAIL="Intelligent Education <no-reply@intelligenteducation.org>"
+FRONTEND_BASE_URL = os.getenv("FRONTEND_BASE_URL", "https://crm.intelligenteducation.org")
 
 # ---------------------------------------------------------------------------
 # LOCAL FILE STORAGE
@@ -349,16 +378,20 @@ NGINX_MEDIA_ACCEL = os.getenv("NGINX_MEDIA_ACCEL", "0") == "1"
 # ---------------------------------------------------------------------------
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 CSRF_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_HTTPONLY = False      # Must be False — JS reads csrftoken cookie for all AJAX requests
+CSRF_COOKIE_SAMESITE = "Lax"
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = "DENY"
-SECURE_REFERRER_POLICY = "same-origin"
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 
 if not DEBUG:
     SECURE_SSL_REDIRECT = os.getenv("DJANGO_SECURE_SSL_REDIRECT", "1") == "1"
     SECURE_HSTS_SECONDS = int(os.getenv("DJANGO_SECURE_HSTS_SECONDS", "31536000"))  # 1 year
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
+    # Prevent browsers from sending cookies on cross-site top-level navigations.
+    SESSION_COOKIE_SAMESITE = "Strict"
 
 # ---------------------------------------------------------------------------
 # FILE UPLOAD SECURITY
@@ -583,6 +616,13 @@ CELERY_WORKER_PREFETCH_MULTIPLIER = 1     # fair scheduling
 CELERY_TASK_DEFAULT_QUEUE = "default"
 CELERY_TASK_QUEUES_DEFAULT_EXCHANGE = "default"
 
+# Email tasks run on a dedicated queue with conservative concurrency so a spike
+# of outbound mail does not starve other Celery workers.
+CELERY_TASK_ROUTES = {
+    "apps.common.email_tasks.*": {"queue": "email"},
+    "apps.notifications.tasks.*": {"queue": "default"},
+}
+
 # Beat schedule for periodic maintenance tasks.
 from celery.schedules import crontab as _crontab  # noqa: E402
 CELERY_BEAT_SCHEDULE = {
@@ -615,6 +655,16 @@ CELERY_BEAT_SCHEDULE = {
     "weekly-cleanup-orphaned-files": {
         "task": "apps.files.tasks.cleanup_orphaned_files",
         "schedule": _crontab(hour=4, minute=0, day_of_week=0),  # Sunday 04:00
+    },
+    # SEC-FALLBACK: Daily prune of DB-backed login failure records.
+    "daily-prune-login-failures": {
+        "task": "apps.audit.tasks.prune_login_failures",
+        "schedule": _crontab(hour=3, minute=45),
+    },
+    # Weekly (Monday 08:00 IST): profile-completion reminder to students with missing fields.
+    "weekly-profile-reminders": {
+        "task": "apps.common.tasks.send_weekly_profile_reminders",
+        "schedule": _crontab(hour=8, minute=0, day_of_week=1),
     },
 }
 

@@ -1,0 +1,17 @@
+{# BLUE INFO BOX
+   Variable: info_text (HTML allowed)
+   Optional: info_icon (HTML entity string, default envelope)
+#}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+       style="border:1px solid #bfdbfe;border-radius:8px;margin:0 0 28px;" class="dm-info-box">
+<tr>
+  <td style="background-color:#eff6ff;border-radius:8px;padding:16px 20px;" class="dm-info-box">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+      <td style="width:28px;vertical-align:top;padding-top:1px;font-size:16px;color:#1e40af;" class="dm-info-text">{{ info_icon|default:"&#9993;" }}</td>
+      <td style="padding-left:10px;font-size:14px;color:#1e40af;line-height:1.6;font-family:Arial,Helvetica,sans-serif;" class="dm-info-text">{{ info_text }}</td>
+    </tr>
+    </table>
+  </td>
+</tr>
+</table>

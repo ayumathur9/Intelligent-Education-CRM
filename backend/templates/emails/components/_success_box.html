@@ -1,0 +1,17 @@
+{# GREEN SUCCESS / SUPPORT BOX
+   Variable: ok_text (HTML allowed)
+   Optional: ok_icon (HTML entity)
+#}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+       style="border:1px solid #bbf7d0;border-radius:8px;margin:0 0 28px;" class="dm-ok-box">
+<tr>
+  <td style="background-color:#f0fdf4;border-radius:8px;padding:16px 20px;" class="dm-ok-box">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+      <td style="width:28px;vertical-align:top;padding-top:1px;font-size:16px;" class="dm-ok-text">{{ ok_icon|default:"&#128222;" }}</td>
+      <td style="padding-left:10px;font-size:14px;color:#166534;line-height:1.7;font-family:Arial,Helvetica,sans-serif;" class="dm-ok-text">{{ ok_text }}</td>
+    </tr>
+    </table>
+  </td>
+</tr>
+</table>

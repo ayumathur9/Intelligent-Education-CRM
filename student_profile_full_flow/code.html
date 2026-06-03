@@ -1,13 +1,13 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html class="light" lang="en">
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>My Profile | Intelligent Education CRM</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries" nonce="{{ csp_nonce }}"></script>
 <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-<style>
+<style nonce="{{ csp_nonce }}">
   .material-symbols-outlined {
     font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
     display: inline-block;
@@ -32,7 +32,7 @@
   #hamburger-btn { display:none; }
   @media (max-width:1023px) { #hamburger-btn { display:inline-flex; } }
 </style>
-<script id="tailwind-config">
+<script id="tailwind-config" nonce="{{ csp_nonce }}">
   tailwind.config = {
     darkMode: "class",
     theme: {
@@ -145,6 +145,10 @@
       <span class="material-symbols-outlined">history</span>
       <span class="font-label-bold text-label-bold">Recent Activity</span>
     </a>
+    <a class="flex items-center gap-3 px-4 py-3 text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg mx-2 my-1" href="/my-references/">
+      <span class="material-symbols-outlined">bookmark</span>
+      <span class="font-label-bold text-label-bold">References</span>
+    </a>
     {% elif user.role == "admin" %}
     <a class="flex items-center gap-3 px-4 py-3 text-on-primary/80 hover:text-on-primary hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg mx-2 my-1" href="/">
       <span class="material-symbols-outlined">dashboard</span>
@@ -200,14 +204,27 @@
     <span class="material-symbols-outlined text-outline">search</span>
     <input class="bg-transparent border-none focus:ring-0 text-body-md w-full ml-2" placeholder="Search students, courses..." type="text"/>
   </div>
-  <div class="flex items-center space-x-6">
-    <button class="relative text-on-surface-variant hover:text-primary transition-colors">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-      <a href="/logout/" title="Sign out" class="ml-2 p-2 text-on-surface-variant hover:text-primary transition-colors rounded-lg">
-        <span class="material-symbols-outlined text-[22px]">logout</span>
-      </a>
-      <span class="absolute top-0 right-0 block h-2 w-2 rounded-full bg-primary ring-2 ring-surface-container-lowest"></span>
-    </button>
+  <div class="flex items-center gap-3">
+    {% if is_own_profile %}
+    <div class="relative" id="notif-wrap">
+      <button id="notif-btn" class="relative p-2 text-on-surface-variant hover:text-primary transition-colors rounded-lg">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span id="notif-badge" class="hidden absolute top-1 right-1 min-w-[18px] h-[18px] bg-error text-on-error text-[10px] font-bold rounded-full flex items-center justify-center"></span>
+      </button>
+      <div id="notif-panel" class="hidden absolute right-0 mt-2 w-80 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-xl z-50 overflow-hidden" style="top:100%;">
+        <div class="flex items-center justify-between px-4 py-3 border-b border-outline-variant">
+          <span class="font-label-bold text-label-bold text-on-surface">Notifications</span>
+          <button id="mark-all-read-btn" class="text-xs text-primary hover:underline font-label-sm">Mark all read</button>
+        </div>
+        <div id="notif-list" class="max-h-[320px] overflow-y-auto divide-y divide-outline-variant/50">
+          <p class="text-center text-on-surface-variant py-8 text-sm">Loading…</p>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+    <a href="/logout/" title="Sign out" class="p-2 text-on-surface-variant hover:text-primary transition-colors rounded-lg">
+      <span class="material-symbols-outlined text-[22px]">logout</span>
+    </a>
     <div class="h-10 w-10 rounded-full bg-secondary-fixed flex items-center justify-center overflow-hidden border border-outline-variant">
       <img id="nav-avatar-img" alt="Profile" class="h-full w-full object-cover{% if not user.avatar %} hidden{% endif %}" src="{% if user.avatar %}/my-avatar/{% endif %}"/>
       <span id="nav-avatar-initial" class="font-bold text-secondary text-lg{% if user.avatar %} hidden{% endif %}">{{ user.full_name|default:user.email|first|upper }}</span>
@@ -270,7 +287,7 @@
           <p class="font-label-bold text-label-bold text-on-surface mb-1">Profile Photo</p>
           <label class="cursor-pointer inline-flex items-center gap-2 px-4 py-2 border border-outline-variant rounded-lg text-[12px] font-label-bold text-on-surface hover:bg-surface-container-low transition-colors">
             <span class="material-symbols-outlined text-[16px]">upload</span>Upload Photo
-            <input type="file" accept="image/*" class="hidden" onchange="uploadFile(this,'avatar','avatar-status','avatar-name')"/>
+            <input type="file" accept="image/*" class="hidden" data-doc-type="avatar" data-badge="avatar-status" data-name="avatar-name"/>
           </label>
           <p id="avatar-name" class="text-xs text-on-surface-variant mt-1"></p>
           <p id="avatar-status" class="text-xs mt-0.5"></p>
@@ -557,7 +574,7 @@
             <div class="edu-entry p-5 bg-surface-container-low rounded-xl border border-outline-variant relative">
               <div class="flex items-center justify-between mb-4">
                 <h3 class="font-label-bold text-on-surface">Academic Record #<span class="edu-num">{{ forloop.counter }}</span></h3>
-                <button type="button" onclick="removeEntry(this, 'edu')" class="text-error hover:bg-error-container p-1 rounded transition-colors">
+                <button type="button" class="remove-entry-btn text-error hover:bg-error-container p-1 rounded transition-colors" data-type="edu">
                   <span class="material-symbols-outlined text-[20px]">delete</span>
                 </button>
               </div>
@@ -605,7 +622,7 @@
             <div class="edu-entry p-5 bg-surface-container-low rounded-xl border border-outline-variant relative">
               <div class="flex items-center justify-between mb-4">
                 <h3 class="font-label-bold text-on-surface">Academic Record #<span class="edu-num">1</span></h3>
-                <button type="button" onclick="removeEntry(this, 'edu')" class="text-error hover:bg-error-container p-1 rounded transition-colors">
+                <button type="button" class="remove-entry-btn text-error hover:bg-error-container p-1 rounded transition-colors" data-type="edu">
                   <span class="material-symbols-outlined text-[20px]">delete</span>
                 </button>
               </div>
@@ -651,7 +668,7 @@
           {% endif %}
         </div>
         <div class="px-6 pb-6">
-          <button type="button" onclick="addEduEntry()" class="w-full py-3 border-2 border-dashed border-outline-variant rounded-xl text-on-surface-variant font-label-bold hover:border-primary hover:text-primary transition-all flex items-center justify-center">
+          <button type="button" id="add-edu-btn" class="w-full py-3 border-2 border-dashed border-outline-variant rounded-xl text-on-surface-variant font-label-bold hover:border-primary hover:text-primary transition-all flex items-center justify-center">
             <span class="material-symbols-outlined mr-2">add_circle</span> Add Another Academic History
           </button>
         </div>
@@ -678,7 +695,7 @@
               <div class="flex items-center gap-2 ml-3 shrink-0">
                 <span id="doc-passport-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase {% if profile_docs.passport %}bg-green-100 text-green-700{% else %}bg-yellow-100 text-yellow-700{% endif %}">{% if profile_docs.passport %}Uploaded{% else %}Pending{% endif %}</span>
                 {% if profile_docs.passport %}<a href="/profile-doc/{{ profile_docs.passport.id }}/view/" target="_blank" class="flex items-center gap-1 bg-surface-container border border-outline-variant text-on-surface px-2 py-1.5 rounded text-xs font-bold hover:bg-surface-variant transition-colors"><span class="material-symbols-outlined" style="font-size:14px;line-height:1">visibility</span>View</a><a href="/profile-doc/{{ profile_docs.passport.id }}/view/?download={{ profile_docs.passport.file_name }}" class="flex items-center gap-1 bg-secondary-container text-on-secondary-container px-2 py-1.5 rounded text-xs font-bold hover:opacity-80 transition-colors"><span class="material-symbols-outlined" style="font-size:14px;line-height:1">download</span>DL</a>{% endif %}
-                {% if is_own_profile %}<label class="cursor-pointer bg-primary text-on-primary px-3 py-1.5 rounded text-xs font-bold hover:bg-primary-container transition-colors">{% if profile_docs.passport %}Update{% else %}Upload{% endif %}<input type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png" onchange="uploadFile(this,'passport','doc-passport-badge','doc-passport-name')"/></label>{% endif %}
+                {% if is_own_profile %}<label class="cursor-pointer bg-primary text-on-primary px-3 py-1.5 rounded text-xs font-bold hover:bg-primary-container transition-colors">{% if profile_docs.passport %}Update{% else %}Upload{% endif %}<input type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png" data-doc-type="passport" data-badge="doc-passport-badge" data-name="doc-passport-name"/></label>{% endif %}
               </div>
             </div>
           </div>
@@ -696,7 +713,7 @@
               <div class="flex items-center gap-2 ml-3 shrink-0">
                 <span id="doc-marksheet_10-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase {% if profile_docs.marksheet_10 %}bg-green-100 text-green-700{% else %}bg-yellow-100 text-yellow-700{% endif %}">{% if profile_docs.marksheet_10 %}Uploaded{% else %}Pending{% endif %}</span>
                 {% if profile_docs.marksheet_10 %}<a href="/profile-doc/{{ profile_docs.marksheet_10.id }}/view/" target="_blank" class="flex items-center gap-1 bg-surface-container border border-outline-variant text-on-surface px-2 py-1.5 rounded text-xs font-bold hover:bg-surface-variant transition-colors"><span class="material-symbols-outlined" style="font-size:14px;line-height:1">visibility</span>View</a><a href="/profile-doc/{{ profile_docs.marksheet_10.id }}/view/?download={{ profile_docs.marksheet_10.file_name }}" class="flex items-center gap-1 bg-secondary-container text-on-secondary-container px-2 py-1.5 rounded text-xs font-bold hover:opacity-80 transition-colors"><span class="material-symbols-outlined" style="font-size:14px;line-height:1">download</span>DL</a>{% endif %}
-                {% if is_own_profile %}<label class="cursor-pointer bg-primary text-on-primary px-3 py-1.5 rounded text-xs font-bold hover:bg-primary-container transition-colors">{% if profile_docs.marksheet_10 %}Update{% else %}Upload{% endif %}<input type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png" onchange="uploadFile(this,'marksheet_10','doc-marksheet_10-badge','doc-marksheet_10-name')"/></label>{% endif %}
+                {% if is_own_profile %}<label class="cursor-pointer bg-primary text-on-primary px-3 py-1.5 rounded text-xs font-bold hover:bg-primary-container transition-colors">{% if profile_docs.marksheet_10 %}Update{% else %}Upload{% endif %}<input type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png" data-doc-type="marksheet_10" data-badge="doc-marksheet_10-badge" data-name="doc-marksheet_10-name"/></label>{% endif %}
               </div>
             </div>
           </div>
@@ -714,7 +731,7 @@
               <div class="flex items-center gap-2 ml-3 shrink-0">
                 <span id="doc-marksheet_11-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase {% if profile_docs.marksheet_11 %}bg-green-100 text-green-700{% else %}bg-yellow-100 text-yellow-700{% endif %}">{% if profile_docs.marksheet_11 %}Uploaded{% else %}Pending{% endif %}</span>
                 {% if profile_docs.marksheet_11 %}<a href="/profile-doc/{{ profile_docs.marksheet_11.id }}/view/" target="_blank" class="flex items-center gap-1 bg-surface-container border border-outline-variant text-on-surface px-2 py-1.5 rounded text-xs font-bold hover:bg-surface-variant transition-colors"><span class="material-symbols-outlined" style="font-size:14px;line-height:1">visibility</span>View</a><a href="/profile-doc/{{ profile_docs.marksheet_11.id }}/view/?download={{ profile_docs.marksheet_11.file_name }}" class="flex items-center gap-1 bg-secondary-container text-on-secondary-container px-2 py-1.5 rounded text-xs font-bold hover:opacity-80 transition-colors"><span class="material-symbols-outlined" style="font-size:14px;line-height:1">download</span>DL</a>{% endif %}
-                {% if is_own_profile %}<label class="cursor-pointer bg-primary text-on-primary px-3 py-1.5 rounded text-xs font-bold hover:bg-primary-container transition-colors">{% if profile_docs.marksheet_11 %}Update{% else %}Upload{% endif %}<input type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png" onchange="uploadFile(this,'marksheet_11','doc-marksheet_11-badge','doc-marksheet_11-name')"/></label>{% endif %}
+                {% if is_own_profile %}<label class="cursor-pointer bg-primary text-on-primary px-3 py-1.5 rounded text-xs font-bold hover:bg-primary-container transition-colors">{% if profile_docs.marksheet_11 %}Update{% else %}Upload{% endif %}<input type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png" data-doc-type="marksheet_11" data-badge="doc-marksheet_11-badge" data-name="doc-marksheet_11-name"/></label>{% endif %}
               </div>
             </div>
           </div>
@@ -732,7 +749,7 @@
               <div class="flex items-center gap-2 ml-3 shrink-0">
                 <span id="doc-marksheet_12-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase {% if profile_docs.marksheet_12 %}bg-green-100 text-green-700{% else %}bg-yellow-100 text-yellow-700{% endif %}">{% if profile_docs.marksheet_12 %}Uploaded{% else %}Pending{% endif %}</span>
                 {% if profile_docs.marksheet_12 %}<a href="/profile-doc/{{ profile_docs.marksheet_12.id }}/view/" target="_blank" class="flex items-center gap-1 bg-surface-container border border-outline-variant text-on-surface px-2 py-1.5 rounded text-xs font-bold hover:bg-surface-variant transition-colors"><span class="material-symbols-outlined" style="font-size:14px;line-height:1">visibility</span>View</a><a href="/profile-doc/{{ profile_docs.marksheet_12.id }}/view/?download={{ profile_docs.marksheet_12.file_name }}" class="flex items-center gap-1 bg-secondary-container text-on-secondary-container px-2 py-1.5 rounded text-xs font-bold hover:opacity-80 transition-colors"><span class="material-symbols-outlined" style="font-size:14px;line-height:1">download</span>DL</a>{% endif %}
-                {% if is_own_profile %}<label class="cursor-pointer bg-primary text-on-primary px-3 py-1.5 rounded text-xs font-bold hover:bg-primary-container transition-colors">{% if profile_docs.marksheet_12 %}Update{% else %}Upload{% endif %}<input type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png" onchange="uploadFile(this,'marksheet_12','doc-marksheet_12-badge','doc-marksheet_12-name')"/></label>{% endif %}
+                {% if is_own_profile %}<label class="cursor-pointer bg-primary text-on-primary px-3 py-1.5 rounded text-xs font-bold hover:bg-primary-container transition-colors">{% if profile_docs.marksheet_12 %}Update{% else %}Upload{% endif %}<input type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png" data-doc-type="marksheet_12" data-badge="doc-marksheet_12-badge" data-name="doc-marksheet_12-name"/></label>{% endif %}
               </div>
             </div>
           </div>
@@ -750,7 +767,7 @@
               <div class="flex items-center gap-2 ml-3 shrink-0">
                 <span id="doc-english_proficiency-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase {% if profile_docs.english_proficiency %}bg-green-100 text-green-700{% else %}bg-yellow-100 text-yellow-700{% endif %}">{% if profile_docs.english_proficiency %}Uploaded{% else %}Pending{% endif %}</span>
                 {% if profile_docs.english_proficiency %}<a href="/profile-doc/{{ profile_docs.english_proficiency.id }}/view/" target="_blank" class="flex items-center gap-1 bg-surface-container border border-outline-variant text-on-surface px-2 py-1.5 rounded text-xs font-bold hover:bg-surface-variant transition-colors"><span class="material-symbols-outlined" style="font-size:14px;line-height:1">visibility</span>View</a><a href="/profile-doc/{{ profile_docs.english_proficiency.id }}/view/?download={{ profile_docs.english_proficiency.file_name }}" class="flex items-center gap-1 bg-secondary-container text-on-secondary-container px-2 py-1.5 rounded text-xs font-bold hover:opacity-80 transition-colors"><span class="material-symbols-outlined" style="font-size:14px;line-height:1">download</span>DL</a>{% endif %}
-                {% if is_own_profile %}<label class="cursor-pointer bg-primary text-on-primary px-3 py-1.5 rounded text-xs font-bold hover:bg-primary-container transition-colors">{% if profile_docs.english_proficiency %}Update{% else %}Upload{% endif %}<input type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png" onchange="uploadFile(this,'english_proficiency','doc-english_proficiency-badge','doc-english_proficiency-name')"/></label>{% endif %}
+                {% if is_own_profile %}<label class="cursor-pointer bg-primary text-on-primary px-3 py-1.5 rounded text-xs font-bold hover:bg-primary-container transition-colors">{% if profile_docs.english_proficiency %}Update{% else %}Upload{% endif %}<input type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png" data-doc-type="english_proficiency" data-badge="doc-english_proficiency-badge" data-name="doc-english_proficiency-name"/></label>{% endif %}
               </div>
             </div>
           </div>
@@ -768,7 +785,7 @@
               <div class="flex items-center gap-2 ml-3 shrink-0">
                 <span id="doc-gre_gmat_other-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase {% if profile_docs.gre_gmat_other %}bg-green-100 text-green-700{% else %}bg-yellow-100 text-yellow-700{% endif %}">{% if profile_docs.gre_gmat_other %}Uploaded{% else %}Pending{% endif %}</span>
                 {% if profile_docs.gre_gmat_other %}<a href="/profile-doc/{{ profile_docs.gre_gmat_other.id }}/view/" target="_blank" class="flex items-center gap-1 bg-surface-container border border-outline-variant text-on-surface px-2 py-1.5 rounded text-xs font-bold hover:bg-surface-variant transition-colors"><span class="material-symbols-outlined" style="font-size:14px;line-height:1">visibility</span>View</a><a href="/profile-doc/{{ profile_docs.gre_gmat_other.id }}/view/?download={{ profile_docs.gre_gmat_other.file_name }}" class="flex items-center gap-1 bg-secondary-container text-on-secondary-container px-2 py-1.5 rounded text-xs font-bold hover:opacity-80 transition-colors"><span class="material-symbols-outlined" style="font-size:14px;line-height:1">download</span>DL</a>{% endif %}
-                {% if is_own_profile %}<label class="cursor-pointer bg-primary text-on-primary px-3 py-1.5 rounded text-xs font-bold hover:bg-primary-container transition-colors">{% if profile_docs.gre_gmat_other %}Update{% else %}Upload{% endif %}<input type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png" onchange="uploadFile(this,'gre_gmat_other','doc-gre_gmat_other-badge','doc-gre_gmat_other-name')"/></label>{% endif %}
+                {% if is_own_profile %}<label class="cursor-pointer bg-primary text-on-primary px-3 py-1.5 rounded text-xs font-bold hover:bg-primary-container transition-colors">{% if profile_docs.gre_gmat_other %}Update{% else %}Upload{% endif %}<input type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png" data-doc-type="gre_gmat_other" data-badge="doc-gre_gmat_other-badge" data-name="doc-gre_gmat_other-name"/></label>{% endif %}
               </div>
             </div>
           </div>
@@ -788,7 +805,7 @@
             <div class="work-entry p-5 bg-surface-container-low rounded-xl border border-outline-variant relative">
               <div class="flex items-center justify-between mb-4">
                 <h3 class="font-label-bold text-on-surface">Work Experience #<span class="work-num">{{ forloop.counter }}</span></h3>
-                <button type="button" onclick="removeEntry(this, 'work')" class="text-error hover:bg-error-container p-1 rounded transition-colors">
+                <button type="button" class="remove-entry-btn text-error hover:bg-error-container p-1 rounded transition-colors" data-type="work">
                   <span class="material-symbols-outlined text-[20px]">delete</span>
                 </button>
               </div>
@@ -822,7 +839,7 @@
             <div class="work-entry p-5 bg-surface-container-low rounded-xl border border-outline-variant relative">
               <div class="flex items-center justify-between mb-4">
                 <h3 class="font-label-bold text-on-surface">Work Experience #<span class="work-num">1</span></h3>
-                <button type="button" onclick="removeEntry(this, 'work')" class="text-error hover:bg-error-container p-1 rounded transition-colors">
+                <button type="button" class="remove-entry-btn text-error hover:bg-error-container p-1 rounded transition-colors" data-type="work">
                   <span class="material-symbols-outlined text-[20px]">delete</span>
                 </button>
               </div>
@@ -854,7 +871,7 @@
           {% endif %}
         </div>
         <div class="px-6 pb-6">
-          <button type="button" onclick="addWorkEntry()" class="w-full py-3 border-2 border-dashed border-outline-variant rounded-xl text-on-surface-variant font-label-bold hover:border-primary hover:text-primary transition-all flex items-center justify-center">
+          <button type="button" id="add-work-btn" class="w-full py-3 border-2 border-dashed border-outline-variant rounded-xl text-on-surface-variant font-label-bold hover:border-primary hover:text-primary transition-all flex items-center justify-center">
             <span class="material-symbols-outlined mr-2">add_circle</span> Add Work Experience
           </button>
         </div>
@@ -916,7 +933,7 @@
   <p>© 2024 Intelligent Education CRM. All Rights Reserved. | v2.4.0</p>
 </footer>
 
-<script>
+<script nonce="{{ csp_nonce }}">
 function toggleSidebar() {
   const sb = document.getElementById('sidebar');
   const ov = document.getElementById('sidebar-overlay');
@@ -941,7 +958,7 @@ function addEduEntry() {
   div.innerHTML = `
     <div class="flex items-center justify-between mb-4">
       <h3 class="font-label-bold text-on-surface">Academic Record #<span class="edu-num">${idx}</span></h3>
-      <button type="button" onclick="removeEntry(this, 'edu')" class="text-error hover:bg-error-container p-1 rounded transition-colors">
+      <button type="button" class="remove-entry-btn text-error hover:bg-error-container p-1 rounded transition-colors" data-type="edu">
         <span class="material-symbols-outlined text-[20px]">delete</span>
       </button>
     </div>
@@ -1000,7 +1017,7 @@ function addWorkEntry() {
   div.innerHTML = `
     <div class="flex items-center justify-between mb-4">
       <h3 class="font-label-bold text-on-surface">Work Experience #<span class="work-num">${idx}</span></h3>
-      <button type="button" onclick="removeEntry(this, 'work')" class="text-error hover:bg-error-container p-1 rounded transition-colors">
+      <button type="button" class="remove-entry-btn text-error hover:bg-error-container p-1 rounded transition-colors" data-type="work">
         <span class="material-symbols-outlined text-[20px]">delete</span>
       </button>
     </div>
@@ -1129,24 +1146,51 @@ document.getElementById('sameAsPermanent').addEventListener('change', function()
     fields.classList.remove('opacity-50', 'pointer-events-none');
   }
 });
+document.querySelectorAll('input[type="file"][data-doc-type]').forEach(function(inp) {
+  inp.addEventListener('change', function() {
+    uploadFile(this, this.dataset.docType, this.dataset.badge, this.dataset.name);
+  });
+});
+// ── Wire up CSP-safe event listeners ──
+(function() {
+  var so = document.getElementById('sidebar-overlay');
+  if (so) so.addEventListener('click', toggleSidebar);
+  var hb = document.getElementById('hamburger-btn');
+  if (hb) hb.addEventListener('click', toggleSidebar);
+  var aeb = document.getElementById('add-edu-btn');
+  if (aeb) aeb.addEventListener('click', addEduEntry);
+  var awb = document.getElementById('add-work-btn');
+  if (awb) awb.addEventListener('click', addWorkEntry);
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('.remove-entry-btn');
+    if (btn) removeEntry(btn, btn.dataset.type);
+  });
+  // T&C / PP modal open/close
+  document.addEventListener('click', function(e) {
+    var ob = e.target.closest('[data-open-modal]');
+    if (ob) { document.getElementById(ob.dataset.openModal)?.classList.remove('hidden'); return; }
+    var cb = e.target.closest('[data-close-modal]');
+    if (cb) { document.getElementById(cb.dataset.closeModal)?.classList.add('hidden'); }
+  });
+})();
 </script>
 
 
 <!-- ===== FOOTER ===== -->
 <footer id="main-footer" style="margin-left:260px;" class="border-t border-[#e4beba] bg-[#fff0ef] py-4 px-6 text-center text-xs text-[#5b403d]">
   <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-1">
-    <button onclick="document.getElementById('tc-modal').classList.remove('hidden')" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">Terms &amp; Conditions</button>
+    <button data-open-modal="tc-modal" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">Terms &amp; Conditions</button>
     <span class="text-[#e4beba]">|</span>
-    <button onclick="document.getElementById('pp-modal').classList.remove('hidden')" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">Privacy Policy</button>
+    <button data-open-modal="pp-modal" class="hover:text-[#a20513] underline underline-offset-2 transition-colors">Privacy Policy</button>
   </div>
 </footer>
 
 <!-- T&amp;C Modal -->
-<div id="tc-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-black/40 p-4" onclick="if(event.target===this)this.classList.add('hidden')">
+<div id="tc-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-black/40 p-4">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col">
     <div class="flex items-center justify-between px-6 py-4 border-b border-[#e4beba]">
       <h2 class="text-lg font-semibold text-[#271816]" style="font-family:'Lexend',sans-serif;">Terms &amp; Conditions</h2>
-      <button onclick="document.getElementById('tc-modal').classList.add('hidden')" class="text-[#5b403d] hover:text-[#271816] transition-colors rounded-full p-1 hover:bg-[#ffe9e6]">
+      <button data-close-modal="tc-modal" class="text-[#5b403d] hover:text-[#271816] transition-colors rounded-full p-1 hover:bg-[#ffe9e6]">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
     </div>
@@ -1249,11 +1293,11 @@ document.getElementById('sameAsPermanent').addEventListener('change', function()
   </div>
 </div>
 <!-- Privacy Policy Modal -->
-<div id="pp-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-black/40 p-4" onclick="if(event.target===this)this.classList.add('hidden')">
+<div id="pp-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-black/40 p-4">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col">
     <div class="flex items-center justify-between px-6 py-4 border-b border-[#e4beba]">
       <h2 class="text-lg font-semibold text-[#271816]" style="font-family:'Lexend',sans-serif;">Privacy Policy</h2>
-      <button onclick="document.getElementById('pp-modal').classList.add('hidden')" class="text-[#5b403d] hover:text-[#271816] transition-colors rounded-full p-1 hover:bg-[#ffe9e6]">
+      <button data-close-modal="pp-modal" class="text-[#5b403d] hover:text-[#271816] transition-colors rounded-full p-1 hover:bg-[#ffe9e6]">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
     </div>
@@ -1317,5 +1361,71 @@ document.getElementById('sameAsPermanent').addEventListener('change', function()
   </div>
 </div>
 <!-- ===== /FOOTER ===== -->
+{% if is_own_profile %}
+<script nonce="{{ csp_nonce }}">
+(function () {
+  var _open = false;
+  function _csrf() { var m = document.cookie.match(/csrftoken=([^;]+)/); return m ? m[1] : ''; }
+  function _esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function _badge(n) {
+    var el = document.getElementById('notif-badge');
+    if (!el) return;
+    if (n > 0) { el.textContent = n > 99 ? '99+' : n; el.className = 'absolute top-1 right-1 min-w-[18px] h-[18px] bg-error text-on-error text-[10px] font-bold rounded-full flex items-center justify-center'; }
+    else { el.className = 'hidden'; }
+  }
+  function _icon(title) {
+    var t = title.toLowerCase();
+    if (t.includes('message')) return 'chat';
+    if (t.includes('note')) return 'sticky_note_2';
+    if (t.includes('school')) return 'school';
+    return 'notifications';
+  }
+  function _render(notifs) {
+    var el = document.getElementById('notif-list');
+    if (!notifs.length) { el.innerHTML = '<p class="text-center text-on-surface-variant py-8 text-sm">No notifications yet</p>'; return; }
+    el.innerHTML = notifs.map(function(n) { return '<div data-nid="' + n.id + '" class="notif-item flex items-start gap-3 px-4 py-3 hover:bg-surface-container-low cursor-pointer transition-colors' + (n.read ? ' opacity-60' : '') + '"><span class="material-symbols-outlined ' + (n.read ? 'text-on-surface-variant' : 'text-primary') + ' mt-0.5 text-[18px] flex-shrink-0">' + _icon(n.title) + '</span><div class="flex-1 min-w-0"><p class="font-label-bold text-label-bold text-on-surface text-sm">' + _esc(n.title) + '</p>' + (n.message ? '<p class="text-xs text-on-surface-variant mt-0.5 line-clamp-2">' + _esc(n.message) + '</p>' : '') + '<p class="text-[10px] text-on-surface-variant mt-1">' + n.created_at + '</p></div>' + (!n.read ? '<span class="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-2"></span>' : '') + '</div>'; }).join('');
+    el.querySelectorAll('.notif-item').forEach(function(item) {
+      item.addEventListener('click', function() { _nRead(parseInt(item.dataset.nid), item); });
+    });
+  }
+  function _load() {
+    fetch('/api/notifications/').then(function(r) { if (!r.ok) return; r.json().then(function(d) { _badge(d.unread_count); _render(d.notifications); }); }).catch(function() {});
+  }
+  function toggleNotif() {
+    _open = !_open;
+    document.getElementById('notif-panel').classList.toggle('hidden', !_open);
+    if (_open) _load();
+  }
+  function _nRead(id, el) {
+    fetch('/api/notifications/' + id + '/read/', {method:'POST', headers:{'X-CSRFToken':_csrf()}});
+    el.classList.add('opacity-60');
+    var dot = el.querySelector('.w-2.h-2.rounded-full.bg-primary'); if (dot) dot.remove();
+    var b = document.getElementById('notif-badge');
+    _badge(Math.max(0, parseInt(b.textContent||'0') - 1));
+  }
+  function markAllRead() {
+    fetch('/api/notifications/read-all/', {method:'POST', headers:{'X-CSRFToken':_csrf()}});
+    document.querySelectorAll('#notif-list [data-nid]').forEach(function(el) {
+      el.classList.add('opacity-60');
+      var dot = el.querySelector('.w-2.h-2.rounded-full.bg-primary'); if (dot) dot.remove();
+    });
+    _badge(0);
+  }
+  function _wsConnect() {
+    var proto = location.protocol === 'https:' ? 'wss' : 'ws';
+    var ws = new WebSocket(proto + '://' + location.host + '/ws/notifications/');
+    ws.onmessage = function(e) { var d = JSON.parse(e.data); if (d.type === 'notify') { var b = document.getElementById('notif-badge'); _badge(parseInt(b.textContent||'0') + 1); if (_open) _load(); } };
+    ws.onclose = function() { setTimeout(_wsConnect, 3000); };
+  }
+  document.addEventListener('click', function(e) {
+    if (!document.getElementById('notif-wrap')?.contains(e.target)) { _open = false; document.getElementById('notif-panel')?.classList.add('hidden'); }
+  });
+  document.getElementById('notif-btn').addEventListener('click', toggleNotif);
+  document.getElementById('mark-all-read-btn').addEventListener('click', markAllRead);
+  _wsConnect();
+  _load();
+})();
+</script>
+{% endif %}
 </body>
 </html>
