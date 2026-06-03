@@ -44,7 +44,6 @@ exec gunicorn config.asgi:application \
     -k uvicorn.workers.UvicornWorker \
     --workers 2 \
     --bind 0.0.0.0:8000 \
-    --proxy-headers \
     --forwarded-allow-ips="*" \
     --timeout 120 \
     --access-logfile -
