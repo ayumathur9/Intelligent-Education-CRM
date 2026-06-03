@@ -26,8 +26,8 @@ if not email or not password:
     sys.exit(0)
 
 if len(password) < 12:
-    print("ERROR: DJANGO_SUPERUSER_PASSWORD must be at least 12 characters.", file=sys.stderr)
-    sys.exit(1)
+    print("WARNING: DJANGO_SUPERUSER_PASSWORD is shorter than 12 characters — skipping superuser creation.", file=sys.stderr)
+    sys.exit(0)
 
 if User.objects.filter(email=email).exists():
     print(f"Superuser already exists: {email}")
