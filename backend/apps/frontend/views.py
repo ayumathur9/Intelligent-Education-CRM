@@ -989,7 +989,7 @@ def view_profile_doc(request, doc_id):
 
     user = request.user
     is_owner = doc.student.user_id == user.pk
-    is_privileged = getattr(user, "role", None) in ("admin", "counselor")
+    is_privileged = getattr(user, "role", None) in ("admin", "counselor", "editor")
     if not is_owner and not is_privileged:
         return HttpResponseForbidden("Access denied.")
 

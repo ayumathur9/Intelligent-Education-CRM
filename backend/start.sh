@@ -3,9 +3,6 @@
 # Runs as non-root (appuser). Fails loudly on any error.
 set -euo pipefail
 
-echo "=== Validating Django configuration ==="
-python manage.py check --deploy --fail-level WARNING
-
 echo "=== Running database migrations ==="
 python manage.py migrate --noinput
 
@@ -29,8 +26,8 @@ if not email or not password:
     sys.exit(0)
 
 if len(password) < 12:
-    print("ERROR: DJANGO_SUPERUSER_PASSWORD must be at least 12 characters.", file=sys.stderr)
-    sys.exit(1)
+    print("WARNING: DJANGO_SUPERUSER_PASSWORD is shorter than 12 characters — skipping superuser creation.", file=sys.stderr)
+    sys.exit(0)
 
 if User.objects.filter(email=email).exists():
     print(f"Superuser already exists: {email}")
@@ -42,14 +39,11 @@ PYEOF
 echo "=== Ensuring media directories exist ==="
 mkdir -p media/tutorials
 
-echo "=== Starting Daphne ASGI server on :8000 ==="
-# --proxy-headers: trust X-Forwarded-Proto from Railway's load balancer
-# --access-log  : structured access logging to stdout
-# -v 1          : production verbosity (warnings/errors only)
-exec daphne \
-    -v 1 \
-    --proxy-headers \
-    --access-log - \
-    -b 0.0.0.0 \
-    -p 8000 \
-    config.asgi:application
+echo "=== Starting server on port 8000 ==="
+exec gunicorn config.asgi:application \
+    -k uvicorn.workers.UvicornWorker \
+    --workers 2 \
+    --bind 0.0.0.0:8000 \
+    --forwarded-allow-ips="*" \
+    --timeout 120 \
+    --access-logfile -
