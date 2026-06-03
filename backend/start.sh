@@ -23,5 +23,11 @@ else:
     print("No superuser env vars set, skipping.")
 PYEOF
 
-echo "=== Starting Daphne on port 8000 ==="
-exec daphne -v 2 config.asgi:application --bind 0.0.0.0 --port 8000
+echo "=== Starting server on port 8000 ==="
+exec gunicorn config.asgi:application \
+    -k uvicorn.workers.UvicornWorker \
+    --workers 2 \
+    --bind 0.0.0.0:8000 \
+    --forwarded-allow-ips="*" \
+    --timeout 120 \
+    --access-logfile -

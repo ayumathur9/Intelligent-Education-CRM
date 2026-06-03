@@ -115,6 +115,7 @@ else:
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "django.middleware.gzip.GZipMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     # OBS-002: assign X-Request-ID trace header as early as possible.
     "apps.common.middleware.RequestCorrelationMiddleware",

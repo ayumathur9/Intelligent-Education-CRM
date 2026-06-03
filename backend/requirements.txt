@@ -36,6 +36,8 @@ daphne>=4.0,<5.0
 channels>=4.0,<5.0
 # CRIT-002: Redis channel layer for production WebSocket broadcasting
 channels-redis>=4.1,<5.0
+# Multi-worker ASGI server — used via gunicorn -k uvicorn.workers.UvicornWorker
+uvicorn[standard]>=0.29,<1.0
 
 # ---------------------------------------------------------------------------
 # API documentation
